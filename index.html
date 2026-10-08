@@ -4478,7 +4478,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r21';
+const APP_REV76='iocl-portal-shell-v5.99.15-r22';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4507,7 +4507,14 @@ function adminEdit83(r){return !!r&&!r.conflict&&!wfFinal86(r)&&['Draft','Pendin
  const open=rptOpen;rptOpen=function(B,d,pat,edit){const r=report64(d);if(edit&&ptRole()==='admin'&&r&&!adminEdit83(r))return toast('Editing is locked while the report is with another reviewing role.');return open.apply(this,arguments)};
  const render=drRender;drRender=function(B,date,person){const r=report64({date,person});if(ptRole()==='admin'&&r&&!adminEdit83(r)){window.__rpEdit='';window.__rpRO=date+'|'+person;}return render.apply(this,arguments)};
 })();
-</script><script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
+</script><style>/* Item84: clearly larger login logo, all other screens unchanged. */
+html body .pl .pc img.lg.om-team-logo{width:176px!important;height:176px!important}
+@media(max-width:700px){html body .pl .pc img.lg.om-team-logo{width:120px!important;height:120px!important}}
+@media(max-width:700px) and (max-height:720px){html body .pl .pc img.lg.om-team-logo{width:100px!important;height:100px!important}}
+@media(max-width:700px) and (min-height:900px){html body .pl .pc img.lg.om-team-logo{width:136px!important;height:136px!important}}
+@media(min-width:701px) and (max-height:800px){html body .pl .pc{padding-top:10px!important;padding-bottom:8px!important}html body .pl .pc label{margin:5px 0 3px!important}html body .pl .pc #pgo{margin:5px 0!important;padding:9px!important}html body .pl .pm{padding:4px 16px 6px!important}}
+@media(max-width:700px) and (max-height:720px){html body .pl{height:auto!important;min-height:100dvh!important;overflow:visible!important}html body .pl .pm{min-height:570px!important;flex:1 0 auto!important}html body:has(.pl){height:auto!important;overflow:auto!important}}
+</style><style>@media(min-width:701px) and (min-height:801px){html body .pl .pc{padding-top:18px!important;padding-bottom:16px!important}html body .pl .pm{padding-bottom:10px!important}html body .pl .pf{padding-top:8px!important;padding-bottom:8px!important}}</style><script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
 const asset45Jobs=new Map();
 async function asset45(id){const e=document.getElementById(id);if(!e?.dataset.asset45||e.textContent.trim())return;if(asset45Jobs.has(id))return asset45Jobs.get(id);const job=(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let r,text;try{r=await fetch(e.dataset.asset45,{signal:controller.signal});text=await r.text()}catch(x){throw Error('Module download did not finish. Check internet and reopen this section to retry. Saved records are unchanged.')}finally{clearTimeout(timer)};if(!r.ok)throw Error('Module download failed. Reopen online and retry.');if(!/^[A-Za-z0-9+/=\s]+$/.test(text)||text.length<100)throw Error('Module file is invalid.');e.textContent=text;})();asset45Jobs.set(id,job);try{await job}catch(e){asset45Jobs.delete(id);throw e}}
 function asset45Wait(B){B.innerHTML='<div class="pcard" role="status">Opening module...</div>'}
