@@ -1,5 +1,5 @@
 /* v5.99.15 r12: immediate cached launch, bounded installs, visible update status. */
-const CACHE='iocl-portal-shell-v5.99.15-r18';
+const CACHE='iocl-portal-shell-v5.99.15-r19';
 const ROOT=new URL('./',self.location.href),APP=new URL('index.html',ROOT).href;
 const FILES=['index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','icon-maskable-512.png','pipeline-module.b64','schedule-module.b64'].map(p=>new URL(p,ROOT).href);
 async function note(text,done=false,error=false,percent=null){const all=await self.clients.matchAll({includeUncontrolled:true,type:'window'});all.forEach(c=>c.postMessage({update54:true,text,done,error,percent}));}
