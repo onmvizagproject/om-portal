@@ -3450,8 +3450,9 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
  const sigNow=()=>{try{return Object.values(wfState().reports).map(r=>r.id+':'+r.status+':'+r.to+':'+(r.updated||0)).sort().join('|')}catch(e){return ''}};
  wfSync=async function(){if(wfBusy)return wfBusy;if(!SC.url||!SC.key)return false;
   wfBusy=(async()=>{try{if(!navigator.onLine)throw Error('Offline');
-   const list=(await sApi({action:'list'})).ids||{},x=wfLoad(),ids=Object.keys(list).filter(id=>id.startsWith(WF_PREFIX)&&!x.ops[id]);
-   const chunks=[];for(let i=0;i<ids.length;i+=3)chunks.push(ids.slice(i,i+3));
+   const first=wfLoad(),pending=first.pending.map(id=>first.ops[id]).filter(Boolean).sort((a,b)=>a.ts-b.ts);for(const op of pending){await sApi({action:'put',id:op.id,ua:op.ts,text:JSON.stringify(op),sheet:'',view:null});const cur=wfLoad();cur.pending=cur.pending.filter(id=>id!==op.id);wfStore(cur)}
+   const listing=await sApi({action:'list'}),list=listing.ids||{},x=wfLoad(),ids=Object.keys(list).filter(id=>id.startsWith(WF_PREFIX)&&!x.ops[id]);
+   const chunks=[];let chunk=[],bytes=0;for(const id of ids){const size=Number(listing.sizes?.[id])||128*1024;if(chunk.length&&(chunk.length>=40||bytes+size>1024*1024)){chunks.push(chunk);chunk=[];bytes=0}chunk.push(id);bytes+=size}if(chunk.length)chunks.push(chunk);
    const got=await pool(chunks,4,async ch=>({ch,items:(await sApi({action:'get',ids:ch})).items||{}}));
    for(const g of got){for(const id of g.ch){const op=JSON.parse(g.items[id]?.text||'null');if(!op||op.id!==id||!['report','config','purge'].includes(op.kind)||!op.data||!Number.isFinite(op.ts))throw Error('Incomplete approval record. Retry Sync.');x.ops[id]=op}}
    {const cur=wfLoad();for(const id of ids)if(x.ops[id]&&!cur.ops[id])cur.ops[id]=x.ops[id];cur.ops={...x.ops,...cur.ops};wfStore(cur)}
@@ -3463,7 +3464,7 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
    const s=sigNow();if(s!==lastSig){lastSig=s;const a=document.activeElement;if(!document.getElementById('wfmodal')&&!(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))refreshLists90()}}})();
   return wfBusy};
  /* poll every 20 s while visible (one cheap list call), instead of 60 s; also on focus */
- setInterval(()=>{if(ptRole()&&document.visibilityState==='visible'&&!wfBusy)wfSync()},20000);
+ setInterval(()=>{if(ptRole()&&document.visibilityState==='visible'&&!wfBusy)wfSync()},10000);
  window.addEventListener('focus',()=>{if(ptRole())wfSync()});
  /* ---- 2. remove the green "PDF" download button on report cards (View PDF stays) ---- */
  function stripPdf(root){(root||document).querySelectorAll('button[data-p],button[data-rp]').forEach(b=>{if(b.textContent.trim()==='PDF')b.remove()})}
@@ -3687,7 +3688,7 @@ async function p96Snapshot(url,key){
  const list=await p96Request(url,key,{action:'list'});if(!list.ids||typeof list.ids!=='object'||Array.isArray(list.ids))throw Error('This Web app does not support the portal list action. Deploy the supplied RA Bill Package Apps Script.');
  const ids=Object.keys(list.ids),items={},quarantine={},batches=[];let batch=[],bytes=0;
  for(const id of ids){const size=Number(list.sizes?.[id]);const estimate=Number.isFinite(size)&&size>=0?size:((id.startsWith('tomb_aomp_docx_')||id.startsWith(PIPE_PREFIX))?1024*1024:128*1024);if(batch.length&&(batch.length>=80||bytes+estimate>1024*1024)){batches.push(batch);batch=[];bytes=0;}batch.push(id);bytes+=estimate;}if(batch.length)batches.push(batch);let downloaded=0;
- for(const batch of batches){p96Progress('Update under progress... '+Math.floor(10+80*downloaded/Math.max(1,ids.length))+'%');const g=await p96Request(url,key,{action:'get',ids:batch});for(const id of batch){const x=g.items?.[id];if(!x||typeof x.text!=='string')throw Error('Incomplete download for '+id+'. Old local data was not replaced. Retry.');let data;try{data=JSON.parse(x.text)}catch(e){if(id.startsWith(PIPE_PREFIX)){quarantine[id]={...x,error:e.message};downloaded++;continue;}throw Error('Unreadable Sheet record '+id+': '+e.message+'. Old local data was not replaced.');}items[id]={...x,data};downloaded++;}}
+ let cursor89=0;await Promise.all(Array.from({length:Math.min(3,batches.length)},async()=>{while(cursor89<batches.length){const batch=batches[cursor89++];const g=await p96Request(url,key,{action:'get',ids:batch});for(const id of batch){const x=g.items?.[id];if(!x||typeof x.text!=='string')throw Error('Incomplete download for '+id+'. Old local data was not replaced. Retry.');let data;try{data=JSON.parse(x.text)}catch(e){if(id.startsWith(PIPE_PREFIX)){quarantine[id]={...x,error:e.message};downloaded++;continue;}throw Error('Unreadable Sheet record '+id+': '+e.message+'. Old local data was not replaced.');}items[id]={...x,data};downloaded++;}p96Progress('Update under progress... '+Math.floor(10+80*downloaded/Math.max(1,ids.length))+'%');}}));
 
  if(items[PT_CLOUD])ptValid(items[PT_CLOUD].data);
  for(const [id,x] of Object.entries(items)){
@@ -4310,7 +4311,7 @@ async function s15Check(){if(s15Busy)return s15Busy;const v=s15Read();if(!v||v.u
 (()=>{
  const login=ptLogin;ptLogin=function(){const v=s15Read();if(v&&!ptRole()){sessionStorage.removeItem('om_session15');s15Release73(v);}return login.apply(this,arguments)};
  const api=sApi;sApi=async function(body){if(ptRole()){const v=s15Read();if(!v||v.url!==SC.url||Date.now()>=v.expires){s15End('This session has expired. Log in again.');throw Error('Login session expired. No request was sent.')}body={...body,sessionLogin:v.login,sessionToken:v.token};}return api(body)};
- setInterval(()=>{if(ptRole()&&!document.hidden)s15Check()},60000);addEventListener('online',()=>{if(ptRole())s15Check()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ptRole())s15Check()});
+ setInterval(()=>{if(ptRole()&&!document.hidden)s15Check()},10000);addEventListener('online',()=>{if(ptRole())s15Check()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ptRole())s15Check()});
 })();
 
 </script>
@@ -4478,7 +4479,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r22';
+const APP_REV76='iocl-portal-shell-v5.99.15-r23';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4514,7 +4515,14 @@ html body .pl .pc img.lg.om-team-logo{width:176px!important;height:176px!importa
 @media(max-width:700px) and (min-height:900px){html body .pl .pc img.lg.om-team-logo{width:136px!important;height:136px!important}}
 @media(min-width:701px) and (max-height:800px){html body .pl .pc{padding-top:10px!important;padding-bottom:8px!important}html body .pl .pc label{margin:5px 0 3px!important}html body .pl .pc #pgo{margin:5px 0!important;padding:9px!important}html body .pl .pm{padding:4px 16px 6px!important}}
 @media(max-width:700px) and (max-height:720px){html body .pl{height:auto!important;min-height:100dvh!important;overflow:visible!important}html body .pl .pm{min-height:570px!important;flex:1 0 auto!important}html body:has(.pl){height:auto!important;overflow:auto!important}}
-</style><style>@media(min-width:701px) and (min-height:801px){html body .pl .pc{padding-top:18px!important;padding-bottom:16px!important}html body .pl .pm{padding-bottom:10px!important}html body .pl .pf{padding-top:8px!important;padding-bottom:8px!important}}</style><script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
+</style><style>@media(min-width:701px) and (min-height:801px){html body .pl .pc{padding-top:18px!important;padding-bottom:16px!important}html body .pl .pm{padding-bottom:10px!important}html body .pl .pf{padding-top:8px!important;padding-bottom:8px!important}}</style><script>
+/* Item88: every location tap appends one route stop; repeat stops are retained. */
+(()=>{const ui=drLocationUI82;drLocationUI82=function(d,edit){let h=ui.apply(this,arguments);if(!edit)return h;const box=document.createElement('div');box.innerHTML=h;box.querySelectorAll('[data-drloc82]').forEach(el=>{const name=el.dataset.drloc82,label=el.closest('label'),b=document.createElement('button');b.type='button';b.className='drlocappend88';b.dataset.append88=name;b.textContent=name;b.setAttribute('aria-label','Append '+name+' to route');label.replaceWith(b)});const order=Array.isArray(d.locationOrder)?d.locationOrder:[],route=document.createElement('div');route.className='drroute88';route.innerHTML='<p class="hint">Tap each location in travel order. Tap again to visit it again.</p>'+order.map((n,i)=>'<span class="drstop88"><b>'+esc(String(i+1)+'. '+n)+'</b><button type="button" data-remove88="'+i+'" aria-label="Remove stop '+(i+1)+'">×</button></span>').join('');box.querySelector('#drlocpanel83')?.before(route);return box.innerHTML};
+ const bind=drLocationBind82;drLocationBind82=function(B,edit){bind.apply(this,arguments);if(!edit||!drCurrent)return;const refresh=()=>{drCurrent.locationManual=false;drCurrent.location=drCurrent.locationOrder.join('-');drLocationMount82(B,true);const panel=B.querySelector('#drlocpanel83');if(panel){panel.hidden=false;B.querySelector('#drlocation82')?.setAttribute('aria-expanded','true')}B.dispatchEvent(new Event('input',{bubbles:true}))};B.querySelectorAll('[data-append88]').forEach(b=>b.onclick=()=>{drCurrent.locationOrder=[...(drCurrent.locationOrder||[]),b.dataset.append88];refresh()});B.querySelectorAll('[data-remove88]').forEach(b=>b.onclick=()=>{drCurrent.locationOrder=(drCurrent.locationOrder||[]).filter((n,i)=>i!==Number(b.dataset.remove88));refresh()})};
+})();
+</script><style>.drlocitem83>.drlocappend88{flex:1;min-width:0;min-height:44px;padding:8px;text-align:left;border:0;border-radius:6px;background:#edf4fd;color:#163d66;font:600 14px system-ui;cursor:pointer}.drroute88{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.drroute88>p{width:100%;margin:0 0 3px}.drstop88{display:inline-flex;align-items:center;gap:4px;max-width:100%;padding:3px 5px 3px 8px;border:1px solid #b5cae3;border-radius:8px;background:#eef5fc;font-size:12px}.drstop88 b{overflow-wrap:anywhere}.drstop88 button{min-width:32px;min-height:32px;border:0;background:transparent;font-size:20px;cursor:pointer}</style><script>/* Item87: show takeover promptly on active devices and reject revoked sessions. */
+(()=>{const api=sApi;sApi=async function(){try{return await api.apply(this,arguments)}catch(e){if(ptRole()&&/SESSION_EXPIRED/.test(String(e.message)))s15End('This user logged in on another device, or this session ended. Log in again to use this device.');throw e}};})();
+</script><style>.drlocrow83>#drlocation82{min-height:44px;width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #c6cfdb;border-radius:8px}</style><script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
 const asset45Jobs=new Map();
 async function asset45(id){const e=document.getElementById(id);if(!e?.dataset.asset45||e.textContent.trim())return;if(asset45Jobs.has(id))return asset45Jobs.get(id);const job=(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let r,text;try{r=await fetch(e.dataset.asset45,{signal:controller.signal});text=await r.text()}catch(x){throw Error('Module download did not finish. Check internet and reopen this section to retry. Saved records are unchanged.')}finally{clearTimeout(timer)};if(!r.ok)throw Error('Module download failed. Reopen online and retry.');if(!/^[A-Za-z0-9+/=\s]+$/.test(text)||text.length<100)throw Error('Module file is invalid.');e.textContent=text;})();asset45Jobs.set(id,job);try{await job}catch(e){asset45Jobs.delete(id);throw e}}
 function asset45Wait(B){B.innerHTML='<div class="pcard" role="status">Opening module...</div>'}
