@@ -2034,7 +2034,7 @@ async function drSave(mode){const btn=$(mode==='pdf'?'#drpdf':mode==='submit'?'#
   if(mode==='submit'&&!confirm('Mark this report as Submitted (final)?\n\nAdmin already sees every saved report. You can still edit or delete it for 24 hours after you first saved it; each saved change shows to Admin as modified.'))return;
   if(!d.createdAt)d.createdAt=Date.now();
   const cfg=drView().config||{};if(!d.totalsFrozen){d.totals=JSON.parse(JSON.stringify(cfg.totals||{}));d.totalsFrozen=true}
-  const pp=drPerson(d.person);d.performer={name:pp?.name||'',designation:pp?.designation||'',signature:d.signatureConfirmed?(pp?.signature||''):''};
+  const pp=drPerson(d.person);d.performer={name:pp?.name||'',designation:pp?.designation||'',signature:''};
   if(mode==='submit'||d.status==='Submitted'){d.status='Submitted';d.submittedAt=Date.now()}
   d.savedAt=Date.now();d.saves=(ex?(ex.saves||1):0)+1;
   drCommit(drKey(d.date,d.person),d);
@@ -2069,7 +2069,7 @@ async function drPdf(d,o){o=o||{};const {PDFDocument,StandardFonts,rgb}=PDFLib;c
  for(let i=0;i<DR_ACT.length;i++){const key=DR_ACT[i][0],a=d.activities[key]||{};if(i<4&&d.totals[key]!==undefined)txt(String(d.totals[key]),220,ys[i],52,13,8);for(let j=0;j<(a.counts||[]).length;j++)if(a.counts[j]!=='')txt(a.counts[j],220,rowYs[i][j],52,13,8);if(a.remark){white(277,ys[i],293,heights[i]-1);txt(a.remark,280,ys[i]+1,284,heights[i]-3,9)}}
  const c=d.charging;if(Object.values(c).some((v,k)=>!['type','size'].includes(Object.keys(c)[k])&&v!=='')){const cols=[[214.5,60.9,'MDPE / Steel length',c.type+' '+c.size+(c.type==='MDPE'?' mm':' inch')+(c.length!==''?'\nLength '+c.length+(c.type==='MDPE'?' m':' inch'):'' )],[275.4,144.5,'Area name',c.area],[419.9,40.9,'Pole',c.pole],[460.8,42.2,'Stone',c.stone],[503,69.3,'Plate / TF / SR',[c.plate&&'Plate '+c.plate,c.tf&&'TF '+c.tf,c.sr&&'SR '+c.sr].filter(Boolean).join('; ')]];for(const [x,w,label,value]of cols)cell(x,472.5,w,26,label,value)}
  white(215.5,500,354.5,13.5);txt(d.encroach||'Nil',219,501,345,13,8);
- const p=d.performer||{};txt([p.name,p.designation].filter(Boolean).join(' / '),301,593,128,42,10);txt(d.comment,433,593,136,42,10);
+ const p=o?.sigs?.perf||{};txt([p.name,p.designation].filter(Boolean).join(' / '),301,593,128,42,10);txt(d.comment,433,593,136,42,10);
  if(p.signature){const sg80=await window.omSigFix(p.signature);const u=Uint8Array.from(atob(sg80.split(',')[1]),c=>c.charCodeAt(0));const image=sg80.startsWith('data:image/png')?await pdf.embedPng(u):await pdf.embedJpg(u),dim=image.scaleToFit(120,36);page.drawImage(image,{x:170+(120-dim.width)/2,y:H-634,width:dim.width,height:dim.height})}
 
  if(o.sigs){
@@ -2083,7 +2083,7 @@ async function drPdf(d,o){o=o||{};const {PDFDocument,StandardFonts,rgb}=PDFLib;c
  if(signer.image){const image=await emb(signer.image,signer.actor),dim=image.scaleToFit(120,sharedImageHeight);page.drawImage(image,{x:163.5+(132.5-dim.width)/2,y:H-y-(rh+dim.height)/2,width:dim.width,height:dim.height})}
  centerText(wfSigLabel85(signer),302,y+4,120.5,rh-8);centerText(signer.comment||'',434.5,y+4,132.8,rh-8)
  }};
- await row(o.sigs.perf?[{...o.sigs.perf,comment:o.sigs.perf.comment||d.comment||''}]:p.name?[{...p,image:p.signature||'',comment:d.comment||''}]:[],0);await row(o.sigs.rev,1);await row(o.sigs.ga?[o.sigs.ga]:[],2)
+ await row(o.sigs.perf?[{...o.sigs.perf,comment:o.sigs.perf.comment||d.comment||''}]:[],0);await row(o.sigs.rev,1);await row(o.sigs.ga?[o.sigs.ga]:[],2)
  }
  const bytes=await pdf.save();if(!o.noDl)fmtBlob(new Blob([bytes],{type:'application/pdf'}),'SF-26_Daily_'+d.date+'_'+(p.name||'Patroller').replace(/[^a-z0-9]+/gi,'_')+'.pdf');return bytes}
 async function drInit(B){drRender(B);const pat=drIsPat();let before='';if(pat){drCapture();before=drCurrent?drNorm(drCurrent):''}await drSync();if(!B.isConnected||window.__patSec!=='daily')return;if(pat){drCapture();if(drCurrent&&before===drNorm(drCurrent))drRender(B,drCurrent.date,drCurrent.person)}else if($('#dradminlist'))drAdminHome(B)}
@@ -2243,14 +2243,14 @@ async function wfFresh(){if(SC.url&&SC.key&&!await wfSync())throw Error('Cannot 
 function wfSigner(){const a=wfActor(),role=ptRole(),org=ptGet().org||[];let p;
  if(a.startsWith('pat:'))p=org.find(p=>p.id===a.slice(4));
  else {const patterns={admin:/^admin(?:istrator)?$/i,pm:/project\s*manager|aeo\s*in[ -]?charge/i,ae:/\b(?:ae|tpi|tpa)\b/i,eic:/\beic\b|engineer[ -]*in[ -]*charge/i,hse:/\bhse\b/i,mech:/mechanical/i,elec:/electrical/i,erv:/\berv\b/i};const matches=org.filter(p=>p.name&&patterns[role]?.test(p.designation||''));const exact=org.find(p=>p.name&&p.id===role&&patterns[role]?.test(p.designation||''));if(exact)p=exact;else if(matches.length===1)p=matches[0];else if(matches.length>1)throw Error('More than one Organogram person matches '+ptRoleName(role)+'. Signature not applied.');}
- if(!p?.name)throw Error('No matching Organogram person for '+ptRoleName(role)+'.');const sgImg=p.signature||wfMySig(a);if(!/^data:image\/(png|jpeg|webp);base64,/.test(sgImg||''))throw Error('No saved signature for '+p.name+'. Upload your signature image in the box above, then press Put signature again.');return {actor:a,person:p.id,code:p.id,name:p.name,designation:p.designation,image:sgImg,at:Date.now()}}
+ if(!p?.name)throw Error('No matching Organogram person for '+ptRoleName(role)+'.');const sgImg=p.signature||wfMySig(a);if(!/^data:image\/(png|jpeg|webp);base64,/.test(sgImg||''))throw Error('No saved signature for '+p.name+'. Upload your signature image in the box above, then press Put signature and name again.');return {actor:a,person:p.id,code:p.id,name:p.name,designation:p.designation,image:sgImg,at:Date.now()}}
 function wfMine(r){return (ptRole()==='admin'&&r.status!=='Draft')||r.owner===wfActor()||r.to===wfActor()||r.history.some(h=>h.by===wfActor()||h.to===wfActor())}
 function wfActive(r){return r.to===wfActor()&&!r.conflict&&['Pending','Returned','Draft'].includes(r.status)}
 function wfEvent(r,action,to,note){r.updated=Date.now();r.history.push({at:r.updated,by:wfActor(),action,to:to||'',note:note||''});return r}
 async function wfMutate(id,head,action,next,note){const old=wfState().reports[id];if(!old||old.head!==head)throw Error('Report changed on another device. Close and reopen.');if(['send','forward','approve'].includes(action)&&wfAlready(old,action)&&!wfActive(old))return 'Already sent/submitted';if(!wfActive(old))throw Error('This report is not awaiting action from your role.');if(action==='forward'&&['admin','pm'].includes(ptRole())&&old.owner!==wfActor()&&!wfSendRoles94(old.stack).includes(next))throw Error('Choose a permitted next role.');const r=drClone(old);let sigRec='n/a';delete r.head;delete r.conflict;
- if(action==='sign'){const sig=wfSigner();sig.comment=String(note||'').trim();if(r.signatures.some(s=>s.actor===sig.actor&&s.person===sig.person&&s.image===sig.image&&s.name===sig.name&&s.designation===sig.designation&&String(s.comment||'')===sig.comment))return 'Signature already applied';r.signatures=r.signatures.filter(s=>s.actor!==wfActor());r.signatures.push(sig);wfEvent(r,'Put Signature','',(note?note+' | ':'')+wfSigLabel85(sig))}
+ if(action==='sign'){const sig=wfSigner();sig.comment=String(note||'').trim();if(r.signatures.some(s=>s.actor===sig.actor&&s.person===sig.person&&s.image===sig.image&&s.name===sig.name&&s.designation===sig.designation&&String(s.comment||'')===sig.comment))return 'Signature already applied';r.signatures=r.signatures.filter(s=>s.actor!==wfActor());r.signatures.push(sig);wfEvent(r,'Put Signature','',(note?note+' | ':'')+wfSigLabel85(sig));if(r.owner!==wfActor()&&wfActor()===wfFinalRole89(old)){r.status='Approved';r.to='admin';r.approvedAt=Date.now();r.approvedBy=wfActor();wfEvent(r,'Final approval','admin',note)}}
  else if(action==='back'){if(!WF_APPROVERS.includes(ptRole())||!r.stack.length)throw Error('No previous sender to return to.');if(!String(note||'').trim())throw Error('Enter a reason for Send Back.');r.to=r.stack.pop();r.status='Returned';r.signatures=r.signatures.filter(s=>s.actor!==r.to&&s.actor!==wfActor());wfEvent(r,'Send Back',r.to,note)}
- else if(['approve','forward','send'].includes(action)){const prior=r.signatures.find(s=>s.actor===wfActor());r.signatures=r.signatures.filter(s=>s.actor!==wfActor());if(ptRole()!=='admin'){try{const sig=wfSigner();sig.comment=String(note==null?(prior?.comment||''):note).trim();if(r.owner===wfActor()&&!sig.comment)sig.comment=String(r.snapshot?.comment||prior?.comment||'').trim();r.signatures.push(sig);sigRec='applied'}catch(e){sigRec='none';const comment=String(note==null?(prior?.comment||r.snapshot?.comment||''):note||r.snapshot?.comment||'').trim();if(comment){const person=wfOrgPerson85(wfActor()),performer=r.snapshot?.performer||{};r.signatures.push({actor:wfActor(),person:person?.id||'',name:person?.name||performer.name||wfName(wfActor()),designation:person?.designation||performer.designation||ptRoleName(ptRole()),image:'',comment,at:Date.now()})}}}const owner=r.owner===wfActor();if(action==='send'&&!owner)throw Error('Only the preparer can submit.');if(!owner&&!WF_APPROVERS.includes(ptRole()))throw Error('Approver role required.');if(action==='approve'){if(owner)throw Error('The preparer cannot self-approve.');if(wfRoute(old))throw Error('Forward to the configured next role. Final approval is for the last role in the chain.');r.status='Approved';r.to='admin';r.approvedAt=Date.now();r.approvedBy=wfActor();wfEvent(r,'Final approval','admin',note)}else{next=(['admin','pm'].includes(ptRole())&&!owner&&WF_APPROVERS.includes(next))?next:wfRoute(r);if(!WF_APPROVERS.includes(next)||next===wfActor()||r.stack.includes(next))throw Error('Choose a different configured approver, without a routing loop.');if(!r.routing89)r.routing89=wfPlan89(old);
+ else if(['approve','forward','send'].includes(action)){const prior=r.signatures.find(s=>s.actor===wfActor());r.signatures=r.signatures.filter(s=>s.actor!==wfActor());if(prior?.image){const sig=drClone(prior);sig.comment=String(note==null?(prior.comment||''):note).trim();r.signatures.push(sig);sigRec='applied'}else{sigRec='none';if(prior)r.signatures.push(drClone(prior))}const owner=r.owner===wfActor();if(action==='send'&&!owner)throw Error('Only the preparer can submit.');if(!owner&&!WF_APPROVERS.includes(ptRole()))throw Error('Approver role required.');if(action==='approve'){if(owner)throw Error('The preparer cannot self-approve.');if(wfRoute(old))throw Error('Forward to the configured next role. Final approval is for the last role in the chain.');r.status='Approved';r.to='admin';r.approvedAt=Date.now();r.approvedBy=wfActor();wfEvent(r,'Final approval','admin',note)}else{next=(['admin','pm'].includes(ptRole())&&!owner&&WF_APPROVERS.includes(next))?next:wfRoute(r);if(!WF_APPROVERS.includes(next)||next===wfActor()||r.stack.includes(next))throw Error('Choose a different configured approver, without a routing loop.');if(!r.routing89)r.routing89=wfPlan89(old);
  const picked=window.__wfFinalChoice89;const mark=picked&&picked.id===id&&picked.next===next?picked.final:!!document.querySelector('#wfmodal #wffinalnext89')?.checked;
  delete window.__wfFinalChoice89;
  if(mark){if(next==='admin')throw Error('Admin forwards without signing. Choose a signing role as final authority.');r.finalAuthority89=next;}else if(next===wfFinalRole89(old))r.finalAuthority89='';
@@ -2331,7 +2331,7 @@ else if(h.action==='Approve and forward'){tx=nm(h.by)+(h.by==='admin'?' forwarde
 else if(h.action==='Send Back'){tx=nm(h.by)+' sent back to '+nm(h.to);c='r'}
 else if(h.action==='Final approval'){tx='<b>APPROVED</b> by '+nm(h.by)+sg(h);c='g'}
 else if(h.action==='Revised report copy'){tx='Report changed; earlier approvals cleared'}
-else if(h.action==='Put Signature'){tx=nm(h.by)+' put signature'}
+else if(h.action==='Put Signature and Name'){tx=nm(h.by)+' put signature'}
 else return;steps.push('<div class="wfst '+c+'"><b>'+tx+'</b><small>'+t+(h.note&&h.action!=='Created report copy'?' | '+esc(h.note):'')+'</small></div>')});
 if(r.status==='Approved')steps.push('<div class="wfst g"><b>Final status: Approved</b></div>');else if(r.status==='Draft'&&!r.history.some(h=>h.action==='Submit'))steps.push('<div class="wfst w"><b>Not sent yet</b><small>Open the report and press Send</small></div>');else steps.push('<div class="wfst w"><b>Now waiting with '+nm(r.to)+'</b><small>'+esc(r.status)+'</small></div>');return steps.join('')}
 function wfStatusPage(B){if(!B)return;const mine=Object.values(wfState().reports).filter(r=>r.owner===wfActor()).sort((a,b)=>b.updated-a.updated);B.innerHTML='<style>.wfst{border-left:4px solid #8a8f98;padding:3px 10px;margin:6px 0}.wfst.g{border-color:#1a7f37}.wfst.r{border-color:#b42318}.wfst.w{border-color:#d97706}.wfst small{display:block;opacity:.75}</style><h2>Report Status</h2><p class="sub">Every report you sent, with each step: who received it, who forwarded it, any send back, and final approval.</p><div class="wfactions"><button id="wfssync" class="btn sec">Sync / reload</button></div><p class="hint">'+esc(wfStatus())+'</p>'+mine.map(r=>'<div class="pcard"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>'+esc(r.title)+'</b><span class="hint">'+esc(r.status)+' | '+esc(drWhen(r.updated))+'</span></div>'+wfStepsHtml(r)+'<button class="btn sec" data-wfsv="'+r.id+'">View report / history</button></div>').join('')+(mine.length?'':'<div class="pcard">You have not created any reports yet.</div>');$$('[data-wfsv]',B).forEach(b=>b.onclick=()=>wfDialog(b.dataset.wfsv));$('#wfssync').onclick=async()=>{await wfSync();wfStatusPage(B)}}
@@ -2722,11 +2722,11 @@ wfStatusPage=function(B){try{ptOrgCleanup()}catch(e){}if(B){B.classList.remove('
 /* Send choice for Project Manager (AE/TPI/TPA or EIC) like Admin */
 const pickO=wfPickSend63;
 wfPickSend63=function(def,stack){const p=pickO(def,stack);setTimeout(()=>{const w=document.getElementById('wfpick63');if(!w)return;if(ptRole()==='pm')[...w.options].forEach(o=>{if(o.value==='pm')o.remove()});const h=w.closest('div').querySelector('h3');if(h)h.textContent='Approved by '+wfName(wfActor())},0);return p};
-/* Put signature + View beside it for PM and AE/TPI/TPA (and EIC) */
+/* Put signature and name + View beside it for PM and AE/TPI/TPA (and EIC) */
 const wfDialog70=wfDialog;
 wfDialog=function(id){wfDialog70(id);try{const r=wfState().reports[id];if(!r||!wfActive(r)||r.owner===wfActor()||!['pm','ae','eic'].includes(ptRole()))return;const row=document.querySelector('#wfmodal .wfactions:last-of-type');if(!row||row.querySelector('#wfsig71'))return;
  const has=r.signatures.some(s=>s.actor===wfActor());
- const a=document.createElement('button');a.className='btn sec';a.id='wfsig71';a.textContent=has?'Signature put (re-apply)':'Put signature';
+ const a=document.createElement('button');a.className='btn sec';a.id='wfsig71';a.textContent=has?'Signature put (re-apply)':'Put signature and name';
  const v=document.createElement('button');v.className='btn sec';v.textContent='View (check signature in report)';
  a.onclick=async()=>{a.disabled=true;try{const cur=wfState().reports[id];const m=await wfMutate(cur.id,cur.head,'sign','',document.getElementById('wfnote')?.value||'');wfDialog(id);toast(m||'Signature applied. Use View to check it.')}catch(e){const er=document.getElementById('wferr');if(er)er.textContent=e.message}finally{a.disabled=false}};
  v.onclick=()=>wfSignedView(id,v);row.prepend(v);row.prepend(a);
@@ -2829,7 +2829,7 @@ function wfSigCode(x){if(!x)return '';if(x.code)return x.code;try{const p=(ptGet
  async function compress(f){if(f.size>10000000)throw Error('Choose an image under 10 MB.');if(!/^image\/(png|jpeg|webp)$/.test(f.type))throw Error('Choose a PNG, JPEG or WebP signature image.');const img=await createImageBitmap(f);let data='';for(const mw of [640,480,320,240]){const sc=Math.min(1,mw/img.width,(mw*240/640)/img.height),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*sc));c.height=Math.max(1,Math.round(img.height*sc));data=window.omSigClean(img,c);if(data.length<=70000)break}img.close();if(data.length>70000)throw Error('Signature image is too detailed. Choose a simpler image.');return data}
  function panel(){let h='',sg=null,err='';try{sg=wfSigner()}catch(e){err=e.message}
   const org=ptGet().org||[],a=wfActor();let who=null;try{who=a.startsWith('pat:')?org.find(p=>p.id===a.slice(4)):null}catch(e){}
-  if(sg){h='<h3>Your signature details</h3><div class="r"><b>Approver</b><span>'+esc(wfSigLabel85(sg))+'</span></div><img src="'+esc(sg.image)+'" alt="Your signature"><div class="ok">Signature ready. Press Put signature to apply it, then View to check the PDF.</div>'}
+  if(sg){h='<h3>Your signature details</h3><div class="r"><b>Approver</b><span>'+esc(wfSigLabel85(sg))+'</span></div><img src="'+esc(sg.image)+'" alt="Your signature"><div class="ok">Signature ready. Press Put signature and name to apply it, then View to check the PDF.</div>'}
   else{h='<h3>Your signature details</h3><div class="bad">Cannot put signature yet: '+esc(err)+'</div>'}
   const noSig=/signature/i.test(err)&&!/Organogram person/.test(err);
   if(!sg&&!noSig)h+='<p class="hint">Ask Admin to set your Name and Designation in the Organogram editor (Admin &gt; Organogram).</p>';
@@ -2887,15 +2887,15 @@ wfDialog=function(id){wfDialog73(id);try{
  if(r.status==='Returned'&&sbh&&!m.querySelector('.wf73ban')){const ban=document.createElement('div');ban.className='wf73ban';ban.innerHTML='<b>Sent back by '+esc(wfName(sbh.by))+'</b> ('+esc(drWhen(sbh.at))+')<br>Remarks: '+esc(sbh.note||'(none)');const h=m.querySelector('.hint');if(h)h.after(ban);else m.prepend(ban)}
  const appr=WF_APPROVERS.includes(ptRole())&&r.owner!==wfActor();if(!appr)return;
  const pv=m.querySelector('#wfpreview');if(pv&&!m.querySelector('#wfpdf73')){const host=document.createElement('div');host.id='wfpdf73';host.className='wf73pdf';pv.style.display='none';pv.before(host);pdf73(r,host)}
- [...m.querySelectorAll('.hint')].forEach(h=>{if(/Saved signature images/.test(h.textContent))h.textContent='Press Put signature to place your signature, name and designation in your box of the PDF above. Saved signature images, not certificate-based digital signatures.'});
+ [...m.querySelectorAll('.hint')].forEach(h=>{if(/Saved signature images/.test(h.textContent))h.textContent='Press Put signature and name to place your signature, name and designation in your box of the PDF above. Saved signature images, not certificate-based digital signatures.'});
  if(!wfActive(r))return;
  const old=m.querySelector('[data-wa="back"]');const row=old?old.parentElement:null;if(!row)return;
  old.remove();
  const lab=m.querySelector('#wfnote')?.closest('label');if(lab&&lab.firstChild&&lab.firstChild.nodeType===3)lab.firstChild.textContent='Comments (optional) ';
  const adm81=ptRole()==='admin';
  let a=row.querySelector('#wfsig71');
- if(adm81){[...row.querySelectorAll('button')].forEach(x=>{if(x.id==='wfsig71'||/^(Put signature|Signature put|View)/.test(x.textContent))x.remove()});[...m.querySelectorAll('.hint')].forEach(h=>{if(/Press Put signature|goes into your own box/.test(h.textContent))h.remove()});const b0=document.createElement('button');b0.className='btn red';b0.id='wfsb73';b0.textContent='Send Back';b0.onclick=()=>sb73(id);row.appendChild(b0);return}
- if(!a){a=document.createElement('button');a.className='btn sec';a.id='wfsig71';const has=r.signatures.some(s=>s.actor===wfActor());a.textContent=has?'Signature put (re-apply)':'Put signature';
+ if(adm81){[...row.querySelectorAll('button')].forEach(x=>{if(x.id==='wfsig71'||/^(Put signature and name|Signature put|View)/.test(x.textContent))x.remove()});[...m.querySelectorAll('.hint')].forEach(h=>{if(/Press Put signature and name|goes into your own box/.test(h.textContent))h.remove()});const b0=document.createElement('button');b0.className='btn red';b0.id='wfsb73';b0.textContent='Send Back';b0.onclick=()=>sb73(id);row.appendChild(b0);return}
+ if(!a){a=document.createElement('button');a.className='btn sec';a.id='wfsig71';const has=r.signatures.some(s=>s.actor===wfActor());a.textContent=has?'Signature put (re-apply)':'Put signature and name';
   a.onclick=async()=>{a.disabled=true;try{const cur=wfState().reports[id];const msg=await wfMutate(cur.id,cur.head,'sign','',document.getElementById('wfnote')?.value||'');wfDialog(id);toast(msg||'Signature applied')}catch(er){const x=document.getElementById('wferr');const t=String(er.message||er).replace('in the box above','in Admin > Organogram');if(x)x.textContent=t;toast(t)}finally{a.disabled=false}};
   row.prepend(a)}
  let v=[...row.querySelectorAll('button')].find(b=>/^View/.test(b.textContent));
@@ -3008,7 +3008,7 @@ document.addEventListener('click',e=>{
 (()=>{
  const isOwner=r=>r&&r.owner===wfActor();
  async function preparerPdf(r,host){
-  let c=drClone(r);try{const sg=wfSigner(),prior=(c.signatures||[]).find(s=>s.actor===wfActor());sg.comment=prior?.comment||c.snapshot?.comment||'';c.signatures=(c.signatures||[]).filter(s=>s.actor!==wfActor());c.signatures.push(sg)}catch(e){}
+  const c=drClone(r);
   return wfPdfShow88(c,host);
  }
 
@@ -3193,7 +3193,7 @@ const APP_VER_NOTE86='v5.98';
 (function(){
  const dialog=wfDialog;
  wfDialog=function(id){const result=dialog.apply(this,arguments),r=wfState().reports[id],note=document.getElementById('wfnote');
-  if(note&&r){const own=(r.signatures||[]).find(s=>s.actor===wfActor());note.value=own?.comment||'';note.placeholder='Type your comment, then press Put signature';
+  if(note&&r){const own=(r.signatures||[]).find(s=>s.actor===wfActor());note.value=own?.comment||'';note.placeholder='Type your comment, then press Put signature and name';
    const label=note.closest('label');if(label&&label.firstChild?.nodeType===3)label.firstChild.textContent='Comments (printed beside your signature) ';
   }return result;
  };
@@ -4380,7 +4380,7 @@ body:has(.pl):has(#ncb:not([hidden])) .pl{height:calc(100dvh - 38px)!important}
 (()=>{const dialog=wfDialog;wfDialog=function(id){const result=dialog.apply(this,arguments),r=wfState().reports[id],m=document.querySelector('#wfmodal .wfmodal');if(!r||!m)return result;m.querySelector('#wfxsync')?.remove();m.querySelector('#wfsharehint13')?.setAttribute('hidden','');
  if(r.owner!==wfActor()||!['pat','hse','mech','elec','erv'].includes(ptRole())||!wfActive(r)||!wfCanSubmit94(r))return result;
  const send=m.querySelector('[data-wa="send"]'),row=send?.closest('.wfactions');if(!row)return result;
- let button=m.querySelector('#wfsig71');if(!button){button=document.createElement('button');button.id='wfsig71';button.className='btn sec';button.textContent=(r.signatures||[]).some(s=>s.actor===wfActor())?'Signature put (re-apply)':'Put signature';row.insertBefore(button,send)}
+ let button=m.querySelector('#wfsig71');if(!button){button=document.createElement('button');button.id='wfsig71';button.className='btn sec';button.textContent=(r.signatures||[]).some(s=>s.actor===wfActor())?'Signature put (re-apply)':'Put signature and name';row.insertBefore(button,send)}
  button.onclick=async()=>{button.disabled=true;try{const current=wfState().reports[id];const message=await wfMutate(current.id,current.head,'sign','',m.querySelector('#wfnote')?.value||'');wfDialog(id);toast(message||'Signature applied')}catch(e){const error=document.getElementById('wferr');if(error)error.textContent=e.message;toast(e.message)}finally{if(button.isConnected)button.disabled=false}};
  return result;
 };})();
@@ -4411,9 +4411,9 @@ function wfFinalSignature67(r){
 }
 function wfHeader67(r){return 'Prepared by '+esc(wfName(r.owner))+' | '+(r.conflict?'Conflict - review needed':wfFinal86(r)?'Final approved | Signed by '+esc(wfName(r.approvedBy||wfFinalRole89(r))):esc(r.status)+' | Currently with '+esc(wfName(r.to)))}
 (()=>{const state=wfState;let deriving67=null;wfState=function(){if(deriving67)return deriving67;const out=state.apply(this,arguments);deriving67=out;try{for(const r of Object.values(out.reports)){const sig=wfFinalSignature67(r);if(sig){r.status='Approved';r.approvedBy=sig.actor;r.approvedAt=sig.at;r.to='admin';r.finalFromSignature67=true}}return out}finally{deriving67=null}};
- const mutate=wfMutate;wfMutate=async function(id,head,action,next,note){const r=wfState().reports[id];if(action==='sign'&&r&&wfActive(r)&&r.owner!==wfActor()&&wfActor()===wfFinalRole89(r)){wfSigner();const result=await mutate.call(this,id,head,'approve','',note);return 'Final approval completed'}return mutate.apply(this,arguments)};
+
  const pdf=wfPdfDialog88;wfPdfDialog88=async function(r,button){r=wfState().reports[r.id]||r;const m=await pdf.call(this,r,button);if(m?.isConnected&&!m.querySelector('#wfsummary67')){const summary=document.createElement('p');summary.id='wfsummary67';summary.className='hint';summary.innerHTML=wfHeader67(r);m.querySelector('.wfbar').after(summary)}m?.querySelectorAll('#wfxdel,[data-wa="delete"],[data-wa="purge"]').forEach(b=>b.remove());return m};rptPdfView85=wfPdfDialog88;
- const dialog=wfDialog;wfDialog=function(id){const r=wfState().reports[id];if(r&&wfFinal86(r)&&wfMine(r))return wfPdfDialog88(r);const result=dialog.apply(this,arguments);document.querySelector('#wfmodal #wfxdel')?.remove();const m=document.querySelector('#wfmodal .wfmodal'),put=m?.querySelector('#wfsig71');if(put&&r&&wfActor()===wfFinalRole89(r)&&r.owner!==wfActor())put.textContent='Sign and complete';return result};
+ const dialog=wfDialog;wfDialog=function(id){const r=wfState().reports[id];if(r&&wfFinal86(r)&&wfMine(r))return wfPdfDialog88(r);const result=dialog.apply(this,arguments);document.querySelector('#wfmodal #wfxdel')?.remove();const m=document.querySelector('#wfmodal .wfmodal'),put=m?.querySelector('#wfsig71');if(put&&r&&wfActor()===wfFinalRole89(r)&&r.owner!==wfActor())put.textContent='Put signature and name';return result};
 })();
 </script>
 <style>/* Item68: keep SOS in the action cluster; pin only contacts to the bottom of the full-height login card. */
@@ -4434,8 +4434,8 @@ body:has(.pl){overflow:auto!important} .pl{height:100dvh!important;min-height:66
 </style><script>
 /* Item71: current holder or final approval beside each report summary. */
 function wfBadge71(r,d){const done=!!r&&!r.conflict&&wfFinal86(r),badge=document.createElement('div');badge.className='wfholder71 '+(done?'approved71':'pending71');badge.setAttribute('role','status');
- const title=document.createElement('b');title.textContent=done?'Approved by final authority':r?.conflict?'Conflict - review needed':'Currently with';badge.appendChild(title);
- const who=document.createElement('span');who.textContent=done?wfName(r.approvedBy||wfFinalRole89(r)):r?.to?wfName(r.to):d?.person?drName(d):'Preparer';badge.appendChild(who);return badge}
+ const mine=!!r&&r.to===wfActor();const title=document.createElement('b');title.textContent=done?'Approved by final authority':r?.conflict?'Conflict - review needed':mine?'Currently with me':'Currently with';badge.appendChild(title);
+ const who=document.createElement('span');who.textContent=done?wfName(r.approvedBy||wfFinalRole89(r)):r?.to?wfName(r.to):d?.person?drName(d):'Preparer';if(done||!mine||r?.conflict)badge.appendChild(who);return badge}
 (()=>{const card=rptCard;rptCard=function(d){const box=document.createElement('div');box.innerHTML=card.apply(this,arguments);const info=box.querySelector('.report53');if(info){const row=document.createElement('div');row.className='reportline71';info.before(row);row.append(info,wfBadge71(report64(d),d))}return box.innerHTML};
  const status=wfStatusPage;wfStatusPage=function(B){const out=status.apply(this,arguments);if(!B)return out;const reports=wfState().reports;B.querySelectorAll('.wfstt tbody tr').forEach(row=>{const button=row.querySelector('[data-wfv],[data-wfsv],[data-wfview86],[data-wfd],[data-wfe]');let id=row.dataset.report71||(button&&(button.dataset.wfv||button.dataset.wfsv||button.dataset.wfview86||button.dataset.wfd||button.dataset.wfe));if(!id){const label=row.querySelector('td')?.textContent;id=Object.keys(reports).find(id=>label?.includes(id.slice(0,8)))}const r=reports[id];if(!r)return;const cell=row.querySelector('td');if(cell&&!cell.querySelector('.wfholder71')){const line=document.createElement('div');line.className='reportline71';const content=document.createElement('div');content.className='reporttext71';while(cell.firstChild)content.appendChild(cell.firstChild);line.append(content,wfBadge71(r));cell.append(line)}});return out};
 })();
@@ -4478,7 +4478,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r17';
+const APP_REV76='iocl-portal-shell-v5.99.15-r18';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4486,7 +4486,7 @@ const APP_REV76='iocl-portal-shell-v5.99.15-r17';
  async function check(){if(job||!navigator.onLine||document.hidden||Date.now()-last<15000)return;last=Date.now();job=(async()=>{const r=await navigator.serviceWorker.getRegistration();if(!r)return;watch(r);const c=new AbortController(),timer=setTimeout(()=>c.abort(),5000);try{const u=new URL('./sw.js',location.href);u.searchParams.set('check',Date.now());const response=await fetch(u.href,{cache:'no-store',signal:c.signal});if(response.ok){const text=await response.text(),version=/const CACHE='([^']+)'/.exec(text)?.[1];if(version&&version!==APP_REV76){update54Status('Update under progress... 0%');await r.update();watch(r)}}}catch(e){/* Keep current app and saved work; next open/resume retries. */}finally{clearTimeout(timer)}})().catch(()=>{}).finally(()=>job=null)}
  addEventListener('pageshow',check);addEventListener('online',check);document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reload&&safe())location.reload()});setTimeout(check,300);
 })();
-</script><script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
+</script><style>/* Item77: inline Patroller workspace uses its parent's sidebar offset only. */@media(min-width:701px){#pbody>#patmain{margin-left:0!important;margin-right:0!important;width:100%!important;max-width:none!important;box-sizing:border-box!important}#pbody>#patmain>.drapp{width:100%!important;max-width:none!important}}</style><style>/* Item80: modest desktop header size increase, mobile unchanged. */@media(min-width:1000px){.pt>.om-team-logo,.top>.om-team-logo{width:46px!important;height:46px!important}.pt .tt b,.top .tt b{font-size:17px!important}.pt .tt span,.top .tt span{font-size:13px!important}}</style><script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
 const asset45Jobs=new Map();
 async function asset45(id){const e=document.getElementById(id);if(!e?.dataset.asset45||e.textContent.trim())return;if(asset45Jobs.has(id))return asset45Jobs.get(id);const job=(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let r,text;try{r=await fetch(e.dataset.asset45,{signal:controller.signal});text=await r.text()}catch(x){throw Error('Module download did not finish. Check internet and reopen this section to retry. Saved records are unchanged.')}finally{clearTimeout(timer)};if(!r.ok)throw Error('Module download failed. Reopen online and retry.');if(!/^[A-Za-z0-9+/=\s]+$/.test(text)||text.length<100)throw Error('Module file is invalid.');e.textContent=text;})();asset45Jobs.set(id,job);try{await job}catch(e){asset45Jobs.delete(id);throw e}}
 function asset45Wait(B){B.innerHTML='<div class="pcard" role="status">Opening module...</div>'}
