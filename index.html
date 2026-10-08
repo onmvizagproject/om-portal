@@ -518,7 +518,7 @@ function omDate84(v){
 }
 function omWhen84(v){if(v===null||v===undefined||v==='')return '';const d=v instanceof Date?v:new Date(v);if(isNaN(d))return String(v);return omDate84(d)+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}).toUpperCase()}
 function omDateText84(s){return String(s).replace(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?\b/g,x=>omWhen84(x)).replace(/\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.-]\d{1,2}[\/.-]\d{4}|\d{1,2}[\s-]+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[\s,-]+\d{4}|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{4})\b/gi,x=>omDate84(x))}
-function omDatesIn84(root){if(!root)return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=walk.nextNode()){const p=n.parentElement;if(!p||p.closest('script,style,input,textarea,select,option,[contenteditable="true"],svg'))continue;const t=omDateText84(n.data);if(t!==n.data)n.data=t}}
+function omDatesIn84(root){if(!root)return;const walk=document.createTreeWalker(root,NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT,{acceptNode(n){if(n.nodeType===1)return /^(SCRIPT|STYLE|INPUT|TEXTAREA|SELECT|SVG)$/.test(n.tagName)||n.isContentEditable?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_SKIP;return NodeFilter.FILTER_ACCEPT}});let n;while(n=walk.nextNode()){const p=n.parentElement;if(!p||p.closest('script,style,input,textarea,select,option,[contenteditable="true"],svg'))continue;const t=omDateText84(n.data);if(t!==n.data)n.data=t}}
 
 const fd=d=>omDate84(d);
 function words(n){
@@ -897,7 +897,7 @@ window.omSigClean=function(img,c){/* c is a sized canvas; draws img on white, re
  const id=x.getImageData(0,0,w,h),bb=window.omSigCore(id.data,w,h);if(!bb)throw Error('No signature strokes found in this image. Use a clearer photo with dark ink on paper.');
  x.putImageData(id,0,0);const p=4,sx=Math.max(0,bb.x0-p),sy=Math.max(0,bb.y0-p),ex=Math.min(w-1,bb.x1+p),ey=Math.min(h-1,bb.y1+p),o=document.createElement('canvas');o.width=ex-sx+1;o.height=ey-sy+1;o.getContext('2d').putImageData(x.getImageData(sx,sy,o.width,o.height),0,0);return o.toDataURL('image/png')};
 window.omFillFile=function(inp,dataUrl,name){try{if(!inp)return;if(!dataUrl){inp.value='';return}const m=/^data:([^;]+);base64,(.*)$/.exec(dataUrl);if(!m)return;const bin=atob(m[2]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const dt=new DataTransfer();dt.items.add(new File([u],name||'file saved',{type:m[1]}));inp.files=dt.files}catch(e){}};
-const APP_VER='v5.99.14';
+const APP_VER='v5.99.15';
 const SC_KEY='ra_sync_cfg_v3';
 let SC=(()=>{try{return Object.assign({url:'',key:'',last:'',err:'',h:{},ua:{},pdel:[]},JSON.parse(localStorage.getItem(SC_KEY)||'{}'))}catch(e){return{url:'',key:'',last:'',err:'',h:{},ua:{},pdel:[]}}})();
 function scSave(){try{localStorage.setItem(SC_KEY,JSON.stringify(SC))}catch(e){}}
@@ -905,7 +905,7 @@ const hsh=s=>{let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))
 function syncLabel(){const v=' ['+APP_VER+']';if(!SC.url)return'Sheet sync: off'+v;if(SC.err)return'Sheet: '+SC.err+v;return(SC.last?'Sheet synced '+SC.last:'Sheet: waiting')+v}
 function setSy(t){const e=$('#sy');if(e)e.textContent=t||syncLabel();const e2=$('#syl');if(e2)e2.textContent=t||syncLabel()}
 function scDel(id,txt){if(!SC.url)return;if(!SC.pdel.includes(id))SC.pdel.push(id);SC.pdata=SC.pdata||{};SC.pdata[id]=(SC.perm||{})[id.slice(3)]?'':(txt||'');scSave();scheduleSync(1500)}
-/* v5.99.14: bounded synchronization, operation names and fail-closed cancellation. */
+/* v5.99.15: bounded synchronization, operation names and fail-closed cancellation. */
 const P999_LIMITS=Object.freeze({operation:200000,local:15000,module:240000,formats:360000,total:540000});
 let p999Context=null,p999Active='',p999Unsafe=false;
 function p999Assert(){if(p999Unsafe||p999Context?.cancelled)throw Error('Synchronization timed out. Reload this app and check the Sheet before retrying; no write is replayed.');}
@@ -1051,7 +1051,7 @@ function patOpen(secId){
  const r=ptRole();if(!r)return ptLogin();const m=MODULES.find(x=>x.id==='pat');if(!(m&&ptSees(m,r))&&!patRoleSecs(r).length)return ptHome();
  ptOrgCleanup();document.body.classList.remove('inra');const P=$('#portal');P.className='on';window.__ptPage='pat';
  secId=secId||window.__patSec||PAT_SECS[0].id;if(!PAT_SECS.some(x=>x.id===secId))secId=PAT_SECS[0].id;{const al=patRoleSecs(r);if(!al.includes(secId))secId=al[0]}window.__patSec=secId;
- P.innerHTML=`<div id="patshell"><div class="top"><button class="hb" id="pathb" aria-label="Back to Portal">&#8962;<span class="hbt"> Portal</span></button><button class="menu" id="patmn" aria-label="Menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>${r==='pat'||r==='admin'?'Patroller':'Pipeline Asset Locator'}</b><span>O&M Team - Visakhapatnam GA | v5.99.14</span></div><div class="raph"><button class="thm" aria-label="Change theme" title="Change theme"></button><div class="pclk">${ptClockText()}</div><span class="rb" title="Logged in as">&#128100; ${esc(r==='pat'?(drPerson(drMe())?.name||'Patroller'):ptRoleName(r))}</span><button class="lo" id="patlo">Logout</button></div></div><nav id="patside"><h3>${r==='pat'||r==='admin'?'Patroller dashboard':'Pipeline Asset Locator'}</h3>${PAT_SECS.filter(x=>x.id!=='reports'&&patRoleSecs(r).includes(x.id)).map(x=>`<button data-s="${x.id}" class="${x.id===secId?'on':''}"><span>${x.icon}</span>${x.label}</button>`).join('')}</nav><div id="patov"></div><div id="patmain"></div></div>`;
+ P.innerHTML=`<div id="patshell"><div class="top"><button class="hb" id="pathb" aria-label="Back to Portal">&#8962;<span class="hbt"> Portal</span></button><button class="menu" id="patmn" aria-label="Menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>${r==='pat'||r==='admin'?'Patroller':'Pipeline Asset Locator'}</b><span>O&M Team - Visakhapatnam GA | v5.99.15</span></div><div class="raph"><button class="thm" aria-label="Change theme" title="Change theme"></button><div class="pclk">${ptClockText()}</div><span class="rb" title="Logged in as">&#128100; ${esc(r==='pat'?(drPerson(drMe())?.name||'Patroller'):ptRoleName(r))}</span><button class="lo" id="patlo">Logout</button></div></div><nav id="patside"><h3>${r==='pat'||r==='admin'?'Patroller dashboard':'Pipeline Asset Locator'}</h3>${PAT_SECS.filter(x=>x.id!=='reports'&&patRoleSecs(r).includes(x.id)).map(x=>`<button data-s="${x.id}" class="${x.id===secId?'on':''}"><span>${x.icon}</span>${x.label}</button>`).join('')}</nav><div id="patov"></div><div id="patmain"></div></div>`;
  ptThemeApply(ptThemeGet());
  $('#pathb').onclick=()=>ptHome();
  $('#patlo').onclick=()=>{clearTimeout(syncT);(sessionStorage.removeItem('om_role'),sessionStorage.removeItem('om_patid'));sessionStorage.removeItem('ra_unlocked');ptLogin()};
@@ -1063,8 +1063,8 @@ function patSection(secId){
  if(secId==='pipe'&&document.querySelector('#patmain .patc iframe')?.title===PAT_SECS.find(x=>x.id==='pipe')?.label)return;
  const sec=PAT_SECS.find(x=>x.id===secId)||PAT_SECS[0],B=$('#patmain');window.__patSec=sec.id;$$('#patside [data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s===(sec.id==='reports'?'daily':sec.id)));if(sec.id==='daily'){drInit(B);return}if(sec.id==='monthly'){B.innerHTML='<section class="drapp"><h2>Monthly Report</h2><div class="drcard soon">Coming soon</div></section>';return}
  B.innerHTML=`<h2>${sec.icon} ${sec.label}</h2><div class="patc"></div>`;
- if(sec.id==='pipe')B.querySelector('.patc').insertAdjacentHTML('afterbegin','<div style="padding:10px;background:#fff;border:1px solid #d9dee7;border-radius:12px"><button class="sv" style="background:#0b4f9c;color:#fff;border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer" id="pipe-sync-now">Synchronize pipeline with main Sheet</button><p class="hint pipe-sync-status"></p><p class="hint">Import a KMZ/KML once. Connected phones download its lines and points automatically while the portal is open. Existing device data is merged, not erased.</p></div>');if(sec.id==='pipe'){B.querySelector('#pipe-sync-now').onclick=()=>pipeSync(true);pipeSetStatus()}
- const f=document.createElement('iframe');f.title=sec.label;f.setAttribute('allow','geolocation *; camera *');f.srcdoc=patHtml(sec);B.querySelector('.patc').appendChild(f)}
+ if(sec.id==='pipe')B.querySelector('.patc').insertAdjacentHTML('beforeend','<div style="padding:10px;background:#fff;border:1px solid #d9dee7;border-radius:12px"><button class="sv" style="background:#0b4f9c;color:#fff;border:0;border-radius:8px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer" id="pipe-sync-now">Synchronize pipeline with main Sheet</button><p class="hint pipe-sync-status"></p><p class="hint">Import a KMZ/KML once. Connected phones download its lines and points automatically while the portal is open. Existing device data is merged, not erased.</p></div>');if(sec.id==='pipe'){B.querySelector('#pipe-sync-now').onclick=()=>pipeSync(true);pipeSetStatus()}
+ const f=document.createElement('iframe');f.title=sec.label;f.setAttribute('allow','geolocation *; camera *');f.srcdoc=patHtml(sec);const container=B.querySelector('.patc');const sync=container.querySelector('#pipe-sync-now')?.parentElement;if(sync)container.insertBefore(f,sync);else container.appendChild(f)}
 /* ===== Portal (v5): login by role, dashboard, module registry ===== */
 const PT_KEY='om_portal_v1';
 const ROLES=[['admin','Admin'],['eic','EIC'],['pm','Project Manager'],['ae','AE / TPI / TPA'],['pat','Patroller'],['mech','Mechanical'],['hse','HSE'],['elec','Electrical'],['erv','ERV']];
@@ -1343,12 +1343,12 @@ function ptLogin(){
  ptOrgCleanup();
  document.body.classList.remove('inra');const P=$('#portal');P.className='on';
  const o=ptGet();
- P.innerHTML=`<div class="pl"><div class="ph" style="padding-bottom:78px"><h1>${PT_TITLE}</h1><p>${PT_SUB}</p><p style="color:#667085;font-size:12px">Portal v5.99.14</p></div><div class="pm" style="align-items:flex-start;margin-top:-62px"><div class="pc" style="margin-top:70px"><img class="lg om-team-logo login" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><label for="prl">Login as</label><select id="prl">${ROLES.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join('')}</select><div id="ppatw" hidden><label for="ppat">Patroller name</label><select id="ppat"></select></div><label for="ppw">Password</label><div class="pw"><input class="pi" id="ppw" type="password" placeholder="Password" autocomplete="current-password"><button type="button" id="peye" aria-label="Show">&#128065;</button></div><div class="pe" id="pe"></div><button class="pb" id="pgo">Login</button><button type="button" class="pb2" id="pfg">Forgot password?</button><p id="pts" style="font-size:12px;color:#667085;line-height:1.5">${esc(ptStatus())}</p><button type="button" class="btn sec sm" id="pcnb">Connect this device</button><div id="pcn" hidden style="text-align:left;margin-top:12px"><p class="hint">Get the setup code privately from Admin. It contains the Sheet access key. Do not post it publicly.</p><textarea id="pcod" placeholder="RAPKG:..." style="width:100%;height:75px"></textarea><button class="pb" id="pcuse">Connect &amp; download settings</button><div id="pcerr" class="pe"></div></div></div></div><div class="pf"><div class="addr"><b>Address</b>${o.addr?esc(o.addr):'[Address to be added]'}</div><div class="rights">${PT_RIGHTS}</div></div></div>`;
+ P.innerHTML=`<div class="pl"><div class="ph" style="padding-bottom:78px"><h1>${PT_TITLE}</h1><p>${PT_SUB}</p><p style="color:#667085;font-size:12px">Portal v5.99.15</p></div><div class="pm" style="align-items:flex-start;margin-top:-62px"><div class="pc" style="margin-top:70px"><img class="lg om-team-logo login" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><label for="prl">Login as</label><select id="prl">${ROLES.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join('')}</select><div id="ppatw" hidden><label for="ppat">Patroller name</label><select id="ppat"></select></div><label for="ppw">Password</label><div class="pw"><input class="pi" id="ppw" type="password" placeholder="Password" autocomplete="current-password"><button type="button" id="peye" aria-label="Show">&#128065;</button></div><div class="pe" id="pe"></div><button class="pb" id="pgo">Login</button><button type="button" class="pb2" id="pfg">Forgot password?</button><p id="pts" style="font-size:12px;color:#667085;line-height:1.5">${esc(ptStatus())}</p><button type="button" class="btn sec sm" id="pcnb">Connect this device</button><div id="pcn" hidden style="text-align:left;margin-top:12px"><p class="hint">Get the setup code privately from Admin. It contains the Sheet access key. Do not post it publicly.</p><textarea id="pcod" placeholder="RAPKG:..." style="width:100%;height:75px"></textarea><button class="pb" id="pcuse">Connect &amp; download settings</button><div id="pcerr" class="pe"></div></div></div></div><div class="pf"><div class="addr"><b>Address</b>${o.addr?esc(o.addr):'[Address to be added]'}</div><div class="rights">${PT_RIGHTS}</div></div></div>`;
  // Check the saved password first. A mismatch does not start a Sheet read.
  let busy=false,prefetched=false;
  const go=async()=>{
   if(busy)return;busy=true;
-  const done=async(r,pid,pw)=>{sessionStorage.setItem('om_role',r);if(r==='pat')sessionStorage.setItem('om_patid',pid);else sessionStorage.removeItem('om_patid');drCurrent=null;sessionStorage.setItem('ra_unlocked',ptCanRA()?'1':'0');if(r==='admin'&&await sha(pw)==='eb40d251d22da32930e5675adb3e743394949fb496f59b9c67783083d0acebcc')sessionStorage.setItem('om_must','1');if(r==='pat'){window.__patSec='daily';patOpen('daily')}else ptHome()};
+  const done=async(r,pid,pw)=>{await s15Claim(r,pid,pw);sessionStorage.setItem('om_role',r);if(r==='pat')sessionStorage.setItem('om_patid',pid);else sessionStorage.removeItem('om_patid');drCurrent=null;sessionStorage.setItem('ra_unlocked',ptCanRA()?'1':'0');if(r==='admin'&&await sha(pw)==='eb40d251d22da32930e5675adb3e743394949fb496f59b9c67783083d0acebcc')sessionStorage.setItem('om_must','1');if(r==='pat'){window.__patSec='daily';patOpen('daily')}else ptHome()};
   const started=performance.now(),r=$('#prl').value,pw=$('#ppw').value,button=$('#pgo'),error=$('#pe');
   button.disabled=true;button.textContent='Checking password...';error.textContent='';setTimeout(()=>{if(busy&&error.isConnected&&!error.textContent)error.textContent='Still verifying with Sheet... please wait.'},4000);
   try{
@@ -1369,7 +1369,7 @@ function ptLogin(){
    if(view!==ptLoginView||!button.isConnected)return;
    if(ok){await done(r,pid,pw)}
    else{error.textContent='Wrong password';$('#ppw').value=''}
-  }catch(e){if(view===ptLoginView&&error.isConnected)error.textContent=e.message}
+  }catch(e){if(view===ptLoginView&&error.isConnected){error.textContent=e.message;if(/ALREADY_LOGGED_IN/.test(e.message))alert('Already logged in on another device. Log out there first, or wait up to 5 minutes after closing it.');}}
   finally{busy=false;if(button.isConnected){button.disabled=false;button.textContent='Login'}}
  };
  // Do not read Sheet settings while a password is being typed.
@@ -1428,7 +1428,7 @@ function ptHome(page){
  const r=ptRole();if(!r)return ptLogin();if(r==='admin'&&sessionStorage.getItem('om_must')==='1')return ptForce();
  document.body.classList.remove('inra');const P=$('#portal');P.className='on';
  const mods=MODULES.filter(m=>ptSees(m,r)&&(r!=='admin'||!['eic','pm','ae'].includes(m.id))&&(!['pm','ae','eic'].includes(r)||['roadmap','misc','ra'].includes(m.id)));page=page||'home';window.__ptPage=page;
- P.innerHTML=`<div class="pt"><button class="mn" id="pmn" aria-label="Menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>${PT_TITLE}</b><span>O&M Team - Visakhapatnam GA | v5.99.14</span></div><button class="thm" id="pthm" aria-label="Change theme" title="Change theme"></button><div class="pclk" id="pclk" aria-live="off">${ptClockText()}</div><span class="rb" title="Logged in as">&#128100; ${ptRoleName(r)}</span><button class="lo" id="plo">Logout</button></div><nav id="pside"><button data-p="home">&#127968; Dashboard</button>${mods.filter(m=>m.pin).map(m=>`<button data-p="${m.id}">${m.icon} ${m.label}</button>`).join('')}<hr>${mods.filter(m=>m.type!=='ra'&&!m.pin).map(m=>`<button data-p="${m.id}">${m.icon} ${m.label}</button>`).join('')}${mods.filter(m=>m.type==='ra').map(m=>`<button class="rab" data-p="${m.id}">${m.icon} ${m.label}</button>`).join('')}${r==='admin'?'<hr><button data-p="_admin">&#128274; Admin Settings</button>':''}</nav><div id="pov"></div><div id="pbody"></div>`;
+ P.innerHTML=`<div class="pt"><button class="mn" id="pmn" aria-label="Menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>${PT_TITLE}</b><span>O&M Team - Visakhapatnam GA | v5.99.15</span></div><button class="thm" id="pthm" aria-label="Change theme" title="Change theme"></button><div class="pclk" id="pclk" aria-live="off">${ptClockText()}</div><span class="rb" title="Logged in as">&#128100; ${ptRoleName(r)}</span><button class="lo" id="plo">Logout</button></div><nav id="pside"><button data-p="home">&#127968; Dashboard</button>${mods.filter(m=>m.pin).map(m=>`<button data-p="${m.id}">${m.icon} ${m.label}</button>`).join('')}<hr>${mods.filter(m=>m.type!=='ra'&&!m.pin).map(m=>`<button data-p="${m.id}">${m.icon} ${m.label}</button>`).join('')}${mods.filter(m=>m.type==='ra').map(m=>`<button class="rab" data-p="${m.id}">${m.icon} ${m.label}</button>`).join('')}${r==='admin'?'<hr><button data-p="_admin">&#128274; Admin Settings</button>':''}</nav><div id="pov"></div><div id="pbody"></div>`;
  $$('#pside button').forEach(b=>{b.classList.toggle('on',b.dataset.p===page);b.onclick=()=>ptGo(b.dataset.p)});
  $('#pmn').onclick=()=>{$('#pside').classList.toggle('open');$('#pov').classList.toggle('on')};$('#pov').onclick=()=>{$('#pside').classList.remove('open');$('#pov').classList.remove('on')};
  $('#plo').onclick=()=>{clearTimeout(syncT);(sessionStorage.removeItem('om_role'),sessionStorage.removeItem('om_patid'));sessionStorage.removeItem('ra_unlocked');ptLogin()};
@@ -1469,7 +1469,8 @@ function ptAdmin(B){
  $('#pas').onclick=async()=>{try{await ptCommit({addr:$('#pad').value.trim()});toast(SC.url?'Address synced':'Address saved locally')}catch(e){$('#pterr').textContent=e.message}};
 }
 
-document.addEventListener('DOMContentLoaded',async()=>{load();if(!$('#toast')){const t=document.createElement('div');t.id='toast';document.body.appendChild(t)}try{await ptInitPw()}catch(e){ptError=e.message}await p97Auto();P97_BOOTSTRAPPING=false;if(ptRole()){await ptSync(false);if(ptRole()){sessionStorage.setItem('ra_unlocked',ptCanRA()?'1':'0');ptHome()}else ptLogin()}else{ptLogin();ptSync(false)}});
+document.addEventListener('DOMContentLoaded',()=>{fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;},{once:true});
+document.addEventListener('DOMContentLoaded',async()=>{load();if(!$('#toast')){const t=document.createElement('div');t.id='toast';document.body.appendChild(t)}try{await ptInitPw()}catch(e){ptError=e.message}P97_BOOTSTRAPPING=false;if(ptRole()&&s15Read()&&s15Read().expires>Date.now()){sessionStorage.setItem('ra_unlocked',ptCanRA()?'1':'0');ptHome();s15Check()}else{s15End();}Promise.resolve(p97Auto()).then(()=>ptSync(false)).catch(e=>{ptError=e.message;console.warn('Portal startup connection:',e.message)})});
 
 
 const PT_THEMES=[['day','&#9728;&#65039; Day'],['night','&#127769; Night'],['soft','&#127807; Soft']];
@@ -1478,7 +1479,7 @@ function ptThemeApply(t){const h=document.documentElement;PT_THEMES.forEach(x=>h
 function ptThemeCycle(){const c=ptThemeGet(),n=PT_THEMES[(PT_THEMES.findIndex(x=>x[0]===c)+1)%PT_THEMES.length][0];try{localStorage.setItem('om_theme_v53',n)}catch(e){}ptThemeApply(n)}
 ptThemeApply(ptThemeGet());
 function ptClockText(){const d=new Date(),p=n=>String(n).padStart(2,'0');let h=d.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;return '<b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]+', '+p(d.getDate())+' '+['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]+' '+d.getFullYear()+'</b><span>'+p(h)+':'+p(d.getMinutes())+':'+p(d.getSeconds())+' '+ap+'</span>'}
-setInterval(()=>{const t=ptClockText();document.querySelectorAll('.pclk').forEach(e=>e.innerHTML=t)},1000);
+setInterval(()=>{if(document.hidden||matchMedia('(max-width:700px)').matches)return;const t=ptClockText();document.querySelectorAll('.pclk').forEach(e=>{if(e.innerHTML!==t)e.innerHTML=t})},1000);
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.thm'))ptThemeCycle()});
 new MutationObserver(()=>{if([...document.querySelectorAll('.thm')].some(b=>!b.innerHTML))ptThemeApply(ptThemeGet())}).observe(document.body||document.documentElement,{childList:true,subtree:true});
 function ptDefaultOrg(){const chain=[['ga','','GA Incharge',''],['eic','ga','EIC',''],['ae','eic','AE / TPI',''],['pm','ae','Project Manager','']];const out=chain.map(([id,parent_id,designation,department])=>({id,parent_id,designation,department,name:'',phone:'',photo:''}));for(const d of ['Office','HSE','Mechanical','Electrical','PE Technician','Plumber']){const id=d.toLowerCase().replace(/ /g,'_');out.push({id,parent_id:'pm',name:'',phone:'',designation:d+' lead',department:d,photo:''});out.push({id:id+'_staff',parent_id:id,name:'',phone:'',designation:'Staff / Helper',department:d,photo:''})}return out}
@@ -1669,7 +1670,7 @@ function fmtStore(x){const v=JSON.parse(localStorage.getItem(FMT_KEY)||'{}');v[x
 function fmtMessage(s){fmtStatus=s;const e=$('#fmtstatus');if(e)e.textContent=s}
 function fmtDownload(id){const x=fmtLoad().find(x=>x.id===id);if(!x)return;const b=atob(x.b64),u=Uint8Array.from(b,c=>c.charCodeAt(0));fmtBlob(new Blob([u],{type:x.kind==='xlsx'?FMT_XMIME:FMT_MIME}),x.filename)}
 function fmtBlob(b,name){const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000)}
-function fmtOpen(sec){const r=ptRole(),m=MODULES.find(x=>x.id==='misc');if(!r)return ptLogin();if(!ptSees(m,r))return ptHome();ptOrgCleanup();document.body.classList.remove('inra');window.__ptPage='misc';sec=sec||window.__fmtSec||'formats';window.__fmtSec=sec;const P=$('#portal');P.className='on';P.innerHTML=`<div id="fmtshell"><div class="top"><button class="hb" id="fmthome" aria-label="Back to Portal">&#8962;<span class="hbt"> Portal</span></button><button class="menu" id="fmtmenu" aria-label="AOMP menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>Common / Public / Miscellaneous Formats</b><span>O&amp;M Team - Visakhapatnam GA | v5.99.14</span></div><div class="raph"><button class="thm" aria-label="Change theme"></button><div class="pclk">${ptClockText()}</div><span class="rb">&#128100; ${esc(ptRoleName(r))}</span><button class="lo" id="fmtlogout">Logout</button></div></div><nav id="fmtside"><h3>AOMP</h3><button data-fsec="planner">AOMP Planner</button><button data-fsec="schedule">AOMP Working Schedule</button><button data-fsec="formats">AOMP Formats</button></nav><div id="fmtov"></div><main id="fmtmain"></main></div>`;ptThemeApply(ptThemeGet());fmtSize();$('#fmthome').onclick=()=>ptHome();$('#fmtlogout').onclick=()=>{clearTimeout(syncT);(sessionStorage.removeItem('om_role'),sessionStorage.removeItem('om_patid'));sessionStorage.removeItem('ra_unlocked');ptLogin()};const close=()=>{$('#fmtside').classList.remove('open');$('#fmtov').classList.remove('on')};$('#fmtmenu').onclick=()=>{$('#fmtside').classList.toggle('open');$('#fmtov').classList.toggle('on')};$('#fmtov').onclick=close;$$('#fmtside button').forEach(b=>b.onclick=()=>{window.__fmtSec=b.dataset.fsec;fmtSection(b.dataset.fsec);close()});pipeSchedule();fmtSection(sec);window.scrollTo(0,0)}
+function fmtOpen(sec){const r=ptRole(),m=MODULES.find(x=>x.id==='misc');if(!r)return ptLogin();if(!ptSees(m,r))return ptHome();ptOrgCleanup();document.body.classList.remove('inra');window.__ptPage='misc';sec=sec||window.__fmtSec||'formats';window.__fmtSec=sec;const P=$('#portal');P.className='on';P.innerHTML=`<div id="fmtshell"><div class="top"><button class="hb" id="fmthome" aria-label="Back to Portal">&#8962;<span class="hbt"> Portal</span></button><button class="menu" id="fmtmenu" aria-label="AOMP menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>Common / Public / Miscellaneous Formats</b><span>O&amp;M Team - Visakhapatnam GA | v5.99.15</span></div><div class="raph"><button class="thm" aria-label="Change theme"></button><div class="pclk">${ptClockText()}</div><span class="rb">&#128100; ${esc(ptRoleName(r))}</span><button class="lo" id="fmtlogout">Logout</button></div></div><nav id="fmtside"><h3>AOMP</h3><button data-fsec="planner">AOMP Planner</button><button data-fsec="schedule">AOMP Working Schedule</button><button data-fsec="formats">AOMP Formats</button></nav><div id="fmtov"></div><main id="fmtmain"></main></div>`;ptThemeApply(ptThemeGet());fmtSize();$('#fmthome').onclick=()=>ptHome();$('#fmtlogout').onclick=()=>{clearTimeout(syncT);(sessionStorage.removeItem('om_role'),sessionStorage.removeItem('om_patid'));sessionStorage.removeItem('ra_unlocked');ptLogin()};const close=()=>{$('#fmtside').classList.remove('open');$('#fmtov').classList.remove('on')};$('#fmtmenu').onclick=()=>{$('#fmtside').classList.toggle('open');$('#fmtov').classList.toggle('on')};$('#fmtov').onclick=close;$$('#fmtside button').forEach(b=>b.onclick=()=>{window.__fmtSec=b.dataset.fsec;fmtSection(b.dataset.fsec);close()});pipeSchedule();fmtSection(sec);window.scrollTo(0,0)}
 function fmtSize(){const t=$('#fmtshell .top');if(t){const h=t.getBoundingClientRect().height;$('#fmtside').style.top=h+'px';$('#fmtov').style.top=h+'px';$('#fmtshell').style.setProperty('--fmttop',h+'px')}}
 window.addEventListener('resize',fmtSize);
 
@@ -1722,7 +1723,7 @@ window.addEventListener('online',()=>{if(schFrame())schSync()});
 function fmtSection(sec){if(sec!=='schedule')clearInterval(schTimer);$$('#fmtside button').forEach(b=>b.classList.toggle('on',b.dataset.fsec===sec));const B=$('#fmtmain');B.classList.toggle('sched',sec==='schedule');if(sec==='schedule'){B.innerHTML='';const f=document.createElement('iframe');f.title='AOMP Working Schedule';f.srcdoc=new TextDecoder().decode(Uint8Array.from(atob(document.getElementById('aomp-working-schedule-source').textContent.trim()),c=>c.charCodeAt(0)));B.appendChild(f);schStart();window.scrollTo(0,0);return}if(sec==='planner')return plOpen(B);const d=fmtLoad();B.innerHTML='<h2>AOMP Formats</h2><p class="hint">'+d.length+' unique formats. Shared links open the same file across sections; edits, uploads and deletion apply to all its links.</p><div class="fmtgroups">'+FMT_GROUPS.map(g=>'<section class="fmtgroup"><div class="fmtgh"><h3>'+g+'</h3><button class="btn sm sec" data-fadd="'+g+'">+ Add format</button></div>'+d.filter(x=>fmtInGroup(x,g)).map(x=>`<div class="fmtrow"><span class="fmtword" aria-label="${x.kind==='xlsx'?'Excel':'Word'} document"${x.kind==='xlsx'?' style="background:#1d6f42"':''}>${x.kind==='xlsx'?'X':'W'}</span><div class="fmtname"><b>${esc(x.code)}</b>${esc(x.name)}${(x.groups||[]).length>1?'<small style="display:block;font-weight:400;opacity:.8">Shared file: '+esc(x.groups.join(' / '))+'</small>':''}${g==='HSE'&&x.hseReason?'<small style="display:block;font-weight:400;opacity:.8">HSE: '+esc(x.hseReason)+'</small>':''}${x.plan?'<small style="display:block;font-weight:400;opacity:.7">Planner: '+esc(x.plan)+'</small>':''}</div><div class="fmtbuttons"><button class="btn sm" data-fview="${x.id}">View</button><button class="btn sm sec" data-fdownload="${x.id}">Download</button><button class="btn sm sec" data-fedit="${x.id}">Upload</button><button class="btn sm sec fmtdel" data-fdelete="${x.id}">Delete</button></div></div>`).join('')+(d.some(x=>fmtInGroup(x,g))?'':'<p class="hint">No formats added yet.</p>')+'</section>').join('')+'</div><div class="fmtbar"><button class="btn sm sec" id="fmtpackage">Save package (.html)</button><button class="btn sm sec" id="fmtsync">Sync formats with Sheet</button></div><div class="fmtstatus" id="fmtstatus" role="status"></div><div id="fmteditor"></div>';fmtMessage(fmtStatus||'Original Word file included. View opens it in the browser; text edits save automatically on this device. Use Save package to keep them in a new HTML file.');$$('[data-fdownload]',B).forEach(b=>b.onclick=()=>fmtDownload(b.dataset.fdownload));$$('[data-fview]',B).forEach(b=>b.onclick=()=>fmtView(b.dataset.fview));$$('[data-fedit]',B).forEach(b=>b.onclick=()=>fmtShowEdit(b.dataset.fedit));$$('[data-fadd]',B).forEach(b=>b.onclick=()=>fmtShowAdd(b.dataset.fadd));$$('[data-fdelete]',B).forEach(b=>b.onclick=()=>fmtDelete(b.dataset.fdelete));$('#fmtpackage').onclick=fmtExport;$('#fmtsync').onclick=fmtSync;if(fmtEdit)fmtShowEdit(fmtEdit)}
 function fmtShowEdit(id){const x=fmtLoad().find(x=>x.id===id);if(!x)return;fmtEdit=id;$('#fmteditor').innerHTML=`<div class="fmtedit"><h3>Upload ${esc(x.code)} - ${esc(x.name)}</h3><p>Use View to make small text edits in the browser. To use a file edited in Microsoft Word instead, download it, edit and save it in Word, then upload that saved DOCX below.</p><div class="fmtbar"><button class="btn sm" id="fmteditdownload">Download</button><button class="btn sm sec" id="fmteditclose">Close</button></div><label for="fmtupload"><b>Upload / replace edited Word file</b></label><p class="hint">DOCX only, up to 2 MB. The original stays unchanged until a valid replacement is saved. Changes on this device do not overwrite the original HTML. Use Save package to embed the edited file in a new HTML download.</p><input id="fmtupload" type="file" accept=".docx,.xlsx,.xlsm,${FMT_MIME},${FMT_XMIME}"></div>`;$('#fmteditdownload').onclick=()=>fmtDownload(id);$('#fmteditclose').onclick=()=>{fmtEdit='';$('#fmteditor').innerHTML=''};$('#fmtupload').onchange=e=>fmtReplace(id,e.target.files[0])}
 async function fmtReplace(id,f){if(!f)return;try{const x0=fmtLoad().find(x=>x.id===id);if(x0&&x0.kind==='xlsx'){if(!/\.(xlsx|xlsm)$/i.test(f.name))throw Error('Choose an .xlsx Excel file.');if(!f.size||f.size>2*1024*1024)throw Error('File must be non-empty and no larger than 2 MB.');const u=new Uint8Array(await f.arrayBuffer());if(u[0]!==80||u[1]!==75)throw Error('This is not an Excel file.');if(!confirm('Replace '+id.toUpperCase()+' on this device with '+f.name+'?'))return;x0.b64=fmtB64(u);x0.size=f.size;x0.filename=f.name;x0.dirty=true;x0.baseUa=x0.ua||0;x0.updated=Date.now();fmtStore(x0);return fmtMessage('Excel file saved on this device. Use Save package or Sync formats with Sheet.')}if(!/\.docx$/i.test(f.name))throw Error('Choose a .docx Word file.');if(!f.size||f.size>2*1024*1024)throw Error('DOCX must be non-empty and no larger than 2 MB.');const u=new Uint8Array(await f.arrayBuffer());if(u[0]!==80||u[1]!==75)throw Error('This is not a DOCX archive.');const z=XLSX.CFB.read(u,{type:'array'});if(!z.FullPaths.some(x=>x.endsWith('word/document.xml')))throw Error('The archive has no Word document.');if(!confirm('Replace '+id.toUpperCase()+' on this device with '+f.name+'? Save package afterwards to keep it in a new HTML file.'))return;let b='';for(let i=0;i<u.length;i+=8192)b+=String.fromCharCode(...u.subarray(i,i+8192));const x=fmtLoad().find(x=>x.id===id);x.b64=btoa(b);x.size=f.size;x.filename=f.name;x.dirty=true;x.baseUa=x.ua||0;x.updated=Date.now();fmtStore(x);fmtMessage('Edited DOCX saved on this device. Use Save package to download a new HTML containing it. Sheet has not been updated.')}catch(e){fmtMessage(e.name==='QuotaExceededError'?'Browser storage is full. Replacement not saved. Keep your edited DOCX and free storage or use a smaller file.':'Replacement not saved: '+e.message)}}
-function fmtExport(){try{const d=fmtLoad().map(x=>{const y={...x};delete y.dirty;delete y.baseUa;return y});const json=JSON.stringify(d).replace(/</g,'\\u003c');const source=fmtPackageSource.replace(/(<script type="application\/json" id="aomp-format-data">)[\s\S]*?(<\/script>)/,(_,a,b)=>a+json+b);fmtBlob(new Blob([source],{type:'text/html;charset=utf-8'}),'RA_Bill_Pack_v5.93.html');fmtMessage('New package downloaded with the current Word formats. Keep your edited DOCX too. RA bills and portal settings remain in the existing browser/Sheet storage.')}catch(e){fmtMessage('Package not saved: '+e.message)}}
+function fmtExport(){try{if(!fmtPackageSource)fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;const d=fmtLoad().map(x=>{const y={...x};delete y.dirty;delete y.baseUa;return y});const json=JSON.stringify(d).replace(/</g,'\\u003c');const source=fmtPackageSource.replace(/(<script type="application\/json" id="aomp-format-data">)[\s\S]*?(<\/script>)/,(_,a,b)=>a+json+b);fmtBlob(new Blob([source],{type:'text/html;charset=utf-8'}),'RA_Bill_Pack_v5.99.15.html');fmtMessage('New package downloaded with the current Word formats. Keep your edited DOCX too. RA bills and portal settings remain in the existing browser/Sheet storage.')}catch(e){fmtMessage('Package not saved: '+e.message)}}
 async function fmtSync(){const b=$('#fmtsync');if(!SC.url||!SC.key)return fmtMessage('Connect this device to the existing Sheet first. Formats are still available locally.');if(!navigator.onLine)return fmtMessage('Offline. Formats are saved locally; try Sheet sync when online.');b.disabled=true;try{await fmtRegSync();for(const x of fmtLoad()){const id='tomb_aomp_docx_'+x.id,g=(await sApi({action:'get',ids:[id]})).items?.[id];if(x.dirty){if(+g?.ua>(+x.baseUa||0))throw Error('Another device changed '+x.code+'. Download your local copy and resolve the two versions before syncing. No replacement was sent.');const ua=Math.max(Date.now(),(+g?.ua||0)+1),c={...x};delete c.dirty;delete c.baseUa;c.ua=ua;await fmtPut594({action:'put',id,ua,text:JSON.stringify(c),sheet:'',view:null});fmtStore(c)}else if(g?.text&&+g.ua>(+x.ua||0)){const c=JSON.parse(g.text);if(c.id!==x.id||typeof c.b64!=='string'||c.b64.length>2800000)throw Error('Invalid Sheet format record.');atob(c.b64);c.ua=+g.ua;fmtStore(c)}}fmtStatus='Formats synced with Sheet. Use Save package to include synced files in a new HTML download.';fmtSection('formats')}catch(e){fmtMessage('Sheet sync not completed: '+e.message+' Your local format remains available.')}finally{if($('#fmtsync'))$('#fmtsync').disabled=false}}
 /* v5.34: in-browser Word viewer. docx-preview draws the DOCX; typed changes are written back into word/document.xml of the same DOCX (text only, formatting kept). */
 const FMT_W='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
@@ -1857,7 +1858,7 @@ function plLoad(){try{const o=JSON.parse(localStorage.getItem(PL_KEY)||'null');i
 function plStore(o){localStorage.setItem(PL_KEY,JSON.stringify(o))}
 async function plPull(){if(!SC.url||!SC.key||!navigator.onLine)return false;try{const g=(await sApi({action:'get',ids:[PL_CLOUD]})).items?.[PL_CLOUD];if(!g||!g.text)return false;const r=JSON.parse(g.text),loc=plLoad();if(+g.ua>(+loc?.ua||0)&&Array.isArray(r.sheets)&&r.sheets.length){r.ua=+g.ua;plStore(r);return true}}catch(e){}return false}
 async function plPush(o){const g=(await sApi({action:'get',ids:[PL_CLOUD]})).items?.[PL_CLOUD];const ua=Math.max(Date.now(),(+g?.ua||0)+1),c=JSON.parse(JSON.stringify(o));delete c.ua;await sApi({action:'put',id:PL_CLOUD,ua,text:JSON.stringify(c),sheet:'',view:null});o.ua=ua;plStore(o)}
-function plCanImport(){return ['admin','pm','ae','eic'].includes(ptRole())}
+function plCanImport(){return ['admin','pm','ae'].includes(ptRole())}
 function plParse(wb,fname){
  const sheets=[];
  for(const n of wb.SheetNames){const ws=wb.Sheets[n];if(!ws||!ws['!ref'])continue;
@@ -1917,14 +1918,14 @@ function plTable(s){
  return html}
 function plOpen(B){
  const draw=()=>{const o=plLoad(),can=plCanImport();if(plSheet>=(o?o.sheets.length:0))plSheet=0;
-  const bar=`<div class="plbar">${can?'<label class="btn sm plimp" for="plfile">Import file</label><input id="plfile" type="file" accept=".xlsx,.xls,.xlsm,.csv" hidden>':'<span class="hint">Only Admin, Project Manager, AE / TPI and EIC can import a file.</span>'}<span class="plstat" id="plstat" role="status">${esc(plMsg||(o?'Imported from '+o.fname+' on '+omDate84(new Date(o.imported)):'No file imported yet.'))}</span></div>`;
+  const bar=`<div class="plbar">${can?'<label class="btn sm plimp" for="plfile">Import file</label><input id="plfile" type="file" accept=".xlsx,.xls,.xlsm,.csv" hidden>':''}<span class="plstat" id="plstat" role="status" ${can?'':'hidden'}>${esc(plMsg||(o?'Imported from '+o.fname+' on '+omDate84(new Date(o.imported)):'No file imported yet.'))}</span></div>`;
   if(!o){B.innerHTML=bar+'<div class="pcard plempty"><h3>AOMP Planner</h3><p class="hint">Import the AOMP Excel file. Its heading and data will appear here.</p></div>'}
   else{const s=o.sheets[plSheet];B.innerHTML=bar+`<div class="plhead"><h2>${esc(plHeading(o,s))}</h2></div>`+(o.sheets.length>1?'<div class="pltabs">'+o.sheets.map((x,i)=>`<button class="${i===plSheet?'on':''}" data-pls="${i}">${esc(x.name)}</button>`).join('')+'</div>':'')+plTable(s)}
   const inp=$('#plfile');if(inp)inp.onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{if(f.size>8*1024*1024)throw Error('File is larger than 8 MB.');const u=new Uint8Array(await f.arrayBuffer());const wb=XLSX.read(u,{type:'array'});const n=plParse(wb,f.name);if(!await a11Import(n))return;plSheet=0;plMsg='Imported '+f.name+'. '+(a11Local().archiveUrl?'Old AOMP year stored in Drive.':'Completion marks kept.');draw()}catch(x){plMsg='Import failed: '+(x.name==='QuotaExceededError'?'browser storage is full.':x.message);draw()}};
   $$('[data-pls]',B).forEach(b=>b.onclick=()=>{plSheet=+b.dataset.pls;window.__plDept='';draw()});const pd=$('#pldept');if(pd)pd.onchange=e=>{window.__plDept=e.target.value;draw()}};
  draw();
  if(!plPulled){plPulled=true;plPull().then(ch=>{if(ch&&$('#fmtmain')&&window.__fmtSec==='planner')draw()})}}
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script><script>!function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).PDFLib={})}(this,(function(t){"use strict";
 /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -1990,7 +1991,7 @@ function drBanner(st,r,pat){
  return '24 hours passed without Submit, so it was auto-submitted. Edit and Delete are locked; View and PDF still work.'}
 function drTabs(active,person){const pat=drIsPat(),nm=pat?(drPerson(drMe())?.name||'Patroller'):(person?(drPerson(person)?.name||person):'Admin');return `<div class="drtabs"><button type="button" class="drtab ${active==='daily'?'on':''}" onclick="window.__rpCame=false;window.__rpRO='';window.__rpEdit='';patSection('daily')">Daily Report (${esc(nm)})</button><button type="button" class="drtab ${active==='reports'?'on':''}" onclick="window.__rpCame=false;window.__rpRO='';window.__rpEdit='';patSection('reports')">Reports</button></div>`}
 function drFit(){const B=document.getElementById('patmain'),app=B&&B.querySelector(':scope>.drapp.drfx');if(!B)return;if(!app){B.style.paddingBottom='';B.style.minHeight='';return}const top=document.querySelector('#patshell .top'),nb=document.getElementById('ncb'),nh=nb&&nb.offsetHeight>0?nb.offsetHeight:0;B.style.paddingBottom='0';B.style.minHeight='0';const cs=getComputedStyle(B);app.style.background=cs.backgroundColor;app.style.height=Math.max(260,window.innerHeight-nh-(app.getBoundingClientRect().top+window.scrollY))+'px'}
-(function(){let q=0;new MutationObserver(()=>{cancelAnimationFrame(q);q=requestAnimationFrame(drFit)}).observe(document.body,{childList:true,subtree:true});window.addEventListener('resize',drFit);setInterval(drFit,1000)})();
+(function(){let q=0;new MutationObserver(()=>{cancelAnimationFrame(q);q=requestAnimationFrame(drFit)}).observe(document.body,{childList:true,subtree:true});window.addEventListener('resize',drFit);/* fit on input, resize and DOM changes */})();
 function drRender(B,date,person,draft,notice){
  drBox=B;const pat=drIsPat();
  if(pat){person=drMe();if(!drPeople().some(p=>p.id===person)){B.innerHTML='<section class="drapp"><h2>Daily Report</h2><div class="drnotice">Your name is not in the Organogram as a Patroller. Please ask Admin.</div></section>';return}}
@@ -2089,7 +2090,7 @@ function rptDelete(date,person){try{const ex=drLive(drKey(date,person)),st=drSta
 function rptCard(r,i,pat,showName){const [lab,cls]=rptStatus(r),st=drState(r);return `<div class="drcard"><div><b>${esc(drDate(r.date))}</b>${showName?' - '+esc(drName(r)):''} <span class="rptag ${cls}">${lab}</span><br><span class="hint">${esc(r.shift||'')} shift | ${esc(rptKm(r))}${st.edit?' | '+(pat?'editable until sent':'patroller can still change it'):''}${r.createdAt?' | First saved '+esc(drWhen(r.createdAt)):''}${r.submittedAt?' | Submitted '+esc(drWhen(r.submittedAt)):''}${(r.saves||0)>1?' | Last saved '+esc(drWhen(r.savedAt)):''}</span></div><div class="rpbtns"><button class="sv" data-rv="${i}">${pat&&st.edit?'View / Edit':'View'}</button>${pat&&st.edit?`<button data-rd="${i}" style="background:#b42318;color:#fff;border:0">Delete</button>`:''}<button data-rp="${i}">PDF</button></div></div>`}
 function rptBind(B,rows,pat){$$('[data-rv]',B).forEach(b=>b.onclick=()=>{const r=rows[+b.dataset.rv];if(pat){window.__drOpen=r.date;window.__patSec='daily';$$('#patside [data-s]').forEach(x=>x.classList.toggle('on',x.dataset.s==='daily'));drInit(B)}else{drRender(B,r.date,r.person)}});$$('[data-rd]',B).forEach(b=>b.onclick=()=>{const r=rows[+b.dataset.rd];rptDelete(r.date,r.person)});$$('[data-rp]',B).forEach(b=>b.onclick=async()=>{try{await drPdf(rows[+b.dataset.rp])}catch(e){$('#drerror').textContent=e.message}})}
 function rptPatroller(B,notice){const me=drMe(),rows=drAllReports().filter(r=>r.person===me);
- B.innerHTML=`<section class="drapp"><h2>Reports</h2><p class="hint">Your saved daily reports. You can view, edit or delete a report for 24 hours after you first saved it, even after submitting; each saved change goes to Admin again. After 24 hours it is locked (view and PDF only), and an unsubmitted report goes to Admin automatically. New reports are made in the Daily Report tab.</p>${notice?`<div class="drok" role="status">${esc(notice)}</div>`:''}${rows.length?rows.map((r,i)=>rptCard(r,i,true,false)).join(''):'<div class="drcard">No reports yet. Save one in the Daily Report tab and it will appear here.</div>'}<div class="draction"><button id="drsync">Sync / reload</button></div><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p></section>`;
+ B.innerHTML=`<section class="drapp"><h2>Reports</h2>${notice?`<div class="drok" role="status">${esc(notice)}</div>`:''}${rows.length?rows.map((r,i)=>rptCard(r,i,true,false)).join(''):'<div class="drcard">No reports yet. Save one in the Daily Report tab and it will appear here.</div>'}<div class="draction"><button id="drsync">Sync / reload</button></div><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p></section>`;
  rptBind(B,rows,true);$('#drsync').onclick=async()=>{const b=$('#drsync');b.disabled=true;try{await drSync();if(window.__patSec==='reports')rptPatroller(B)}finally{if(b.isConnected)b.disabled=false}}}
 function rptAdmin(B){drBox=B;drCurrent=null;const fs=window.__drFs||'all',fp=window.__drFp||'',all=drAllReports().filter(rptAdminSees),ppl=drPeople(),ids=[...new Set([...ppl.map(p=>p.id),...all.map(r=>r.person)])],rows=all.filter(r=>(!fp||r.person===fp)&&(fs==='all'||(fs==='sub')===(r.status==='Submitted')));
  const cnt=id=>{const m=all.filter(r=>r.person===id);return {n:m.length,s:m.filter(r=>r.status==='Submitted').length}};
@@ -2118,7 +2119,7 @@ function drDelete(){try{const d=drCurrent,adm=ptRole()==='admin';rptDelete(d.dat
 async function drAdminSave(){const b=$('#drasave');try{if(ptRole()!=='admin')throw Error('Admin only.');drCapture();const d=drCurrent;if(!drLive(drKey(d.date,d.person)))throw Error('Report not found. Tap Sync / reload.');drCheck(d);if(!confirm('Save these changes to the report of '+drName(d)+' for '+drDate(d.date)+'?'))return;if(b)b.disabled=true;d.adminEditedAt=Date.now();d.adminEditedBy='Admin';drCommit(drKey(d.date,d.person),d);window.__rpEdit='';drSync();drRender(drBox,d.date,d.person,null,'Saved by Admin. The report is marked Edited by Admin.')}catch(e){const er=$('#drerror');if(er)er.textContent=e.message;if(b)b.disabled=false}}
 function rptSync(B,draw){return async()=>{const b=$('#drsync');b.disabled=true;try{await drSync();if(window.__patSec==='reports')draw(B)}finally{if(b.isConnected)b.disabled=false}}}
 function rptPatroller(B,notice){const me=drMe(),mine=drAllReports().filter(r=>r.person===me),rows=rpRange(mine);
- B.innerHTML=`<section class="drapp drfx">${drTabs('reports')}<div class="drmid"><h2>Reports</h2><p class="hint">Your daily reports save on this device immediately, then sync to Admin through the main Sheet in the background. For 24 hours after you first save a report you can Edit or Delete it. View and PDF always work. New reports are made in Daily Report.</p>${notice?`<div class="drok" role="status">${esc(notice)}</div>`:''}${rpFilter(false)}<p class="hint">Showing ${rows.length} of ${mine.length} report(s)</p>${rows.length?rows.map((r,i)=>rptCard(r,i,true,false)).join(''):'<div class="drcard">No reports found.</div>'}</div><div class="drbar"><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p><div class="draction"><button id="drsync">Synchronize</button></div></div></section>`;
+ B.innerHTML=`<section class="drapp drfx">${drTabs('reports')}<div class="drmid"><h2>Reports</h2>${notice?`<div class="drok" role="status">${esc(notice)}</div>`:''}${rpFilter(false)}<p class="hint">Showing ${rows.length} of ${mine.length} report(s)</p>${rows.length?rows.map((r,i)=>rptCard(r,i,true,false)).join(''):'<div class="drcard">No reports found.</div>'}</div><div class="drbar"><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p><div class="draction"><button id="drsync">Synchronize</button></div></div></section>`;
  rptBind(B,rows,true);rpBindFilter(B,()=>rptPatroller(B));$('#drsync').onclick=rptSync(B,rptPatroller)}
 function rptAdmin(B,notice){drBox=B;drCurrent=null;const fs=window.__drFs||'all',fp=window.__drFp||'',all=drAllReports().filter(rptAdminSees),ppl=drPeople(),ids=[...new Set([...ppl.map(p=>p.id),...all.map(r=>r.person)])],rows=rpRange(all.filter(r=>(!fp||r.person===fp)&&(fs==='all'||(fs==='sub')===(r.status==='Submitted'))));
  const cnt=id=>{const m=all.filter(r=>r.person===id);return {n:m.length,s:m.filter(r=>r.status==='Submitted').length}};
@@ -2291,16 +2292,16 @@ const wfStyle=document.createElement('style');wfStyle.textContent='#wfmodal{posi
 let wfFrame=0;new MutationObserver(()=>{cancelAnimationFrame(wfFrame);wfFrame=requestAnimationFrame(()=>{wfHeaders();wfEntryPoints()})}).observe(document.body,{childList:true,subtree:true});/* Approval polling is provided by the existing 20-second v5.93 timer. */addEventListener('online',()=>{if(ptRole())wfSync()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ptRole())wfSync()});wfHeaders();wfEntryPoints();
 function wfGeneric(){wfOverlay('New report',`<p class="hint">Upload a completed report copy. Available for every logged-in role without granting access to restricted source modules.</p><label>Report / format<select id="wfgkind">${wfRouteKeys().map(([k,n])=>'<option value="'+esc(k)+'">'+esc(n)+'</option>').join('')}</select></label><label>Report date<input id="wfgdate" type="date" value="${drToday()}"></label><label>Title<input id="wfgtitle"></label><label>Completed DOCX / XLSX<input id="wfgfile" type="file" accept=".docx,.xlsx"></label><button class="btn" id="wfggo">Create / Send report</button><p id="wferr" class="pe"></p>`);$('#wfggo').onclick=async()=>{try{const f=$('#wfgfile').files[0],title=$('#wfgtitle').value.trim();if(!f||!title||!$('#wfgdate').value)throw Error('Enter a title and upload the completed report.');const route=$('#wfgkind').value,snap=await wfFile(f,{code:route});wfDialog(wfMake('aomp',title,snap,'upload:'+route+':'+$('#wfgdate').value+':'+title.toLowerCase(),route))}catch(e){$('#wferr').textContent=e.message}}}
 // Save package must include this workflow, not the earlier viewer-only source snapshot.
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 
 const wfBanner0=drBanner;drBanner=function(...args){return wfBanner0(...args)+' Use Send to send the saved report to its configured role. Saved changes do not resubmit an approval copy until you send again. The old 24-hour status is not an approval.'};
 
 const wfDrAdmin0=drAdmin;drAdmin=function(){wfDrAdmin0();const box=$('#dradmin');if(!box)return;const h=[...box.querySelectorAll('h3')].find(h=>h.textContent==='Future review routing');if(h){h.textContent='Approval routing';const hint=h.nextElementSibling;if(hint)hint.textContent='Live routing is configured in Admin Settings > Roles Creation. These legacy reviewer fields do not control approvals.';$('#drreviewrole')?.closest('label')?.setAttribute('hidden','');$('#drgaroute')?.closest('label')?.setAttribute('hidden','')}};
 
 // Preserve the complete current package when saving edited formats.
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 const wfMobileStyle=document.createElement('style');wfMobileStyle.textContent='@media(max-width:600px){.pt:has(.wfnotice),.top:has(.wfnotice){gap:5px!important;box-sizing:border-box;max-width:100vw}.pt:has(.wfnotice) .wfnotice,.top:has(.wfnotice) .wfnotice{font-size:0;padding:8px;min-width:35px;max-width:42px;position:relative}.wfnotice:before{content:"N";font-size:15px;font-weight:700}.wfnotice[data-count]:after{content:attr(data-count);font-size:10px;position:absolute;top:-4px;right:-3px;background:#b42318;color:#fff;border-radius:12px;padding:2px 4px}.pt:has(.wfnotice) .pclk,.top:has(.wfnotice) .pclk{min-width:0!important;width:108px!important;max-width:108px!important;font-size:9px!important;flex-shrink:1}.pt:has(.wfnotice) .pclk b,.top:has(.wfnotice) .pclk b{white-space:normal;font-size:8.5px!important;line-height:1.15}.pt:has(.wfnotice) .pclk span,.top:has(.wfnotice) .pclk span{font-size:11px!important}.pt:has(.wfnotice) .rb,.top:has(.wfnotice) .rb{padding:4px!important;max-width:46px;overflow:hidden;font-size:10px!important;flex-shrink:1}.pt:has(.wfnotice) .lo,.top:has(.wfnotice) .lo{padding:7px 5px!important;font-size:10px!important}.top:has(.wfnotice) .raph{gap:4px!important;min-width:0;flex-wrap:wrap}.pt:has(.wfnotice) .thm,.top:has(.wfnotice) .thm{padding:6px!important;font-size:10px!important}}';document.head.appendChild(wfMobileStyle);
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 
 </script>
 <script>
@@ -2308,7 +2309,7 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
 const wfRptCard58=rptCard;rptCard=function(r,i,pat,showName){let html=wfRptCard58(r,i,pat,showName);if(pat&&wfDailyCanSubmit94(r))html=html.replace(/(<button[^>]*data-rp="[^"]*"[^>]*>PDF<\/button>)/,'$1<button class="rpb e" data-wfds="'+i+'">Send</button>');return html};
 const wfRptBind58=rptBind;rptBind=function(B,rows,pat){wfRptBind58(B,rows,pat);if(pat)$$('[data-wfds]',B).forEach(b=>b.onclick=async()=>{b.disabled=true;try{const row=rows[+b.dataset.wfds],d=drLive(drKey(row.date,row.person));if(!d)throw Error('Report not found. Synchronize and retry.');wfOpenDaily(d)}catch(e){toast(e.message)}finally{if(b.isConnected)b.disabled=false}})};
 const wfEntries58=wfEntryPoints;wfEntryPoints=function(){wfEntries58();const B=$('#patmain');if(false){const b=document.createElement('button');b.id='wfmyapproved';b.className='btn sec';b.textContent='Approved Reports';b.onclick=()=>ptHome('_approved');B.prepend(b)}};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.62: Report Status timeline for every role; Admin never signs; signature auto-applied on Send. */
@@ -2380,7 +2381,7 @@ function wfStatusPage(B){if(!B)return;
   $('#wfrestore').onchange=async e=>{try{const fl=e.target.files[0];if(!fl)return;const x=JSON.parse(await fl.text());if(!x.ops||!Array.isArray(x.pending)||Object.values(x.ops).some(o=>!o.id?.startsWith(WF_PREFIX)||!o.data||!Number.isFinite(o.ts)))throw Error('Invalid approval backup');if(!confirm('Merge approval backup records into this device? Existing records will be kept.'))return;const local=wfLoad();for(const [id,op] of Object.entries(x.ops)){if(local.ops[id]&&JSON.stringify(local.ops[id])!==JSON.stringify(op))throw Error('Backup record differs from existing record. No merge saved.');local.ops[id]=op}local.pending=[...new Set([...local.pending,...Object.keys(x.ops)])];wfStore(local);wfStatusPage(B)}catch(e){toast(e.message)}}}
 const wfPtHome60=ptHome;ptHome=function(page){return wfPtHome60(page==='_reports'||page==='_approved'?'_status':page)};
 
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.62: local-first workflow, visible edit controls, and unread notification pulse. */
@@ -2422,7 +2423,7 @@ async function wfEditReport(id){
 }
 // Daily report expiry is enforced even while an edit form remains open.
 setInterval(()=>{const B=$('#patmain');if(!B||!drCurrent||ptRole()!=='pat')return;const r=drLive(drKey(drCurrent.date,drCurrent.person));if(r&&!drState(r).edit){B.querySelectorAll('fieldset').forEach(e=>e.disabled=true);['drsave','drsubmit','drdel'].forEach(k=>{const e=$('#'+k);if(e)e.disabled=true})}},1000);
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 wfHeaders();
 
 const wfReplace62=wfReplace;wfReplace=async function(id,head,snapshot){const r=wfState().reports[id];if(!wfCanEdit(r))throw Error('The report is locked, approved, or not owned by you.');if(snapshot.b64&&fmtBytes(snapshot).length>2*1024*1024)throw Error('Report copy must be under 2 MB.');return wfReplace62(id,head,snapshot)};
@@ -2454,7 +2455,7 @@ function wfPickSend63(def,stack){return new Promise(res=>{const d=['eic','pm','a
 function drFirstTs63(r){try{const k=drKey(r.date,r.person);let m=0;for(const op of Object.values(drLoad().ops)){if(op.key!==k)continue;const t=Number(op.data&&op.data.createdAt)||0,u=Number(op.ts)||0;for(const v of [t,u])if(v>0&&(!m||v<m))m=v}return m||Number(r.savedAt)||Number(r.submittedAt)||0}catch(e){return 0}}
 const drState63=drState;drState=function(r){if(r&&!(Number(r.createdAt)>0)){const t=drFirstTs63(r);if(t)r={...r,createdAt:t}}return drState63(r)};
 const wfEditStart63=wfEditStart;wfEditStart=function(r){const v=wfEditStart63(r);if(v>0)return v;const t=[Number(r&&r.updated)||0,...(r&&r.history||[]).map(h=>Number(h.at)||0)].filter(x=>x>0);return t.length?Math.min(...t):0};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -2472,11 +2473,11 @@ async function wfSignedPdf(r){const rows=wfSigRows(r),title=(r.title||'Report').
   if(secs.length){filled=wfSigFill(tmp,rows);if(!filled)secs[secs.length-1].appendChild(wfSigBlock(r,rows));const styles=[...tmp.querySelectorAll('style')];
    for(const sec of secs){const w=Math.round(sec.offsetWidth||794),mh=Math.round(parseFloat(getComputedStyle(sec).minHeight)||w*1.4142),h=Math.max(mh,Math.ceil(sec.offsetHeight));pages.push({styles,node:sec,w,h,ph:mh})}}
   else{const flow=document.createElement('div');flow.style.cssText='width:794px;box-sizing:border-box;padding:36px;background:#fff;font:13px Arial;color:#000';flow.innerHTML='<style>table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:3px 5px;font-size:11px}img{max-width:100%}</style>'+(r.snapshot.html?'':'')+tmp.innerHTML;tmp.innerHTML='';tmp.appendChild(flow);filled=wfSigFill(flow,rows);if(!filled)flow.appendChild(wfSigBlock(r,rows));const css=document.createElement('style');css.textContent=wfReportCSS;pages.push({styles:[css],node:flow,w:794,h:Math.ceil(flow.scrollHeight),ph:1123})}
-  for(const pg of pages){const sc=Math.min(2,Math.sqrt(1.2e8/(pg.w*pg.h)));const cv=await wfRasterNode(pg.styles,pg.node,pg.w,pg.h,sc);const jd=cv.toDataURL('image/jpeg',0.92);pagesImgs.push(jd);const jpg=await pdf.embedJpg(Uint8Array.from(atob(jd.split(',')[1]),c=>c.charCodeAt(0)));if(pg.h>pg.ph&&pg.h<=pg.ph*1.25){const k=pg.ph/pg.h,P=pdf.addPage([pg.w*.75,pg.ph*.75]);P.drawImage(jpg,{x:pg.w*.75*(1-k)/2,y:0,width:pg.w*.75*k,height:pg.ph*.75});continue}const n=Math.max(1,Math.ceil((pg.h-4)/pg.ph));for(let i=0;i<n;i++){const P=pdf.addPage([pg.w*.75,pg.ph*.75]);P.drawImage(jpg,{x:0,y:pg.ph*.75-pg.h*.75+i*pg.ph*.75,width:pg.w*.75,height:pg.h*.75})}}
+  for(const pg of pages){const sc=Math.min(300/96,Math.sqrt(1.6e7/(pg.w*pg.h)));const cv=await wfRasterNode(pg.styles,pg.node,pg.w,pg.h,sc);const jd=cv.toDataURL('image/jpeg',0.98);pagesImgs.push(jd);const jpg=await pdf.embedJpg(Uint8Array.from(atob(jd.split(',')[1]),c=>c.charCodeAt(0)));if(pg.h>pg.ph&&pg.h<=pg.ph*1.25){const k=pg.ph/pg.h,P=pdf.addPage([pg.w*.75,pg.ph*.75]);P.drawImage(jpg,{x:pg.w*.75*(1-k)/2,y:0,width:pg.w*.75*k,height:pg.ph*.75});continue}const n=Math.max(1,Math.ceil((pg.h-4)/pg.ph));for(let i=0;i<n;i++){const P=pdf.addPage([pg.w*.75,pg.ph*.75]);P.drawImage(jpg,{x:0,y:pg.ph*.75-pg.h*.75+i*pg.ph*.75,width:pg.w*.75,height:pg.h*.75})}}
   return {bytes:await pdf.save(),name:'Signed_'+title+'.pdf',filled,imgs:pagesImgs}}finally{tmp.remove()}}
 async function wfSignedDownload(id,btn){const r=wfState().reports[id];if(!r||!wfMine(r))return toast('This report has not reached your role.');const t=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Preparing PDF...'}try{const x=await wfSignedPdf(r);fmtBlob(new Blob([x.bytes],{type:'application/pdf'}),x.name)}catch(e){toast(e.message)}finally{if(btn){btn.disabled=false;btn.textContent=t}}}
 async function wfSignedView(id,btn){const r=wfState().reports[id];if(!r||!wfMine(r))return toast('This report has not reached your role.');const w=window.open('','_blank');const t=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Preparing PDF...'}try{const x=await wfSignedPdf(r),url=URL.createObjectURL(new Blob([x.bytes],{type:'application/pdf'}));if(w)w.location.href=url;else fmtBlob(new Blob([x.bytes],{type:'application/pdf'}),x.name)}catch(e){if(w)w.close();toast(e.message)}finally{if(btn){btn.disabled=false;btn.textContent=t}}}
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.67: Patroller Daily Report bar = Save (+ Send after saved); extra actions live in the Send window; Admin delete removes every copy everywhere and frees the date. */
@@ -2495,7 +2496,7 @@ async function adminPurge66(date,person){const key=drKey(date,person);try{const 
 async function send67(){const b=$('#drsend67');if(b){b.disabled=true;b.textContent='Working...'}let go=false;try{let editable=true;try{const r=drLive(drKey(drCurrent.date,drCurrent.person));editable=!r||drState(r).edit}catch(e){}if(editable){await save66();const er=$('#drerror');go=!(er&&er.textContent&&!/Sheet sync did not finish/.test(er.textContent))}else go=true}catch(e){const er=$('#drerror');if(er)er.textContent=e.message}finally{const nb=$('#drsend67');if(nb&&nb.isConnected){nb.disabled=false;nb.textContent='Send'}}if(go){try{drCurrent=null}catch(e){}patSection('reports')}}
 const drRender67=drRender;
 drRender=function(...args){drRender67(...args);try{const B=args[0];if(!B||!drCurrent||ptRole()!=='pat')return;const bar=B.querySelector('.draction');if(!bar)return;['drsync','drpdf','drsubmit','drdel','drbackrep','wfdr','drsend67'].forEach(k=>{const e=bar.querySelector('#'+k);if(e)e.remove()});const s=bar.querySelector('#drsave');if(!s)return;s.textContent='Save';s.onclick=save66;const n=document.createElement('button');n.id='drsend67';n.className=s.className;n.textContent='Send';n.type='button';n.onclick=send67;s.after(n);bar.style.cssText+=';display:flex;flex-wrap:nowrap;gap:10px';[s,n].forEach(x=>{x.style.flex='1 1 0';x.style.minWidth='0'})}catch(e){}};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -2553,7 +2554,7 @@ drRender=function(...args){drRender68(...args);if(drCurrent&&drNoticeKey68===drK
 const rptPatroller68=rptPatroller;
 rptPatroller=function(B,notice){rptPatroller68(B,notice);if(drNoticeKey68)drShowSaved68(drNoticeKey68,false)};
 window.addEventListener('online',()=>drQueue68(drNoticeKey68));
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -2640,7 +2641,7 @@ send67=async function(){
  if(JSON.stringify(drLive(key)||null)===snap)return;
  drCapture();if(before===drNorm(drCurrent))drRender(B,drCurrent.date,drCurrent.person)}}
 dr69Paint();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.70: forgiving daily time entry and visible local Save failures. */
@@ -2940,7 +2941,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 let sch=false;new MutationObserver(()=>{if(sch)return;sch=true;requestAnimationFrame(()=>{sch=false;clean74()})}).observe(document.body,{childList:true,subtree:true});
 clean74();
 })();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 
 </script>
 <script>
@@ -2968,7 +2969,7 @@ document.addEventListener('click',e=>{
  if(!pal75(sec)){/* fall back to old behaviour only if the main work area is missing */}
 
 },true);
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 })();
 </script>
 <script>
@@ -3069,7 +3070,7 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
  scan(document.body);
 })();
 
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.82: ordered Daily Report locations. Catalogue uses the existing Daily Report operation log and Sheet sync; historical report text is a snapshot. No default locations supplied. */
@@ -3081,7 +3082,7 @@ function drLocationBind82(B,edit){const input=B.querySelector('#drlocation82');i
 function drLocationManage82(B,editing){if(!(drIsPat()||ptRole()==='admin'))return;const old=document.getElementById('drlocmodal82');if(old)old.remove();const overlay=document.createElement('div');overlay.id='drlocmodal82';overlay.className='drlocoverlay82';overlay.innerHTML=`<div class="drlocdialog82" role="dialog" aria-modal="true" aria-labelledby="drlocheading82"><h3 id="drlocheading82">${editing?'Edit / Delete locations':'Add location'}</h3>${editing?'<label>Location<select id="drlocselect82"></select></label>':''}<label for="drlocname82">Location name (English)</label><input id="drlocname82" maxlength="80" placeholder="e.g. Nagarampudi"><p class="hint">List changes sync through the main Sheet. Saved report locations do not change.</p><p id="drlocerror82" class="pe" role="alert"></p><div class="drlocactions82"><button type="button" id="drlocsave82" class="sv">${editing?'Save changes':'Add'}</button>${editing?'<button type="button" id="drlocdelete82">Delete</button>':''}<button type="button" id="drlocclose82">Close</button></div></div>`;document.body.appendChild(overlay);const q=s=>overlay.querySelector(s),close=()=>{overlay.remove();B.querySelector(editing?'#drlocedit82':'#drlocadd82')?.focus()},fill=()=>{if(!editing)return;const list=drLocationList82();q('#drlocselect82').innerHTML=list.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');q('#drlocsave82').disabled=q('#drlocdelete82').disabled=!list.length;q('#drlocname82').value=list[0]?.name||''};fill();if(editing)q('#drlocselect82').onchange=()=>{q('#drlocname82').value=drLocationList82().find(x=>x.id===q('#drlocselect82').value)?.name||''};const done=()=>{drLocationMount82(B,true);close();drSync()};q('#drlocclose82').onclick=close;overlay.onkeydown=e=>{if(e.key==='Escape')close();if(e.key==='Tab'){const f=[...overlay.querySelectorAll('input,select,button')].filter(x=>!x.disabled),first=f[0],last=f[f.length-1];if(e.shiftKey&&document.activeElement===first){last.focus();e.preventDefault()}else if(!e.shiftKey&&document.activeElement===last){first.focus();e.preventDefault()}}};q('#drlocsave82').onclick=()=>{try{const name=drLocationName82(q('#drlocname82').value),id=editing?q('#drlocselect82').value:'location:'+crypto.randomUUID(),prev=editing?drView()[id]:null;if(editing&&!prev)throw Error('Select a location first.');if(drLocationList82().some(x=>x.id!==id&&x.name.toLowerCase()===name.toLowerCase()))throw Error('That location is already in the list.');drCommit(id,{name,createdAt:prev?.createdAt||Date.now(),updatedAt:Date.now()});done()}catch(e){q('#drlocerror82').textContent=e.message}};if(editing)q('#drlocdelete82').onclick=async()=>{try{const id=q('#drlocselect82').value,prev=drView()[id];if(!prev)throw Error('Select a location first.');if(!await ynBox66('Delete location?','Remove <b>'+esc(prev.name)+'</b> from the location list? Saved reports will not change.'))return;drCommit(id,{...prev,deleted:true,updatedAt:Date.now()});done()}catch(e){q('#drlocerror82').textContent=e.message}};q(editing?'#drlocselect82':'#drlocname82').focus()}
 {const capture82=drCapture;drCapture=function(){capture82();const e=$('#drlocation82');if(drCurrent&&e)drCurrent.location=e.value};const check82=drCheck;drCheck=function(d){if(d.location&&/[^\x20-\x7e]/.test(d.location)){const e=Error('Type the location in English so it can print in the PDF.');e.field='drlocation82';throw e}return check82(d)};const card82=rptCard;rptCard=function(r,...args){const html=card82(r,...args);return r.location?html.replace('</b>','</b> <span class="drlocreport82"> | '+esc(r.location)+'</span>'):html}}
 (()=>{const style=document.createElement('style');style.textContent=`.drloc82{min-width:0}.drloc82>label{display:block;font-size:13px}.drloc82>input{width:100%;min-height:44px;box-sizing:border-box;font:inherit}.drlocactions82{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0;align-items:center}.drlocactions82 button{min-height:44px;padding:7px 12px;font:inherit;border:1px solid #c6cfdb;border-radius:8px;cursor:pointer}.drlocmanual82{display:flex!important;align-items:center;gap:6px;margin:0!important;font-size:13px}.drlocmanual82 input,.drlocoptions82 input{width:20px!important;height:20px!important;min-height:20px!important;margin:0!important;flex:none}.drloc82 details{border:1px solid #c6cfdb;border-radius:8px;background:var(--card,#fff)}.drloc82 details[hidden]{display:none}.drloc82 summary{cursor:pointer;padding:12px;min-height:44px;box-sizing:border-box}.drlocoptions82{max-height:220px;overflow-y:auto;padding:4px 10px}.drlocoptions82 label{display:flex;gap:8px;align-items:center;min-height:44px;margin:0;overflow-wrap:anywhere}.drloc82 .hint{margin:5px 0;line-height:1.35}.drlocreport82{overflow-wrap:anywhere}.drlocoverlay82{position:fixed;inset:0;z-index:2147483100;background:#0007;display:flex;align-items:center;justify-content:center;padding:12px}.drlocdialog82{background:var(--card,#fff);color:var(--ink,#18222e);border-radius:12px;padding:18px;width:min(460px,100%);max-height:85vh;overflow:auto;box-sizing:border-box}.drlocdialog82 input,.drlocdialog82 select{width:100%;min-height:44px;box-sizing:border-box;font:inherit}.drlocdialog82 label{display:block;margin:8px 0 4px}.drlocdialog82 h3{margin-top:0}.drlocdialog82 .hint{font-size:13px;line-height:1.4}`;document.head.appendChild(style)})();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 
 </script>
 <script>
@@ -3108,7 +3109,7 @@ const add=()=>{try{const name=drLocationName82(q('#drlocname83').value),all=[...
 q('#drlocadd83').onclick=add;o.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();add()}if(e.key==='Escape')close()};q('#drlocname83').focus()}}
 (()=>{const s=document.createElement('style');s.textContent=`.drlocrow83{display:flex;gap:6px;align-items:center}.drlocrow83>input{flex:1;min-width:0;cursor:pointer}.drlocplus83{width:44px;height:44px;flex:none;font-size:24px;line-height:1;border:1px solid #c6cfdb;border-radius:8px;cursor:pointer;padding:0}.drlocpanel83{border:1px solid #c6cfdb;border-radius:8px;background:var(--card,#fff);max-height:240px;overflow-y:auto;margin-top:4px;padding:2px 8px}.drlocpanel83[hidden]{display:none}.drlocitem83{display:flex;align-items:center;gap:4px;min-height:44px}.drlocitem83 label{display:flex;flex:1;gap:8px;align-items:center;margin:0;min-width:0;overflow-wrap:anywhere}.drlocitem83 input[type=checkbox]{width:20px!important;height:20px!important;min-height:20px!important;margin:0!important;flex:none}.drlocitem83 .drlocedit83{flex:1;min-width:0;min-height:36px;font:inherit;box-sizing:border-box}.drlocic83{width:36px;height:36px;flex:none;border:0;background:transparent;font-size:17px;cursor:pointer;padding:0}`;document.head.appendChild(s)})();
 const APP_VER_NOTE83='v5.83';
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -3117,15 +3118,15 @@ function wfLatestHop84(r){const h=[...(r.history||[])].reverse().find(h=>h.to&&[
 {const patBefore84=patOpen;patOpen=function(){const x=patBefore84.apply(this,arguments),nav=document.querySelector('#patside');if(nav&&['pat','admin'].includes(ptRole())){nav.querySelector('[data-s=\"reports\"]')?.remove();if(!nav.querySelector('[data-rs73]')){const b=document.createElement('button');b.dataset.rs73='1';b.innerHTML='<span>&#128203;</span>Report Status';b.onclick=()=>{nav.classList.remove('open');document.querySelector('#patov')?.classList.remove('on');if(ptRole()==='admin')ptHome('_status');else{window.__patSec='_status';window.__wfStF='me';wfStatusPage(document.querySelector('#patmain'))}};nav.appendChild(b)}}return x}}
 {const before84=wfPreview;wfPreview=async function(r,el){await before84(r,el);omDatesIn84(el)}}
 // Normalise dynamic screen text, not form values, attributes, templates or storage.
-(()=>{let queued=false;const paint=()=>{queued=false;omDatesIn84(document.body)};new MutationObserver(()=>{if(!queued){queued=true;requestAnimationFrame(paint)}}).observe(document.body,{childList:true,subtree:true,characterData:true});paint()})();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+(()=>{let queued=false;const paint=()=>{queued=false;omDatesIn84(document.body)};new MutationObserver(ms=>{if(ms.every(m=>m.target.parentElement?.closest('.pclk')||m.target.closest?.('.pclk')))return;if(!queued){queued=true;requestAnimationFrame(paint)}}).observe(document.body,{childList:true,subtree:true,characterData:true});paint()})();
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.85: Admin's finally EIC-approved Daily Reports: PDF View + existing Delete only. */
 function rptFinal85(d){const key=drKey(d.date,d.person);const r=Object.values(wfState().reports).filter(x=>x.type==='daily'&&x.sourceKey===key).sort((a,b)=>b.updated-a.updated)[0];return r&&!r.conflict&&r.status==='Approved'&&(r.approvedBy==='eic'||(r.history||[]).some(h=>h.action==='Final approval'&&h.by==='eic'))?r:null}
 async function rptPdfView85(r,button){const text=button.textContent;button.disabled=true;button.textContent='Preparing PDF...';try{const x=await wfSignedPdf(r),url=URL.createObjectURL(new Blob([x.bytes],{type:'application/pdf'}));const m=wfOverlay(r.title+' - PDF View','<iframe title="Final-approved PDF" style="width:100%;height:75vh;border:0" src="'+url+'#toolbar=0&navpanes=0"></iframe>');const close=m.querySelector('#wfclose').onclick;m.querySelector('#wfclose').onclick=()=>{close();URL.revokeObjectURL(url)};m.addEventListener('click',e=>{if(e.target===m)URL.revokeObjectURL(url)})}catch(e){toast(e.message)}finally{if(button.isConnected){button.disabled=false;button.textContent=text}}}
 {const card85=rptCard;rptCard=function(d,i,pat,showName){const html=card85(d,i,pat,showName);if(ptRole()!=='admin'||pat||!rptFinal85(d))return html;return html.replace(/<div class="rpbtns">[\s\S]*?<\/div>/,'<div class="rpbtns"><button class="rpb v" data-rpdf85="'+i+'">PDF View</button><button class="rpb d" data-rd="'+i+'">Delete</button></div>')};const bind85=rptBind;rptBind=function(B,rows,pat){bind85(B,rows,pat);$$('[data-rpdf85]',B).forEach(b=>b.onclick=()=>{try{if(ptRole()!=='admin')throw Error('Admin only');const r=rptFinal85(rows[+b.dataset.rpdf85]);if(!r)throw Error('Final approval is no longer current. Reload the Reports list.');return rptPdfView85(r,b)}catch(e){const er=$('#drerror');if(er)er.textContent=e.message;else toast(e.message)}})}}
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.87: final-approved reports are view-only for every non-Admin role.
@@ -3159,7 +3160,7 @@ function wfFinalRows86(B){
  const bind86=rptBind;rptBind=function(B){const x=bind86.apply(this,arguments);if(ptRole()!=='admin')B.querySelectorAll('[data-wfview86]').forEach(b=>b.onclick=()=>wfOpenFinal86(b.dataset.wfview86,b));return x};
 }
 const APP_VER_NOTE86='v5.98';
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 /* Keep each signer's actual AE, TPI or TPA designation. The shared login
    does not change a TPI/TPA person's designation to AE. */
 {const des86=window.omSigDes;window.omSigDes=function(d,a){
@@ -3174,7 +3175,7 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
  if((String(d||'').match(/\b(?:ae|tpi|tpa)\b/gi)||[]).length>1){const p=(ptGet().org||[]).find(p=>p.id===x.person);if(p?.designation)d=p.designation}
  return [x.name,window.omSigDes(d,x.actor)].filter(Boolean).join(' / ');
 }}
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 
 </script>
 
@@ -3198,7 +3199,7 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
  };
  wfSigBlock=function(r,rows){const all=[rows.perf,...rows.rev,rows.ga].filter(Boolean),d=document.createElement('div');d.style.cssText='margin:18px 0 0;font:12px Arial;color:#000;page-break-inside:avoid';d.innerHTML='<b>Approval signatures</b><table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-top:6px"><thead><tr><th>Role</th><th>Signature</th><th>Name &amp; Designation</th><th>Comments</th></tr></thead><tbody>'+all.map(x=>'<tr><td>'+esc(ptRoleName(x.actor))+'</td><td>'+(x.image?'<img src="'+esc(x.image)+'" style="max-height:45px;max-width:125px;object-fit:contain">':'')+'</td><td>'+esc(wfSigLabel85(x))+'</td><td style="white-space:pre-wrap;overflow-wrap:anywhere">'+esc(x.comment||'')+'</td></tr>').join('')+'</tbody></table>';d.querySelectorAll('td,th').forEach(c=>c.style.cssText+=';border:1px solid #aaa;padding:5px;vertical-align:middle');return d};
 })();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -3293,7 +3294,7 @@ async function wfPdfRender88(bytes,host){
 }
 async function wfPdfShow88(r,host){
  host.textContent='Preparing report PDF...';
- try{const x=await wfSignedPdf(r);if(host.isConnected)await wfPdfRender88(x.bytes,host)}
+ try{const x=await wfSignedPdf(r);host.__pdfBytes15=x.bytes;if(host.isConnected)await wfPdfRender88(x.bytes,host)}
  catch(e){if(host.isConnected){host.replaceChildren();const p=document.createElement('p');p.className='pe';p.setAttribute('role','alert');p.textContent='PDF could not be prepared: '+String(e.message||e);host.appendChild(p)}}
 }
 async function wfPdfDialog88(r,button){
@@ -3315,7 +3316,7 @@ wfSignedView=async function(id,button){
  }
  return wfPdfDialog88(r,button);
 };
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <style>
@@ -3379,7 +3380,7 @@ function wfValidatePlan89(p){
  if(!p.chain.pat)throw Error('Patroller must send to a receiving role.');
  for(const start of Object.keys(p.chain)){const seen=new Set();let at=start;while(at&&at!==p.final){if(seen.has(at))throw Error('Routing loop at '+wfName(at));seen.add(at);const next=p.chain[at];if(next&&!WF_APPROVERS.includes(next))throw Error('Unknown receiving role.');if(!next&&['pat','admin'].includes(start)&&start!==p.final)throw Error(wfName(start)+' does not reach the chosen final authority.');at=next}}
 }
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* All format signature rows share the preparer's column widths, spacing and alignment.
@@ -3403,7 +3404,7 @@ wfSigFill=function(root,rows){
  });return targets.length;
 };
 wfSigBlock=function(r,rows){const div=document.createElement('div');div.style.cssText='margin-top:18px;color:#000;font:12px Arial;break-inside:avoid';div.innerHTML='<b>Approval signatures</b><table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-top:6px"><thead><tr><th>Level</th><th>Signature</th><th>Name &amp; Designation</th><th>Comments</th></tr></thead><tbody><tr><td>Performed by</td><td></td><td></td><td></td></tr><tr><td>Reviewed by</td><td></td><td></td><td></td></tr><tr><td>GA In-charge</td><td></td><td></td><td></td></tr></tbody></table>';wfSigFill(div,rows);div.querySelectorAll('th').forEach(th=>th.style.cssText='border:1px solid #000;padding:6px;text-align:left;font:700 11px Arial');return div};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <style>
 @media print{body.wf89printing>*:not(#wfmodal){display:none!important}body.wf89printing #wfmodal{position:static!important;display:block!important;padding:0!important;background:white!important;overflow:visible!important;height:auto!important}body.wf89printing #wfmodal .wfmodal{width:100%!important;max-width:none!important;margin:0!important;padding:0!important;overflow:visible!important;box-shadow:none!important}body.wf89printing #wfmodal .wfmodal>*:not(.wf88pages):not(.wf73pdf){display:none!important}body.wf89printing .wf88pages,body.wf89printing .wf73pdf{padding:0!important;margin:0!important;border:0!important;background:white!important}body.wf89printing .wf88page{break-after:page;page-break-after:always;margin:0!important}body.wf89printing .wf88page:last-of-type{break-after:auto;page-break-after:auto}body.wf89printing .wf88page img{box-shadow:none!important;width:100%!important;max-height:270mm;object-fit:contain}body.wf89printing .wf88caption,body.wf89printing .wf88progress{display:none!important}}
@@ -3412,21 +3413,10 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
 // Owner confirmed Print + Save + Close for approved and pending PDF views.
 const WF89_APPROVED_PDF_TOOLS=true;
 function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
-{const base=wfPdfDialog88;wfPdfDialog88=async function(r,button){const m=await base(r,button);if(!m.isConnected||!wfPdfTools89(r)||m.querySelector('.pe'))return m;
- const bar=m.querySelector('.wfbar'),save=document.createElement('button'),print=document.createElement('button');save.className=print.className='btn sec';save.textContent='Save';print.textContent='Print';
- save.onclick=async()=>{save.disabled=true;try{const x=await wfSignedPdf(r);fmtBlob(new Blob([x.bytes],{type:'application/pdf'}),x.name)}catch(e){toast(e.message)}finally{save.disabled=false}};
- print.onclick=()=>{if(m.querySelector('.wf88progress'))return toast('Please wait for all PDF pages to load.');document.body.classList.add('wf89printing');try{window.print()}finally{document.body.classList.remove('wf89printing')}};
- bar.insertBefore(print,bar.querySelector('#wfclose'));bar.insertBefore(save,bar.querySelector('#wfclose'));return m
-};rptPdfView85=wfPdfDialog88;}
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
-{const review=wfDialog;wfDialog=function(id){const result=review.apply(this,arguments),r=wfState().reports[id],m=document.querySelector('#wfmodal'),host=m?.querySelector('#wfpdf73');if(!r||!host||!wfPdfTools89(r)||m.querySelector('#wfprint89'))return result;
- const bar=m.querySelector('.wfbar');for(const name of ['Print','Save']){const b=document.createElement('button');b.className='btn sec';b.textContent=name;b.id=name==='Print'?'wfprint89':'wfsavepdf89';
- b.onclick=async()=>{if(host.querySelector('.wf88progress')||!host.querySelector('.wf88page'))return toast('Please wait for the PDF pages to load.');
- if(name==='Print'){document.body.classList.add('wf89printing');try{window.print()}finally{document.body.classList.remove('wf89printing')}}
- else{b.disabled=true;try{const x=await wfSignedPdf(wfState().reports[id]);fmtBlob(new Blob([x.bytes],{type:'application/pdf'}),x.name)}catch(e){toast(e.message)}finally{b.disabled=false}}};bar.insertBefore(b,bar.querySelector('#wfclose'))}return result};}
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -3519,7 +3509,7 @@ ptConnectUI=async function(){
  const b=$('#pcnb');if(b)b.disabled=true;
  try{await ptConnect('RAPKG:'+btoa(JSON.stringify({u:d.url,k:d.key})));ptLogin();toast('Connected to the project Sheet. Use your role password.')}catch(e){toast('Connection failed: '+e.message)}finally{if(b)b.disabled=false}
 };
-function p92DefaultSource(){const d={url:SC.url,key:SC.key};return fmtPackageSource.replace(/const EMBEDDED_WEBAPP_URL = [^;]+;/,()=> 'const EMBEDDED_WEBAPP_URL = '+JSON.stringify(d.url)+';').replace(/const EMBEDDED_SHEET_KEY = [^;]+;/,()=> 'const EMBEDDED_SHEET_KEY = '+JSON.stringify(d.key)+';').replace(/(<script type="application\/json" id="project-default-connection">)[\s\S]*?(<\/script>)/,(_,a,b)=>a+JSON.stringify(d).replace(/</g,'\\u003c')+b)}
+function p92DefaultSource(){if(!fmtPackageSource)fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;const d={url:SC.url,key:SC.key};return fmtPackageSource.replace(/const EMBEDDED_WEBAPP_URL = [^;]+;/,()=> 'const EMBEDDED_WEBAPP_URL = '+JSON.stringify(d.url)+';').replace(/const EMBEDDED_SHEET_KEY = [^;]+;/,()=> 'const EMBEDDED_SHEET_KEY = '+JSON.stringify(d.key)+';').replace(/(<script type="application\/json" id="project-default-connection">)[\s\S]*?(<\/script>)/,(_,a,b)=>a+JSON.stringify(d).replace(/</g,'\\u003c')+b)}
 function p92Export(){
  if(ptRole()!=='admin')return toast('Admin only');
  if(!SC.url||!SC.key)return toast('Connect and test the project Sheet first.');
@@ -3531,7 +3521,7 @@ function p92Export(){
 async function p92ResetDialog(){
  if(ptRole()!=='admin')return toast('Admin only');
  if(!SC.url||!SC.key||!navigator.onLine)return toast('Connect to the Sheet and go online first. No data was deleted.');
- const o=wfOverlay('Delete project data (one time)',`<p>This removes submitted reports, pipeline issues, approval history, notifications from this Sheet and this app.</p><p><b>Kept:</b> RA bills/files, Word/Excel format templates, KMZ/pipeline network, Road Map, AOMP Planner, users, passwords, organogram, signatures, settings and approval routing.</p><p>Use the same v5.99.14 team app on every device. Offline copies clear their old project reports on reconnect. Separate Drive files are not touched.</p><button class="btn" id="p92backup">1. Download full Admin backup</button><div id="p92confirm" hidden><label><input type="checkbox" id="p92saved"> I checked that the backup downloaded and saved it safely.</label><p><label>Type DELETE<input class="pi" id="p92word" autocomplete="off"></label></p><label>Admin reset secret (from Script Properties)<input class="pi" id="p92secret" type="password" autocomplete="off"></label><p><button class="btn" style="background:#b42318" id="p92yes">Yes, delete project data</button> <button class="btn sec" id="p92no">No, cancel</button></p></div><div class="pe" id="p92err"></div>`);
+ const o=wfOverlay('Delete project data (one time)',`<p>This removes submitted reports, pipeline issues, approval history, notifications from this Sheet and this app.</p><p><b>Kept:</b> RA bills/files, Word/Excel format templates, KMZ/pipeline network, Road Map, AOMP Planner, users, passwords, organogram, signatures, settings and approval routing.</p><p>Use the same v5.99.15 team app on every device. Offline copies clear their old project reports on reconnect. Separate Drive files are not touched.</p><button class="btn" id="p92backup">1. Download full Admin backup</button><div id="p92confirm" hidden><label><input type="checkbox" id="p92saved"> I checked that the backup downloaded and saved it safely.</label><p><label>Type DELETE<input class="pi" id="p92word" autocomplete="off"></label></p><label>Admin reset secret (from Script Properties)<input class="pi" id="p92secret" type="password" autocomplete="off"></label><p><button class="btn" style="background:#b42318" id="p92yes">Yes, delete project data</button> <button class="btn sec" id="p92no">No, cancel</button></p></div><div class="pe" id="p92err"></div>`);
  let backup=null;
  $('#p92backup',o).onclick=async()=>{const b=$('#p92backup',o);b.disabled=true;try{const status=await sApi({action:'project_status'});if(status.resetDone)throw Error('One-time Delete data has already been used.');if(!Number.isFinite(status.epoch))throw Error('Update the Apps Script to v5.93 first.');backup=await sApi({action:'project_backup'});const local={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);local[k]=localStorage.getItem(k)}fmtBlob(new Blob([JSON.stringify({version:'v5.97',date:new Date().toISOString(),sheetUrl:SC.url,cloud:backup,local},null,2)],{type:'application/json'}),'OM_Admin_Full_Backup_'+Date.now()+'.json');$('#p92confirm',o).hidden=false;}catch(e){$('#p92err',o).textContent=e.message}finally{b.disabled=false}};
  $('#p92no',o).onclick=()=>o.remove();
@@ -3557,7 +3547,7 @@ ptAdmin=function(B){p92Admin0(B);if(ptRole()!=='admin')return;
 };
 // Do not accidentally drop the configured connection during format-package export.
 const p92FmtExport0=fmtExport;fmtExport=function(){const old=fmtPackageSource;try{const d=document.getElementById('project-default-connection');if(d&&JSON.parse(d.textContent).url)fmtPackageSource=p92DefaultSource();return p92FmtExport0()}finally{fmtPackageSource=old}};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
 /* v5.97: hide submitted preparer Send controls; limit report forwarding choices.
@@ -3587,7 +3577,7 @@ function wfDailyCanSubmit94(d){
  const send=send67;
  send67=async function(){if(drCurrent&&!wfDailyCanSubmit94(drCurrent)){toast('This report has already been sent.');return;}return send.apply(this,arguments);};
 })();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 
 <script>
@@ -3620,7 +3610,7 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
 .drlocpanel83{max-height:min(240px,40dvh);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-margin-block:8px}
 #pside button,#patside button{animation:none!important}
 `;document.head.appendChild(style)})();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <style id="p96style">#pcn .pi,#pcn textarea{width:100%;box-sizing:border-box;font-size:16px;min-height:44px}#pcn label{display:block;margin:12px 0 5px}#pcn{max-width:100%;overflow-wrap:anywhere}#pcn .hint{white-space:normal;line-height:1.5}#p96msg{padding:10px;background:#f0f5fa;border-radius:8px;color:#183b62}.p96dialog{width:min(480px,calc(100vw - 32px));box-sizing:border-box;border:0;border-radius:14px;padding:24px;font:15px/1.55 system-ui;max-height:85vh;overflow:auto}.p96dialog::backdrop{background:#0007}.p96dialog .row{display:flex;flex-wrap:wrap;gap:10px}.p96dialog button{white-space:normal;min-height:44px}@media(max-width:480px){#portal .pc:has(#pcn:not([hidden])){width:100%;box-sizing:border-box}.p96dialog{padding:18px}}</style>
 <script>
@@ -3681,12 +3671,15 @@ sApi=async function(body){if(p96Connecting)throw Error('Connecting to a Sheet. P
 function p96Owned(k){return /^(?:om_|ns_ra_|ra_|aomp_|dr_|is_|pal_|pipeline_|pipe_)/i.test(k)}
 function p96Confirm(downloadAll98=false){return new Promise(resolve=>{const d=document.createElement('dialog');d.id='p96confirm';d.className='p96dialog';d.innerHTML='<h3>'+ (downloadAll98?'Load the latest team records?':'Set up this device?')+'</h3><p>The team records will replace the portal records saved on this device. Work that has not reached the team Sheet could be lost. The team Sheet and other devices will not be changed.</p><p>You can save a copy of this device before continuing.</p><p id="p9910choice" role="status" aria-live="polite">Choose below to continue.</p><div class="row"><button class="btn sec" id="p9910backup">Save a device backup</button><button class="btn sec" id="p96no">Keep my current records</button><button class="btn" id="p96yes">Use the team records</button></div>';document.body.appendChild(d);
  const end=x=>{d.close();d.remove();if(x)p96Progress('Connecting... loading the team records. Please keep this app open.');else p96Progress('Your current records were kept.');resolve(x)};
- d.querySelector('#p9910backup').onclick=async()=>{const b=d.querySelector('#p9910backup'),m=d.querySelector('#p9910choice');b.disabled=true;m.textContent='Preparing your device backup. Please wait...';await new Promise(r=>setTimeout(r,50));try{const local={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);local[k]=localStorage.getItem(k);}const pipe=await p999Wait('Device backup / pipeline copy',()=>pipeRead('sync_v527'),15000,null);fmtBlob(new Blob([JSON.stringify({version:'v5.99.14',created:new Date().toISOString(),local,pipeline:pipe},null,2)],{type:'application/json'}),'Portal_device_backup_'+Date.now()+'.json');m.textContent='Your device backup is ready. Check that the file has saved, then choose Use the team records.';}catch(e){m.textContent='The device backup could not be saved. Your current records are unchanged. '+p9910Text(e.message);}finally{b.disabled=false;}};
+ d.querySelector('#p9910backup').onclick=async()=>{const b=d.querySelector('#p9910backup'),m=d.querySelector('#p9910choice');b.disabled=true;m.textContent='Preparing your device backup. Please wait...';await new Promise(r=>setTimeout(r,50));try{const local={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);local[k]=localStorage.getItem(k);}const pipe=await p999Wait('Device backup / pipeline copy',()=>pipeRead('sync_v527'),15000,null);fmtBlob(new Blob([JSON.stringify({version:'v5.99.15',created:new Date().toISOString(),local,pipeline:pipe},null,2)],{type:'application/json'}),'Portal_device_backup_'+Date.now()+'.json');m.textContent='Your device backup is ready. Check that the file has saved, then choose Use the team records.';}catch(e){m.textContent='The device backup could not be saved. Your current records are unchanged. '+p9910Text(e.message);}finally{b.disabled=false;}};
  d.querySelector('#p96no').onclick=()=>end(false);d.querySelector('#p96yes').onclick=()=>{d.querySelectorAll('button').forEach(b=>b.disabled=true);d.querySelector('#p9910choice').textContent='Connecting... getting ready to load the team records.';setTimeout(()=>end(true),50);};d.oncancel=e=>{e.preventDefault();end(false)};d.showModal();d.querySelector('#p96no').focus();});}
 function p96Progress(msg){for(const id of ['p96msg','p92msg','pcerr','syl','pterr']){const e=document.getElementById(id);if(e)e.textContent=msg}}
 async function p96Snapshot(url,key){
  const list=await p96Request(url,key,{action:'list'});if(!list.ids||typeof list.ids!=='object'||Array.isArray(list.ids))throw Error('This Web app does not support the portal list action. Deploy the supplied RA Bill Package Apps Script.');
- const ids=Object.keys(list.ids),items={},quarantine={};for(let i=0;i<ids.length;i+=8){p96Progress('Connected. Downloading fresh Sheet data: '+Math.min(i+8,ids.length)+' / '+ids.length+'...');const batch=ids.slice(i,i+8),g=await p96Request(url,key,{action:'get',ids:batch});for(const id of batch){const x=g.items?.[id];if(!x||typeof x.text!=='string')throw Error('Incomplete download for '+id+'. Old local data was not replaced. Retry.');let data;try{data=JSON.parse(x.text)}catch(e){if(id.startsWith(PIPE_PREFIX)){quarantine[id]={...x,error:e.message};continue;}throw Error('Unreadable Sheet record '+id+': '+e.message+'. Old local data was not replaced.');}items[id]={...x,data};}}
+ const ids=Object.keys(list.ids),items={},quarantine={},batches=[];let batch=[],bytes=0;
+ for(const id of ids){const size=Number(list.sizes?.[id]);const estimate=Number.isFinite(size)&&size>=0?size:((id.startsWith('tomb_aomp_docx_')||id.startsWith(PIPE_PREFIX))?1024*1024:128*1024);if(batch.length&&(batch.length>=80||bytes+estimate>1024*1024)){batches.push(batch);batch=[];bytes=0;}batch.push(id);bytes+=estimate;}if(batch.length)batches.push(batch);let downloaded=0;
+ for(const batch of batches){p96Progress('Connected. Downloading fresh Sheet data: '+downloaded+' / '+ids.length+'...');const g=await p96Request(url,key,{action:'get',ids:batch});for(const id of batch){const x=g.items?.[id];if(!x||typeof x.text!=='string')throw Error('Incomplete download for '+id+'. Old local data was not replaced. Retry.');let data;try{data=JSON.parse(x.text)}catch(e){if(id.startsWith(PIPE_PREFIX)){quarantine[id]={...x,error:e.message};downloaded++;continue;}throw Error('Unreadable Sheet record '+id+': '+e.message+'. Old local data was not replaced.');}items[id]={...x,data};downloaded++;}}
+
  if(items[PT_CLOUD])ptValid(items[PT_CLOUD].data);
  for(const [id,x] of Object.entries(items)){
  if(id.startsWith(DR_PREFIX)&&(!x.data||x.data.id!==id||!x.data.data))throw Error('Invalid Daily Report in new Sheet.');
@@ -3833,7 +3826,7 @@ window.portal98NormalizeItems=normalize98;window.portal98PdfItems=pdfRows98;
 })();
 
 const originalNew98=newRA;newRA=function(){if(DB.contractPending98){toast('Import the new contract items first. Old bills are unchanged.');return}return originalNew98.apply(this,arguments)};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 
 
 </script>
@@ -3929,7 +3922,7 @@ async function b997Upload(job,secret,plan,revision,f){
  }
  throw Error(f.name+': upload could not be verified after 3 attempts. '+last);
 }
-// v5.99.14: 1 MiB encoded request target, maximum 12 files; a larger file travels alone.
+// v5.99.15: 1 MiB encoded request target, maximum 12 files; a larger file travels alone.
 function b998Batches(plan){const out=[];let group=[],size=4096;for(const f of plan){const n=4*Math.ceil(f.bytes.length/3)+JSON.stringify({item:f.key,b64:''}).length+2;if(group.length&&(group.length>=12||size+n>1024*1024)){out.push(group);group=[];size=4096;}group.push(f);size+=n;}if(group.length)out.push(group);return out;}
 function b998Exact(x,f){return !!x&&x.name===f.name&&x.sha===f.sha&&x.size===f.size;}
 async function b998Upload(job,secret,plan,revision,batch){
@@ -3993,7 +3986,7 @@ async function b99run(o){
  }catch(e){b99msg(e.message+' Backup incomplete or unverified. Delete is blocked; no reset request was sent.');$('#b99wipe',o).hidden=true;}
  finally{b99Busy=false;b99Running=false;b99controls(o,false);}
 }
-function b99open(){if(ptRole()!=='admin'||b99Running||b99Busy)return;const o=wfOverlay('Backup data / Create old contract bills',`<div id="b99panel"><p>Archive the current saved contract in the project Google Drive, then choose whether to start clean.</p><label>Contract name<input class="pi" id="b99name" placeholder="North Star contract"></label><label>Private Admin reset secret<input class="pi" id="b99secret" type="password" autocomplete="off" placeholder="From Apps Script Properties"></label><p class="hint">Save open forms first. Ask the team to stop editing during backup. If an upload stops, keep this app open and press Backup again with the same contract name. Unchanged files are checked and skipped; reloading loses the resume session. Deletion stays blocked until all checks pass. The archive includes bill data, all 12 print-ready HTML printouts per bill, signed approval PDFs, saved reports, source copies and one combined Excel file. Paper copies or files not uploaded into the portal must be added manually.</p><div class="b99note">Fast batch backup requires the supplied v5.99.5 Apps Script and a New version deployment. For first-time setup only, run setupDriveBackup. Until then, Drive backup is unavailable. Keep the old Sheet; do not delete it.</div><div class="b99row"><button class="btn" id="b99start">Backup data / Create old contract bills</button><button class="btn sec" id="b99check">Check Drive setup</button></div><progress id="b99progress" max="100" value="0"></progress><p id="b99status" role="status" aria-live="polite">Ready. No data will be deleted without full verification and your Yes confirmation.</p><a id="b99link" target="_blank" rel="noopener" hidden></a><p id="b99autoStatus" class="hint" role="status" aria-live="polite"></p><div id="b99results"></div><button class="btn red" id="b99wipe" hidden>Start new contract - Yes / No</button><p class="hint">Kept after reset: users and passwords, organogram with staff names, photos and signatures, KMZ pipeline file, Road Map, AOMP Planner and all uploaded AOMP format files. Removed: RA bills and contract items, daily reports, issues, approvals and completion marks. Older team files must be replaced with v5.99.14.</p></div>`);
+function b99open(){if(ptRole()!=='admin'||b99Running||b99Busy)return;const o=wfOverlay('Backup data / Create old contract bills',`<div id="b99panel"><p>Archive the current saved contract in the project Google Drive, then choose whether to start clean.</p><label>Contract name<input class="pi" id="b99name" placeholder="North Star contract"></label><label>Private Admin reset secret<input class="pi" id="b99secret" type="password" autocomplete="off" placeholder="From Apps Script Properties"></label><p class="hint">Save open forms first. Ask the team to stop editing during backup. If an upload stops, keep this app open and press Backup again with the same contract name. Unchanged files are checked and skipped; reloading loses the resume session. Deletion stays blocked until all checks pass. The archive includes bill data, all 12 print-ready HTML printouts per bill, signed approval PDFs, saved reports, source copies and one combined Excel file. Paper copies or files not uploaded into the portal must be added manually.</p><div class="b99note">Fast batch backup requires the supplied v5.99.5 Apps Script and a New version deployment. For first-time setup only, run setupDriveBackup. Until then, Drive backup is unavailable. Keep the old Sheet; do not delete it.</div><div class="b99row"><button class="btn" id="b99start">Backup data / Create old contract bills</button><button class="btn sec" id="b99check">Check Drive setup</button></div><progress id="b99progress" max="100" value="0"></progress><p id="b99status" role="status" aria-live="polite">Ready. No data will be deleted without full verification and your Yes confirmation.</p><a id="b99link" target="_blank" rel="noopener" hidden></a><p id="b99autoStatus" class="hint" role="status" aria-live="polite"></p><div id="b99results"></div><button class="btn red" id="b99wipe" hidden>Start new contract - Yes / No</button><p class="hint">Kept after reset: users and passwords, organogram with staff names, photos and signatures, KMZ pipeline file, Road Map, AOMP Planner and all uploaded AOMP format files. Removed: RA bills and contract items, daily reports, issues, approvals and completion marks. Older team files must be replaced with v5.99.15.</p></div>`);
  o.addEventListener('click',e=>{if(b99Running&&(e.target===o||e.target.closest?.('#wfclose'))){e.preventDefault();e.stopImmediatePropagation();}},true);
  $('#b99start',o).onclick=()=>b99run(o).catch(e=>b99msg(e?.message||String(e)));$('#b99check',o).onclick=async()=>{b99Running=true;b99controls(o,true);try{const s=await b99step('Checking Drive setup',()=>sApi({action:'drive_status',tmo:120000}));if(s.version!==599||s.owner!=='onmvizagproject@gmail.com')throw Error('Redeploy from the project account.');b99msg('Drive ready for '+s.owner+'. Module folders are ready.');}catch(e){b99msg('Drive is not ready: '+e.message+'. Follow the supplied redeploy steps. No data deleted.');}finally{b99Running=false;b99controls(o,false);}};
 }
@@ -4013,10 +4006,10 @@ const b99Mutate=wfMutate;wfMutate=async function(){const x=await b99Mutate.apply
 const b99WfSync=wfSync;wfSync=async function(){const x=await b99WfSync.apply(this,arguments);b99AutoSoon();return x;};
 window.addEventListener('online',b99AutoSoon);window.addEventListener('focus',b99AutoSoon);
 const b99Admin=ptAdmin;ptAdmin=function(B){b99Admin.apply(this,arguments);if(ptRole()!=='admin')return;const c=document.createElement('div');c.className='pcard';c.id='b99admin';c.innerHTML='<h3>Google Drive backup</h3><p>Archive old contract bills safely and start the next contract from RA 1.</p><button class="btn" id="b99open">Backup data / Create old contract bills</button><p>Automatic folders: Patrol, HSE, Mechanical, Electrical, Common files. Daily report data backs up when Sheet saves; final-approved PDFs upload while the app is open and online. Monthly report copies use month-name folders.</p><p class="hint">No background PDF generation when the app is closed. Failed copies stay pending. Unsaved or never-uploaded paper copies are not included.</p><button class="btn sec" id="b99retry">Retry approved-copy backup</button><p id="b99pending"></p>';B.prepend(c);$('#b99open',B).onclick=b99open;$('#b99retry',B).onclick=()=>b99AutoFlush().then(()=>{const x=JSON.parse(localStorage.getItem(B99_QUEUE)||'null');$('#b99pending',B).textContent=x?'Pending: '+x.error:'Approved copies checked.'});const script=B.querySelector('#p92script');if(script){script.textContent='Copy v5.99 Apps Script';script.onclick=async()=>{await copyText(APPS_SCRIPT);toast('v5.99 script copied. Keep the same key, authorize Drive and redeploy.');};}};
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <style id="p9912style">
-/* v5.99.14: equal-height 45/55 organogram editor and full-width import footer. */
+/* v5.99.15: equal-height 45/55 organogram editor and full-width import footer. */
 #pbody.orghome .orgperson{border:1px solid #a2b1bf!important;box-shadow:none!important}
 #pbody.orghome .orgchain>.orgperson:nth-of-type(-n+4){box-shadow:3px 1px 4px #13253d24!important}
 #pbody.orghome .orggroup,#pbody.orghome .orgsum{border-width:1px!important;box-shadow:none!important}
@@ -4031,7 +4024,7 @@ fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
 </style>
 <style id="p9910style">#p9910working{position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483590;border:1px solid #8bb2db;border-radius:10px;background:#edf5ff;color:#14395e;padding:12px 16px;font:600 14px/1.5 system-ui;box-shadow:0 3px 16px #0002;max-width:650px;margin:auto;overflow-wrap:anywhere}#p9910working[hidden]{display:none}</style>
 <script>
-/* v5.99.14: plain messages, once-per-device setup and quiet pipeline recovery. */
+/* v5.99.15: plain messages, once-per-device setup and quiet pipeline recovery. */
 function p9910Accepted(url,key,explicit){if(explicit)return false;const scope=url+'|'+key;return localStorage.getItem('om_setup_done_v59910')===scope&&localStorage.getItem(P96_READY)===scope&&SC.url===url&&SC.key===key;}
 function p9910Remember(url,key){localStorage.setItem('om_setup_done_v59910',url+'|'+key);}
 function p9910RecoveryToken(){return SC.url+'|'+(SC.quarantine||[]).slice().sort().join('|');}
@@ -4050,11 +4043,11 @@ function p9910OrderAdmin(){const nav=document.getElementById('pside');if(!nav)re
 
 // Message-only text surfaces: never rewrite reports, form values, names, saved data or format assets.
 function p9910PlainMessages(){const selectors='[role="status"],[role="alert"],.hint,.pe,.warn,.drnotice,.drok,.fmtstatus,#pterr,#p96msg,#pts,#wfstatus,#isstatus,#drstatus,#b99pending,#b99status,#b99autoStatus,.p96dialog';for(const root of document.querySelectorAll(selectors)){if(root.closest('script,style,textarea,input,[contenteditable],#pvin,#print-area,.docx-wrapper'))continue;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=walker.nextNode())){if(n.parentElement.closest('script,style,textarea,input,select,option,button,[contenteditable],#pvin,#print-area,.docx-wrapper'))continue;const t=p9910Text(n.nodeValue);if(t!==n.nodeValue)n.nodeValue=t;}}}
-let p9910Queued=false;new MutationObserver(()=>{if(p9910Queued)return;p9910Queued=true;requestAnimationFrame(()=>{p9910Queued=false;p9910PlainMessages();});}).observe(document.body,{subtree:true,childList:true,characterData:true});p9910PlainMessages();
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+let p9910Queued=false;new MutationObserver(ms=>{if(ms.every(m=>m.target.parentElement?.closest('.pclk')||m.target.closest?.('.pclk')))return;if(p9910Queued)return;p9910Queued=true;requestAnimationFrame(()=>{p9910Queued=false;p9910PlainMessages();});}).observe(document.body,{subtree:true,childList:true,characterData:true});p9910PlainMessages();
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
-/* v5.99.14: import-driven annual AOMP archive and generation-safe marks. */
+/* v5.99.15: import-driven annual AOMP archive and generation-safe marks. */
 const A11_LOCAL='om_aomp_year_v59911',A11_CLOUD='tomb_portal_aomp_year_v59911';
 let a11Running=false,a11Preflight=false;
 function a11Local(){try{return JSON.parse(localStorage.getItem(A11_LOCAL)||'null')||{generation:0,year:''}}catch(e){throw Error('AOMP year settings could not be opened. Download the team records.')}}
@@ -4105,10 +4098,10 @@ async function a11Import(n){const choice=await a11Choice();if(!choice)return fal
 // Show the verified archive returned by the server, never a reconstructed URL.
 const a11Open0=plOpen;plOpen=function(B){a11Open0(B);const url=a11Local().archiveUrl;if(url&&/^https:\/\//.test(url)){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent='Open old AOMP year archive';a.className='btn sm sec';B.querySelector('.plbar')?.append(a);}};
 
-fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;
+/* Full package source captured once after startup, or on export. */
 </script>
 <script>
-/* v5.99.14: Patroller daily report - reuse the previous report from Activity Description downward. */
+/* v5.99.15: Patroller daily report - reuse the previous report from Activity Description downward. */
 (()=>{
 const base=drRender;
 function prevReport(date,person){return drAllReports().filter(r=>r.person===person&&r.date<date).sort((a,b)=>b.date.localeCompare(a.date))[0]||null}
@@ -4138,7 +4131,7 @@ drRender=function(B,date,person,draft,notice){
 })();
 </script>
 <script>
-/* v5.99.14: Emergency contact numbers and SOS call button on the login screen (set in Admin Settings). */
+/* v5.99.15: Emergency contact numbers and SOS call button on the login screen (set in Admin Settings). */
 (()=>{
 const clean=v=>String(v||'').replace(/[^0-9+]/g,'');
 const emerg=()=>{const e=(ptGet().emerg)||{};return {sos:clean(e.sos),nums:[0,1,2].map(i=>({label:String((e.nums||[])[i]?.label||'').slice(0,40),num:String((e.nums||[])[i]?.num||'').replace(/[^0-9+\-\s()]/g,'').slice(0,20)}))}};
@@ -4170,43 +4163,37 @@ ptAdmin=function(B){const r=admin0.apply(this,arguments);try{
 })();
 </script>
 <script>
-/* v5.99.14: share every page of a fully approved report as JPG, through the device's share sheet. */
+/* v5.99.15: share every page of a fully approved report as JPG, through the device's share sheet. */
 (()=>{
 async function jpgs(r,m){
- const imgs=[...m.querySelectorAll('.wf88page img')];if(!imgs.length||m.querySelector('.wf88progress,.pe'))throw Error('Wait for every report page to load, then reopen the view if needed.');
- const name=String(r.title||'Approved_report').replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'').slice(0,80)||'Approved_report',files=[];
- for(let i=0;i<imgs.length;i++){
-  const img=imgs[i];if(!img.complete)await img.decode();const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;if(!c.width||!c.height)throw Error('A report page is missing. Close and reopen the view.');
-  const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(img,0,0);
-  const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.94));c.width=c.height=0;if(!blob)throw Error('Could not prepare the JPG. Close and reopen the view.');
-  files.push(new File([blob],name+(imgs.length>1?'_page_'+(i+1):'')+'.jpg',{type:'image/jpeg'}));
- }return files;
+ if(m.querySelector('.wf88progress')||[...m.querySelectorAll('.pe')].some(e=>e.textContent.trim()))throw Error('Wait for the report PDF to load.');
+ const bytes=m.querySelector('#wfpdf88')?.__pdfBytes15||m.querySelector('#wfpdf73')?.__pdfBytes15||(await wfSignedPdf(r)).bytes,doc=await pdfjsLib.getDocument({data:new Uint8Array(bytes),isEvalSupported:false}).promise;
+ const name=String(r.title||'Report').replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'').slice(0,80)||'Report',files=[];
+ try{for(let i=1;i<=doc.numPages;i++){const page=await doc.getPage(i),v=page.getViewport({scale:300/72}),c=document.createElement('canvas');c.width=Math.ceil(v.width);c.height=Math.ceil(v.height);await page.render({canvasContext:c.getContext('2d',{alpha:false}),viewport:v,background:'#fff'}).promise;const blob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.98));c.width=c.height=0;if(!blob)throw Error('Not enough device memory for a print-quality JPG. Use PDF instead.');files.push(new File([blob],name+(doc.numPages>1?'_page_'+i:'')+'.jpg',{type:'image/jpeg'}));page.cleanup();}return files;}finally{await doc.destroy()}
 }
-const base=wfPdfDialog88;
-wfPdfDialog88=async function(r,button){
- const m=await base(r,button);if(!m?.isConnected||r.status!=='Approved'||m.querySelector('.pe'))return m;
- const bar=m.querySelector('.wfbar'),b=document.createElement('button'),hint=document.createElement('p');b.className='btn sec';b.id='wfshare13';b.textContent='Preparing JPG...';b.disabled=true;hint.className='hint';hint.id='wfsharehint13';hint.setAttribute('role','status');hint.textContent='Share sends JPG images, one per page.';bar.insertBefore(b,bar.querySelector('#wfclose'));bar.after(hint);bar.style.flexWrap='wrap';let files;
+window.wfShare15=async function(r,m){if(!m?.isConnected||m.querySelector('#wfshare13')||[...m.querySelectorAll('.pe')].some(e=>e.textContent.trim()))return m;
+ const bar=m.querySelector('.wfbar'),b=document.createElement('button'),hint=document.createElement('p');b.className='btn sec';b.id='wfshare13';b.textContent='Preparing JPG...';b.disabled=true;hint.className='hint';hint.id='wfsharehint13';hint.setAttribute('role','status');hint.textContent='Share sends 300 dpi JPG images, one per page. Send as a document to avoid chat compression.';bar.insertBefore(b,bar.querySelector('#wfclose'));bar.after(hint);bar.style.flexWrap='wrap';let files;
  try{files=await jpgs(r,m);if(!m.isConnected)return m;b.disabled=false;b.textContent='Share';}
  catch(e){b.textContent='Share unavailable';hint.textContent=e.message;return m}
  const save=()=>{for(const f of files)fmtBlob(f,f.name);hint.textContent='JPG images downloaded. Share them from Files or Gallery in WhatsApp, Telegram or another app.'};
  b.onclick=()=>{
   if(!files?.length)return;
-  const current=wfState().reports[r.id];if(current&&current.status!=='Approved'){hint.textContent='Final approval changed. Close this view and reload the report.';return}
+  const current=wfState().reports[r.id];if(current&&r.status==='Approved'&&current.status!=='Approved'){hint.textContent='Final approval changed. Close this view and reload the report.';return}
   if(!navigator.share||!navigator.canShare||!navigator.canShare({files})){save();return}
   b.disabled=true;
   // Call directly from the tap, using already-prepared files, to keep the browser's user gesture.
   navigator.share({files}).then(()=>{hint.textContent='JPG images shared.'}).catch(e=>{if(e.name==='AbortError'){hint.textContent='Sharing cancelled.';return}hint.textContent='This browser could not share the JPG images. Use Save JPG below, then share from Files or Gallery.';if(!m.querySelector('#wfsavejpg13')){const d=document.createElement('button');d.className='btn sec';d.id='wfsavejpg13';d.textContent='Save JPG';d.onclick=save;bar.insertBefore(d,bar.querySelector('#wfclose'))}}).finally(()=>{b.disabled=false});
  };return m;
-};rptPdfView85=wfPdfDialog88;
+};const base=wfPdfDialog88;wfPdfDialog88=async function(r,button){const m=await base(r,button);await wfShare15(r,m);return m};rptPdfView85=wfPdfDialog88;
 })();
 
 </script>
 <script>
-/* v5.99.14: keep Google Drive backup first in Admin Settings. */
+/* v5.99.15: keep Google Drive backup first in Admin Settings. */
 (()=>{const base=ptAdmin;ptAdmin=function(B){const result=base.apply(this,arguments);if(ptRole()==='admin'&&B){const backup=B.querySelector('#b99admin');if(backup){const lead=[...B.children].find(e=>e.classList.contains('sub'));if(lead)lead.after(backup);else B.prepend(backup)}}return result}})();
 </script>
 <script>
-/* v5.99.14: accidental refresh protection and a styled Back-to-exit confirmation. */
+/* v5.99.15: accidental refresh protection and a styled Back-to-exit confirmation. */
 (()=>{
  const st=document.createElement('style');st.textContent='html,body{overscroll-behavior-y:none}#portal,#app,#pbody,#patmain,.pl,.pm,.wfmodal,.wfpreview{overscroll-behavior-y:contain}#exit14{position:fixed;inset:0;background:#13253d99;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px}#exit14>div{background:#fff;color:#1c2430;border-radius:14px;padding:22px;max-width:360px;width:100%;box-shadow:0 10px 40px #0007;text-align:center}#exit14 h3{margin:0 0 12px;color:#0b3d78;font-size:20px}#exit14 p{font-size:14px;line-height:1.5;color:#667085}#exit14 .r{display:flex;gap:10px}#exit14 button{flex:1;min-height:44px}';document.head.appendChild(st);
  const startIndex=window.navigation?.currentEntry?.index,startLength=history.length;let leaving=false;
@@ -4227,11 +4214,11 @@ wfPdfDialog88=async function(r,button){
 
 </script>
 <script>
-/* v5.99.14: quiet Admin-only author credit. */
+/* v5.99.15: quiet Admin-only author credit. */
 (()=>{const base=ptAdmin;ptAdmin=function(B){const result=base.apply(this,arguments);if(ptRole()==='admin'&&B&&!B.querySelector('#credit14')){const note=document.createElement('p');note.id='credit14';note.textContent='Built by Sudheer';note.style.cssText='margin:24px 0 96px;text-align:center;font-size:11px;font-weight:400;color:#9aa1aa;letter-spacing:0';B.appendChild(note)}return result}})();
 </script>
 <script>
-/* v5.99.14: hosted PWA install and offline shell. No live form is auto-reloaded. */
+/* v5.99.15: hosted PWA install and offline shell. No live form is auto-reloaded. */
 (()=>{
  const hosted=location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname);if(!hosted)return;
  let prompt=null,reg=null;
@@ -4242,4 +4229,79 @@ wfPdfDialog88=async function(r,button){
 })();
 
 </script>
-</body></html>
+</body><script>
+/* v5.99.15: compact mobile UI and PDF-only completed/received report views. */
+(()=>{
+ const mobile=()=>matchMedia('(max-width:700px)').matches;
+ function home15(){
+  const nav=document.getElementById('pside');if(!nav)return;
+  if(ptRole()==='admin'){
+   const ids=['pat','mech','elec','erv','misc'],rows=[...nav.children].filter(x=>ids.includes(x.dataset?.p)||x.id==='pal73');
+   if(rows.length&&!nav.querySelector('#team15')){const box=document.createElement('details');box.id='team15';box.innerHTML='<summary>Team Work / Team Formats</summary>';rows[0].before(box);rows.forEach(x=>box.appendChild(x));}
+   if(!document.getElementById('settings15')){const b=document.createElement('button');b.id='settings15';b.className='settings15';b.title='Admin Settings';b.setAttribute('aria-label','Admin Settings');b.textContent='⚙';b.onclick=()=>ptGo('_admin');document.querySelector('#portal>.pt .lo')?.before(b);}
+  }
+ }
+ function login15(){const pf=document.querySelector('.pl .pf');if(mobile()&&pf){const card=document.querySelector('.pl .pc');if(card){const info=document.createElement('div');info.id='info15';[...pf.children].forEach(x=>info.appendChild(x));card.appendChild(info);pf.remove();}}}
+ const home=ptHome;ptHome=function(){const x=home.apply(this,arguments);home15();return x};
+ const login=ptLogin;ptLogin=function(){const x=login.apply(this,arguments);login15();return x};
+ const theme=ptThemeApply;ptThemeApply=function(t){return theme(ptRole()==='pat'?'day':t)};
+ const pat=patOpen;patOpen=function(){const x=pat.apply(this,arguments);document.getElementById('patshell')?.classList.toggle('pat15',ptRole()==='pat');if(ptRole()==='pat')ptThemeApply('day');return x};
+ const dialog=wfDialog;wfDialog=function(id){const r=wfState().reports[id];if(!r||!wfMine(r))return dialog.apply(this,arguments);if(ptRole()!=='admin'&&wfFinal86(r))return wfPdfDialog88(r);
+  const x=dialog.apply(this,arguments);if(ptRole()==='admin'&&r.owner!=='admin'){
+   const m=document.querySelector('#wfmodal .wfmodal');if(m){m.querySelectorAll('#wfdownload,#wfedit62,#wfprint,#wfd77,#wfpreview,#wfprint89,#wfsavepdf89').forEach(e=>e.remove());
+    
+    // Keep Approve, Send Back and Revert workflow controls.
+    m.querySelectorAll('button').forEach(b=>{if(/^(Download|Edit|Sync|Delete)/i.test(b.textContent.trim()))b.remove()});
+   }
+  }return x;
+ };
+ const status=wfStatusPage;wfStatusPage=function(B){const x=status.apply(this,arguments);wfFinalRows86(B);if(ptRole()==='admin')B?.querySelectorAll('[data-wfd],[data-wfe],[data-wfd77]').forEach(b=>{const id=b.dataset.wfd||b.dataset.wfe||b.dataset.wfd77,r=wfState().reports[id];if(r&&r.owner!=='admin')b.remove()});return x};
+ const bind=rptBind;rptBind=function(B,rows,pat){const x=bind.apply(this,arguments);if(ptRole()==='admin'){
+  B.querySelectorAll('[data-rv],[data-rp]').forEach(b=>{const r=rows[+(b.dataset.rv??b.dataset.rp)];if(!r)return;b.textContent='View PDF';b.onclick=()=>{const wr=Object.values(wfState().reports).filter(x=>x.type==='daily'&&x.sourceKey===drKey(r.date,r.person)).sort((a,b)=>b.updated-a.updated)[0];return wfPdfDialog88(wr||{id:'daily-view',title:'Daily Report - '+drName(r),type:'daily',snapshot:r,owner:'pat:'+r.person,signatures:[],history:[],status:r.status||'Draft'});};});
+  B.querySelectorAll('[data-re],[data-rd]').forEach(b=>b.remove());
+ }return x};
+ const st=document.createElement('style');st.id='ui15css';st.textContent=`
+ #team15{margin:8px 0;border-top:1px solid #dce3eb;border-bottom:1px solid #dce3eb;padding:7px 0}#team15>summary{padding:12px;cursor:pointer;font-weight:700}#team15 button{width:100%}.settings15{display:none}
+ body:has(#patshell.pat15) #ncb,body:has(#patshell.pat15) #dr69pill{display:none!important}
+ #patshell.pat15 .top .tt,#patshell.pat15 .top .thm,#patshell.pat15 .top .rb{display:none!important}
+ #patshell .top{flex-wrap:nowrap!important;gap:8px!important}#patshell .top .raph{display:flex!important;flex-wrap:nowrap!important;margin-left:auto}#patshell .top .om-team-logo{flex-shrink:0}
+ @media(max-width:700px){
+ .pt .pclk,.top .pclk{display:none!important}
+ body:has(#settings15) #pside>[data-p="_admin"]{display:none!important}.settings15{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;border:1px solid #bdcadd;border-radius:8px;background:var(--card,#fff);color:var(--ink,#142d4e);font-size:24px;cursor:pointer}
+ .pl{min-height:100dvh!important}.pl .ph{padding:10px 12px 34px!important}.pl .ph h1{font-size:17px!important;margin:0}.pl .ph p{font-size:11px!important;margin:3px 0}
+ .pl .pm{margin-top:-22px!important;padding:0 10px!important}.pl .pc{margin-top:0!important;padding:10px 14px!important;width:min(430px,100%);box-sizing:border-box}
+ .pl .pc .lg{width:72px!important;height:72px!important;margin:0 auto 4px!important;display:block}.pl .pc label{font-size:12px;margin:5px 0 3px}.pl .pc input,.pl .pc select{min-height:38px;padding:7px!important}.pl .pc .pb{padding:8px;min-height:38px;margin-top:5px}.pl .pc .pb2{padding:5px;margin:0;font-size:12px}.pl .pc #pts{margin:4px 0;font-size:10px!important;line-height:1.3!important}.pl .pc #pcnb{padding:6px;min-height:34px;font-size:11px}.pl .pc #sos12{margin:9px auto 6px;min-height:32px;padding:4px 12px}.pl .pc #sos12 b{font-size:14px}
+ #info15{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;font-size:10px;line-height:1.25}#info15 .addr{padding:4px!important;max-width:none!important;line-height:1.3!important;font-size:10px;overflow-wrap:anywhere}#info15 .rights{grid-column:1/-1;font-size:8px;text-align:center;padding:0}
+ #install14{margin-top:6px!important;padding-top:5px!important}#install14help{font-size:9px!important;margin:3px 0!important;line-height:1.2!important}
+ }
+ `;document.head.appendChild(st);
+ addEventListener('resize',()=>{if(mobile()&&document.querySelector('.pl .pf'))login15()});
+})();
+
+</script>
+<script>
+/* Single-session lease. Server support is required; no offline/legacy bypass. */
+let s15Busy=null;
+function s15Read(){try{return JSON.parse(sessionStorage.getItem('om_session15')||'null')}catch(e){return null}}
+async function s15Claim(role,pid,pw){
+ if(!SC.url||!SC.key||!navigator.onLine)throw Error('Connect to the team Sheet and go online to log in. A single-device session must be checked with the server.');
+ const login=role==='pat'?'pat:'+pid:role,v=role==='pat'?ptGet().ppw[pid]:ptGet().pw[role],proof=typeof v==='string'?await sha(pw):await ptDerive(await sha(pw),v.salt,v.iterations),saved=s15Read();
+ const x=await p96Request(SC.url,SC.key,{action:'session_claim',login,proof,prehash:await sha(pw),token:saved?.login===login?saved.token:''});
+ if(x.sessionVersion!==15||!x.token||!Number.isFinite(x.expires))throw Error('Admin must update the Apps Script backend to v5.99.15 before login.');
+ sessionStorage.setItem('om_session15',JSON.stringify({login,token:x.token,expires:x.expires,url:SC.url}));
+}
+function s15End(message){sessionStorage.removeItem('om_session15');sessionStorage.removeItem('om_role');sessionStorage.removeItem('om_patid');sessionStorage.removeItem('ra_unlocked');ptLogin();if(message)toast(message)}
+async function s15Check(){if(s15Busy)return s15Busy;const v=s15Read();if(!v||v.url!==SC.url){s15End('Log in again to start a single-device session.');return false}
+ if(!navigator.onLine){if(Date.now()>=v.expires)s15End('Session expired while offline. Go online and log in again.');return Date.now()<v.expires}
+ s15Busy=(async()=>{try{const x=await p96Request(SC.url,SC.key,{action:'session_check',login:v.login,token:v.token});if(x.sessionVersion!==15||!Number.isFinite(x.expires))throw Error('Server session check failed.');v.expires=x.expires;sessionStorage.setItem('om_session15',JSON.stringify(v));return true}catch(e){if(/SESSION_EXPIRED/.test(e.message)||Date.now()>=v.expires)s15End(e.message);return false}finally{s15Busy=null}})();return s15Busy;
+}
+(()=>{
+ const login=ptLogin;ptLogin=function(){const v=s15Read();if(v&&!ptRole()){sessionStorage.removeItem('om_session15');if(navigator.onLine&&SC.url&&SC.key)p96Request(SC.url,SC.key,{action:'session_release',login:v.login,token:v.token}).catch(()=>{});}return login.apply(this,arguments)};
+ const api=sApi;sApi=async function(body){if(ptRole()){const v=s15Read();if(!v||v.url!==SC.url||Date.now()>=v.expires){s15End('This session has expired. Log in again.');throw Error('Login session expired. No request was sent.')}body={...body,sessionLogin:v.login,sessionToken:v.token};}return api(body)};
+ setInterval(()=>{if(ptRole()&&!document.hidden)s15Check()},60000);addEventListener('online',()=>{if(ptRole())s15Check()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ptRole())s15Check()});
+})();
+
+</script>
+<style id="ui15fix">html body .pt .lo::before,html body .top .lo::before,html body .pt .wfnotice::before,html body .top .wfnotice::before,html body .pt .rb::before,html body .top .rb::before{background:#123d70!important}body:has(#patshell.pat15) #dr69badge{display:none!important}@media(max-width:700px){html body .pl .pc img.lg.om-team-logo{width:72px!important;height:72px!important;margin:0 auto 4px!important}.pl .pc #pcn[hidden]{display:none!important}}</style><style id="icons15">@media(max-width:700px){html body .pt .lo::before,html body .top .lo::before{content:"⏻"!important}html body .pt .wfnotice::before,html body .top .wfnotice::before{content:"🔔"!important}html body .pt .rb::before,html body .top .rb::before{content:"●"!important}html body .pt .lo::before,html body .top .lo::before,html body .pt .wfnotice::before,html body .top .wfnotice::before,html body .pt .rb::before,html body .top .rb::before{background:none!important;mask:none!important;-webkit-mask:none!important;font:22px/20px Arial;color:#123d70!important;text-align:center}.top .lo::before{color:#fff!important}}</style><script>
+(()=>{const dialog=wfDialog;wfDialog=function(id){const x=dialog.apply(this,arguments),r=wfState().reports[id],m=document.querySelector('#wfmodal');if(!r||!m||m.querySelector('#wfpdf88'))return x;const section=m.querySelector('.wfmodal');section.querySelectorAll('#wfdownload,#wfedit62,#wfprint,#wfxpdf,#wfxdel,#wfprint89,#wfsavepdf89').forEach(e=>e.remove());const host=m.querySelector('#wfpdf73');if(host){const sync=m.querySelector('#wfxsync');if(sync){const below=document.createElement('div');below.className='wfactions';host.after(below);below.appendChild(sync);}let tries=0;const wait=()=>{if(!m.isConnected)return;if(host.__pdfBytes15&&!host.querySelector('.wf88progress')&&!host.querySelector('.pe')){wfShare15(r,m);return}if(++tries<120)setTimeout(wait,500)};wait();}return x};})();
+</script><style>@media(max-width:700px){html body #portal .wfnotice::before{content:""!important;background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23123d70%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M18%208a6%206%200%200%200-12%200c0%207-3%209-3%209h18s-3-2-3-9%22%2F%3E%3Cpath%20d%3D%22M10%2021h4%22%2F%3E%3C%2Fsvg%3E") center/contain no-repeat!important;width:22px!important;height:22px!important}}</style></html>

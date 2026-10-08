@@ -1,5 +1,5 @@
-/* Built by Sudheer. Portal v5.99.14: shell only. Never cache Sheet/Drive/API requests. */
-const CACHE='iocl-portal-shell-v5.99.14';
+/* Built by Sudheer. Portal v5.99.15: shell only. Never cache Sheet/Drive/API requests. */
+const CACHE='iocl-portal-shell-v5.99.15';
 const ROOT=new URL('./',self.location.href),APP=new URL('index.html',ROOT).href;
 const FILES=['index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','icon-maskable-512.png'].map(p=>new URL(p,ROOT).href);
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
