@@ -1,13 +1,7 @@
-/* Built by Sudheer. Portal v5.99.15: shell only. Never cache Sheet/Drive/API requests. */
-const CACHE='iocl-portal-shell-v5.99.15';
+/* v5.99.15 revision 2: cached shell launches immediately. APIs never cached. */
+const CACHE='iocl-portal-shell-v5.99.15-r6';
 const ROOT=new URL('./',self.location.href),APP=new URL('index.html',ROOT).href;
-const FILES=['index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','icon-maskable-512.png'].map(p=>new URL(p,ROOT).href);
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+const FILES=['index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','icon-maskable-512.png','pipeline-module.b64','schedule-module.b64'].map(p=>new URL(p,ROOT).href);
+self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);for(const u of FILES){const r=await fetch(u,{cache:'reload'});if(!r.ok)throw Error('Asset not available');await c.put(u,r)}})()));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('iocl-portal-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener('fetch',e=>{
- const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==ROOT.origin)return;
- const shell=e.request.mode==='navigate'&&(u.pathname===ROOT.pathname||u.pathname===new URL(APP).pathname);
- if(!shell&&!FILES.includes(u.href))return;
- const key=shell?APP:u.href;
- e.respondWith((async()=>{const c=await caches.open(CACHE);try{const r=await fetch(e.request,{cache:'no-store'});if(r.ok){await c.put(key,r.clone());return r}throw Error('Shell unavailable')}catch(x){const r=await c.match(key);if(r)return r;return new Response('Open the portal online once to prepare offline use.',{status:503,headers:{'Content-Type':'text/plain'}})}})());
-});
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==ROOT.origin)return;const shell=e.request.mode==='navigate'&&(u.pathname===ROOT.pathname||u.href===APP);if(!shell&&!FILES.includes(u.href))return;const key=shell?APP:u.href;e.respondWith((async()=>{const c=await caches.open(CACHE),cached=await c.match(key);if(cached)return cached;try{const r=await fetch(e.request);if(r.ok)await c.put(key,r.clone());return r}catch(x){return new Response('Open the portal online once to prepare this module.',{status:503,headers:{'Content-Type':'text/plain'}})}})());});
