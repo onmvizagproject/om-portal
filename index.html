@@ -1589,15 +1589,11 @@ let pipeBusy=null,pipeLast='',pipeError='';
 function pipeDB(){return p999Local('IndexedDB open',()=>new Promise((resolve,reject)=>{const q=indexedDB.open('pipe',1);let ended=false;const timer=setTimeout(()=>{ended=true;reject(Error('Pipeline / IndexedDB open blocked or timed out'));},P999_LIMITS.local);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>{clearTimeout(timer);if(ended){q.result.close();return;}resolve(q.result);};q.onerror=()=>{clearTimeout(timer);reject(q.error)};q.onblocked=()=>{clearTimeout(timer);ended=true;reject(Error('Pipeline / IndexedDB open blocked by another tab. Close older portal tabs and retry.'));};}));}
 async function pipeRead(k){const d=await pipeDB();return p999Local('IndexedDB read '+k,()=>new Promise((resolve,reject)=>{const t=d.transaction('kv');const timer=setTimeout(()=>{try{t.abort()}catch(e){}d.close();reject(Error('Pipeline / IndexedDB read '+k+' timed out'));},P999_LIMITS.local);const q=t.objectStore('kv').get(k);q.onsuccess=()=>{clearTimeout(timer);resolve(q.result)};t.oncomplete=()=>{clearTimeout(timer);d.close()};q.onerror=t.onerror=t.onabort=()=>{clearTimeout(timer);d.close();reject(q.error||t.error||Error('Pipeline cache read failed'));};}));}
 function pipeUnion(base,inc,replace){
- const out={...(base||{}),name:base?.name||inc.name||'Pipeline',lines:[],points:[]};
- for(const kind of ['lines','points']){
-  const a=(base?.[kind]||[]).slice(),b=inc[kind]||[],sig=new Set(),keys=new Map(),counts=new Map();
-  const signature=r=>JSON.stringify([r.n,r.f,r.p]);const key=r=>JSON.stringify([r.n,r.f]);
-  a.forEach((r,i)=>{sig.add(signature(r));const k=key(r);keys.set(k,[...(keys.get(k)||[]),i])});
-  b.forEach(r=>counts.set(key(r),(counts.get(key(r))||0)+1));
-  for(const r of b){if(sig.has(signature(r)))continue;const k=key(r),ex=keys.get(k);if(replace&&ex?.length===1&&counts.get(k)===1){sig.delete(signature(a[ex[0]]));a[ex[0]]=r}else{a.push(r);keys.set(k,[...(ex||[]),a.length-1])}sig.add(signature(r))}
-  out[kind]=a;
- }
+ const out={...(base||{}),name:base?.name||inc.name||'Pipeline',lines:[],points:[],sources:{...(base?.sources||{}),...(inc.sources||{})}};
+ function source(data){const name=String(data.sourceName||data.name||data.file||'Existing pipeline network');let h=2166136261;for(let i=0;i<name.length;i++){h^=name.charCodeAt(i);h=Math.imul(h,16777619);}return {id:data.sourceId||'legacy_'+(h>>>0).toString(16),name};}
+ function add(data,kind){const fallback=source(data),rows=[];for(const row of data[kind]||[]){const id=row.src||fallback.id,name=row.srcName||out.sources[id]?.name||fallback.name;out.sources[id]=out.sources[id]||{name};rows.push({...row,src:id,srcName:name});}return rows;}
+ for(const kind of ['lines','points']){const rows=add(base||{},kind).concat(add(inc,kind)),seen=new Set();for(const row of rows){const sig=JSON.stringify([row.src,row.n,row.f,row.p]);if(seen.has(sig))continue;seen.add(sig);out[kind].push(row);}}
+ // Imports are separate sources. No name/folder collision can replace another source's geometry.
  return out;
 }
 function pipeValid(o){if(!o||!Array.isArray(o.lines)||!Array.isArray(o.points))throw Error('Invalid pipeline network');for(const kind of ['lines','points'])for(const r of o[kind]){const pts=kind==='lines'?r.p:[r.p];if(!Array.isArray(pts)||!pts.length||pts.some(p=>!Array.isArray(p)||p.length<2||!Number.isFinite(p[0])||!Number.isFinite(p[1])||Math.abs(p[0])>90||Math.abs(p[1])>180))throw Error('Invalid pipeline coordinates')}return o}
@@ -4501,7 +4497,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r26';
+const APP_REV76='iocl-portal-shell-v5.99.15-r28';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4568,3 +4564,19 @@ html body .pl .pc img.lg.om-team-logo{width:176px!important;height:176px!importa
  navigator.serviceWorker.getRegistration().then(r=>r&&watch(r));addEventListener('pageshow',()=>check());addEventListener('online',()=>check());document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});check(true);
 })();</script><style>#updateGate94{position:fixed;inset:0;z-index:2147483647;background:#eaf1fbf5;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}#updateGate94>section{background:white;color:#163d66;width:min(440px,100%);padding:24px;border:1px solid #b5c9e3;border-radius:16px;box-shadow:0 12px 40px #123d7026;box-sizing:border-box}#updateGate94 h2{margin:0 0 14px;font-size:22px}#updateGate94 p{font-size:12px;color:#5f6f81}#updateActions94{display:flex;flex-wrap:wrap;gap:8px}#updateActions94 button{min-height:44px;padding:10px;border:1px solid #bccde3;border-radius:8px;background:#edf4fd;color:#163d66;font:600 13px system-ui;cursor:pointer}#updateProgress94{line-height:1.5}</style></html>
 <!-- Revision22: complete read-only bulk snapshot, bounded validated batches, unchanged offline module cache. -->
+
+<!-- Revision23: restore hosted external-module loaders. No team records changed. -->
+
+<!-- Revision24: source-preserving multiple KMZ/KML files and combined nearest checks. -->
+
+<script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
+const asset45Jobs=new Map();
+async function asset45(id){const e=document.getElementById(id);if(!e?.dataset.asset45||e.textContent.trim())return;if(asset45Jobs.has(id))return asset45Jobs.get(id);const job=(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);let r,text;try{r=await fetch(e.dataset.asset45,{signal:controller.signal});text=await r.text()}catch(x){throw Error('Module download did not finish. Check internet and reopen this section to retry. Saved records are unchanged.')}finally{clearTimeout(timer)};if(!r.ok)throw Error('Module download failed. Reopen online and retry.');if(!/^[A-Za-z0-9+/=\s]+$/.test(text)||text.length<100)throw Error('Module file is invalid.');e.textContent=text;})();asset45Jobs.set(id,job);try{await job}catch(e){asset45Jobs.delete(id);throw e}}
+function asset45Wait(B){B.innerHTML='<div class="pcard" role="status">Opening module...</div>'}
+{const section=patSection;patSection=function(id){if(id!=='pipe'||document.getElementById('pipeTool').textContent.trim())return section.apply(this,arguments);window.__patSec=id;const B=document.getElementById('patmain');asset45Wait(B);asset45('pipeTool').then(()=>{if(B.isConnected&&window.__patSec==='pipe')section(id)}).catch(e=>{if(B.isConnected)B.textContent=e.message});};
+ const fmt=fmtSection;fmtSection=function(id){if(id!=='schedule'||document.getElementById('aomp-working-schedule-source').textContent.trim())return fmt.apply(this,arguments);window.__fmtSec=id;const B=document.getElementById('fmtmain');asset45Wait(B);asset45('aomp-working-schedule-source').then(()=>{if(B.isConnected&&window.__fmtSec==='schedule')fmt(id)}).catch(e=>{if(B.isConnected)B.textContent=e.message});};
+ async function source(){await Promise.all(['pipeTool','aomp-working-schedule-source'].map(asset45));fmtPackageSource='<!doctype html>\n'+document.documentElement.outerHTML;fmtPackageSource=fmtPackageSource.replace(/ data-asset45="[^"]+"/g,'');}
+ const exp=fmtExport;fmtExport=async function(){try{await source();return exp.apply(this,arguments)}catch(e){toast(e.message)}};
+ const project=p92Export;p92Export=async function(){try{await source();return project.apply(this,arguments)}catch(e){toast(e.message)}};
+}
+</script>
