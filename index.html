@@ -2186,7 +2186,7 @@ function isSheetRows(){const head=['Date','Time','Reported by','Designation / ro
 async function isPushSheet(){const rows=isSheetRows(),k='is_sheet_sum_v550',sum=SC.url+'|'+drSum(JSON.stringify(rows));if(localStorage.getItem(k)===sum)return;await sApi({action:'put',id:IS_VIEW_ID,ua:Date.now(),text:JSON.stringify({sheet:IS_SHEET,reports:rows.length-1,updated:new Date().toISOString()}),sheet:IS_SHEET,view:rows});localStorage.setItem(k,sum)}
 (()=>{const s=document.createElement('style');s.textContent='.isc{user-select:text;-webkit-user-select:text}.isc .iscoord{display:inline-block;background:#f3f5f8;border:1px solid #c6cfdb;border-radius:8px;padding:6px 10px;font-weight:600;user-select:all;-webkit-user-select:all;word-break:break-all}.isc .isph{display:block;max-width:100%;width:220px;max-height:200px;object-fit:cover;border-radius:10px;border:1px solid #c6cfdb;margin:8px 0;cursor:zoom-in}.isc.isfoc{outline:3px solid #F37021}.isc .rpb.g{background:#0b4f9c;color:#fff;border:0}table.svtb{width:100%;border-collapse:collapse;font-size:13px}table.svtb th{text-align:left;padding:6px 4px;border-bottom:2px solid #98a4b5}table.svtb td{padding:6px 4px;border-top:1px solid #e1e6ee;vertical-align:middle;word-break:break-word}table.svtb{min-width:560px}table.svtb .svdate{white-space:nowrap;word-break:normal}table.svtb .rpb{white-space:nowrap;padding:6px 8px;min-height:34px;font-size:12px}#isov{position:fixed;inset:0;background:#000a;z-index:900;display:flex;align-items:center;justify-content:center;padding:12px}#isov .isbox{background:#fff;border-radius:14px;padding:16px;max-width:520px;width:100%;max-height:92vh;overflow:auto}#isov img.big{max-width:100%;max-height:88vh;display:block;margin:auto}#isov label.isopt{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid #eee}#isov label.isopt input{width:22px;height:22px}#isov input[type=text]{width:100%;min-height:44px;font:inherit;box-sizing:border-box;margin-top:8px}';document.head.appendChild(s)})();
 function isCardHtml(x,i,mode){const can=mode==='solved'?false:isCan(x),pat=ptRole()==='pat',left=(x.createdAt||0)+864e5-Date.now(),url='https://www.google.com/maps/search/?api=1&query='+x.lat+','+x.lon;
- return `<div class="drcard rprow isc ${window.__isFocus===x.id?'isfoc':''}" data-iid="${esc(x.id)}"><div><b>${esc(isLabel(x))}</b>${x.adminEditedAt?' <span class="rptag d">Edited by Admin</span>':''}${mode==='solved'?' <span class="rptag">Solved</span>':''}<br><span class="hint">${esc(drWhen(x.createdAt))} | By ${esc(x.byName||'User')}${x.designation?' ('+esc(x.designation)+')':''}${mode==='solved'?'':pat?(can?' | '+esc(drLeft(left))+' left to edit/delete':' | Locked after 24 h, view only'):''}</span>${x.photo?`<img class="isph" src="${esc(x.photo)}" alt="Issue photo" data-ph="${i}">`:'<div class="hint">No photo</div>'}<div><span class="hint">Pipeline network:</span> <b>${esc(x.network||'-')}</b>${x.dist!=null&&x.dist!==''?' <span class="hint">('+esc(x.dist)+' m from the line)</span>':''}</div><div style="margin-top:6px"><span class="hint">Coordinates:</span> <span class="iscoord">${esc((+x.lat).toFixed(6)+', '+(+x.lon).toFixed(6))}</span></div>${mode==='solved'?`<div style="margin-top:6px"><span class="hint">Resolved on:</span> <b>${esc(drWhen(x.solvedAt))}</b> <span class="hint">by</span> <b>${esc(x.solvedByName||'Admin')}</b></div>`:''}</div><div class="rpbtns"><button class="rpb g" data-go="${i}">Go to Location</button><button class="rpb v" data-cp="${i}">Copy</button>${can?`<button class="rpb e" data-ie="${i}">Edit</button><button class="rpb d" data-id="${i}">Delete</button>`:''}${mode!=='solved'&&ptRole()==='admin'?`<button class="rpb g" style="background:#0a7a2f" data-clr="${i}">Clear</button>`:''}</div></div>`}
+ return `<div class="drcard rprow isc ${window.__isFocus===x.id?'isfoc':''}" data-iid="${esc(x.id)}"><div><b>${esc(isLabel(x))}</b>${x.adminEditedAt?' <span class="rptag d">Edited by Admin</span>':''}${mode==='solved'?' <span class="rptag">Solved</span>':''}<br><span class="hint">${esc(drWhen(x.createdAt))} | By ${esc(x.byName||'User')}${x.designation?' ('+esc(x.designation)+')':''}${mode==='solved'?'':pat?(can?' | '+esc(drLeft(left))+' left to edit/delete':' | Locked after 24 h, view only'):''}</span>${x.photo?`<img class="isph" src="${esc(x.photo)}" alt="Issue photo" data-ph="${i}">`:'<div class="hint">No photo</div>'}<div><span class="hint">Pipeline network:</span> <b>${esc(x.network||'-')}</b>${x.dist!=null&&x.dist!==''?' <span class="hint">('+esc(x.dist)+' m from the line)</span>':''}</div><div style="margin-top:6px"><span class="hint">Coordinates:</span> <span class="iscoord">${esc((+x.lat).toFixed(6)+', '+(+x.lon).toFixed(6))}</span></div>${mode==='solved'?`<div style="margin-top:6px"><span class="hint">Resolved on:</span> <b>${esc(drWhen(x.solvedAt))}</b> <span class="hint">by</span> <b>${esc(x.solvedByName||'Admin')}</b></div>`:''}</div><div class="rpbtns"><button class="rpb g" data-go="${i}">Go to Location</button>${can?`<button class="rpb e" data-ie="${i}">Edit</button><button class="rpb d" data-id="${i}">Delete</button>`:''}${mode!=='solved'&&ptRole()==='admin'?`<button class="rpb g" style="background:#0a7a2f" data-clr="${i}">Clear</button>`:''}</div></div>`}
 function isOverlay(html){let o=$('#isov');if(o)o.remove();o=document.createElement('div');o.id='isov';o.innerHTML=html;document.body.appendChild(o);return o}
 function isEditDlg(x,B){const T=isTypes(),sel=new Set(x.issues||[]);const o=isOverlay(`<div class="isbox"><h3>Edit issue</h3>${T.map((t,i)=>`<label class="isopt"><input type="checkbox" data-t="${i}" ${sel.has(t)?'checked':''}> ${esc(t)}</label>`).join('')}${(x.issues||[]).filter(t=>!T.includes(t)).map(t=>`<label class="isopt"><input type="checkbox" data-x="${esc(t)}" checked> ${esc(t)}</label>`).join('')}<input type="text" id="isedo" maxlength="200" placeholder="Type the issue (Other)" value="${esc(x.other||'')}"><p class="pe" id="isederr" role="alert"></p><div class="rpbtns"><button class="rpb g" id="isedok">Save</button><button class="rpb v" id="isedno">Cancel</button></div></div>`);
  $('#isedno').onclick=()=>o.remove();$('#isedok').onclick=()=>{try{const cur=isAll().find(z=>z.id===x.id);if(!cur||!isCan(cur))throw Error('This report can no longer be edited.');const iss=[];o.querySelectorAll('input[data-t]').forEach(c=>{if(c.checked)iss.push(T[+c.dataset.t])});o.querySelectorAll('input[data-x]').forEach(c=>{if(c.checked)iss.push(c.dataset.x)});if(!iss.length)throw Error('Select at least one issue type.');const oth=$('#isedo').value.trim();if(iss.includes('Other')&&!oth)throw Error('You selected Other. Type the issue.');const d={...cur,issues:iss,other:iss.includes('Other')?oth:'',savedAt:Date.now()};if(ptRole()==='admin'&&cur.person!==isWho()){d.adminEditedAt=Date.now();d.adminEditedBy='Admin'}isCommit('issue:'+d.id,d);o.remove();isSync();isRender(B,'Issue report updated.')}catch(e){$('#isederr').textContent=e.message}}}
@@ -2368,7 +2368,7 @@ function wfStatusPage(B){if(!B)return;
   if(ptRole()==='admin')all=all.filter(r=>r.status!=='Draft');
   const waitMe=r=>wfActive(r)&&r.status!=='Draft';
   all.sort((a,b)=>(waitMe(b)-waitMe(a))||b.updated-a.updated);
-  const isAdm=ptRole()==='admin';
+  const isAdm=['admin','eic'].includes(ptRole());
   f=isAdm?(['me','all','not','app'].includes(f)?f:'me'):(f==='app'?'app':'me');window.__wfStF=f;
   const dFrom=window.__wfFrom||'',dTo=window.__wfTo||'';
   const rdate=r=>Number(r.created)||Number(wfEditStart(r))||Number(r.updated)||0;
@@ -2779,33 +2779,32 @@ html body #portal .pt .mn{flex:none}
   else if(ot==='org'){if(f>1.2){document.getElementById('ozin')?.click();pd=d}else if(f<.83){document.getElementById('ozout')?.click();pd=d}}},{passive:false});
  document.addEventListener('touchend',e=>{if(e.touches.length<2)pd=0},{passive:true})})();
 const ptOrg70=ptOrg;ptOrg=function(B){ptOrg70(B);const w=B.querySelector('.orgwrap');const zi=document.getElementById('ozin'),zf=document.getElementById('ozfit');if(w&&zi&&zf){zi.addEventListener('click',()=>w.classList.add('z71'));zf.addEventListener('click',()=>{w.classList.remove('z71');w.scrollLeft=0;w.scrollTop=0})}};
-/* Back button: in-app navigation, overlay close, logout confirmation */
-(()=>{let stack=[],restoring=false,modalOpen=false,skip=0,backs=0,buffered=false,lastSess='';
- const key=()=>document.body.classList.contains('inra')?'ra|'+(typeof curTab!=='undefined'?curTab:'bills'):'pt|'+(window.__ptPage||'home')+'|'+(window.__patSec||'');
- const loggedIn=()=>!!sessionStorage.getItem('om_role');
- function note(){if(restoring||!loggedIn()||modalOpen)return;const se=sessionStorage.getItem('om_role')+'|'+sessionStorage.getItem('om_patid');if(se!==lastSess){lastSess=se;stack=[];backs=0}const k=key();if(stack[stack.length-1]===k)return;stack.push(k);backs=0;if(!buffered){buffered=true;history.pushState({v73:1},'')}}
- const wrap=n=>{const o=window[n]||eval(n);return o};
- const hookPt=ptHome;ptHome=function(){const r=hookPt.apply(this,arguments);note();return r};
- const hookGo=ptGo;ptGo=function(){const r=hookGo.apply(this,arguments);note();return r};
- const hookTab=tab;tab=function(){const r=hookTab.apply(this,arguments);note();return r};
- const hookSec=patSection;patSection=function(){const r=hookSec.apply(this,arguments);note();return r};
- function restore(k){restoring=true;try{const p=k.split('|');if(p[0]==='ra'){if(document.body.classList.contains('inra'))tab(p[1]);else{const m=MODULES.find(x=>x.type==='ra');window.__raOk=true;ptGo(m.id);window.__raOk=false;tab(p[1])}}else if(p[1]==='pat'){patOpen(p[2]||undefined)}else{ptHome(p[1]||'home')}}catch(e){}restoring=false}
- function logoutAsk(){if(document.getElementById('v71logout'))return;const w=document.createElement('div');w.id='v71logout';w.innerHTML='<div><h3>Are you sure you want to log out?</h3><div class="r"><button id="v71y" style="background:#b42318;color:#fff">Yes</button><button id="v71n" style="background:#e5e9f0">No</button></div></div>';document.body.appendChild(w);
-  document.getElementById('v71n').onclick=()=>w.remove();
-  document.getElementById('v71y').onclick=()=>{w.remove();stack=[];try{(document.getElementById('plo')||document.getElementById('rlo')).click()}catch(e){clearTimeout(syncT);sessionStorage.removeItem('om_role');sessionStorage.removeItem('om_patid');ptLogin()}}}
- window.addEventListener('popstate',e=>{if(window.__exit63Leaving)return;if(window.__ovBack90&&window.__ovBack90(e))return;if(!matchMedia('(max-width:700px)').matches)return;if(skip>0){skip--;return}if(!loggedIn()){if(matchMedia('(max-width:700px)').matches){history.pushState({exit14guard:true},'');if(window.portalExit14)window.portalExit14()}return}
-  const lo=document.getElementById('v71logout');if(lo){history.pushState({v71:stack.length-1},'');return}
-  const m=document.getElementById('wfmodal');if(m){m.remove();return}
-  const sbx=document.getElementById('wfsb73box');if(sbx){sbx.remove();history.pushState({v73:1},'');return}
-  history.pushState({v73:1},'');
-  const k=key(),isHome=x=>/^pt\|home\|/.test(x||'');
-  if(isHome(k)){stack=['pt|home|'];backs=0;if(matchMedia('(max-width:700px)').matches&&window.portalExit14)portalExit14();return}
-  if(stack[stack.length-1]!==k)stack.push(k);
-  if(backs===0&&stack.length>1){stack.pop();backs=1;restore(stack[stack.length-1]);return}
-  stack=['pt|home|'];backs=0;restore('pt|home|')});
- /* overlay (#wfmodal) gets its own history entry so Back closes it */
- new MutationObserver(ms=>{const m=document.getElementById('wfmodal');if(false&&m&&!modalOpen){modalOpen=true;history.pushState({v71:stack.length-1,modal:1},'')}else if(!m&&modalOpen){modalOpen=false;if(history.state&&history.state.modal){skip++;history.back()}}}).observe(document.body,{childList:true});
- setTimeout(note,500);
+/* Item99: one role Back guard on every screen size and every login. */
+(()=>{
+ let session='',armed=false;
+ function seed(){const role=ptRole();if(!role){session='';armed=false;return;}const current=role+'|'+(sessionStorage.getItem('om_patid')||'');if(!armed||session!==current){session=current;armed=true;history.pushState({portalBack99:true},'');}}
+ function ask(){if(document.getElementById('v71logout'))return;
+  const w=document.createElement('div');w.id='v71logout';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.innerHTML='<div><h3>Are you sure you want to log out?</h3><div class="r"><button id="v71y" style="background:#b42318;color:#fff">Yes</button><button id="v71n" style="background:#e5e9f0">No</button></div></div>';document.body.appendChild(w);
+  const no=w.querySelector('#v71n');no.focus();no.onclick=()=>w.remove();
+  w.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();w.remove();}};
+  w.querySelector('#v71y').onclick=()=>{w.remove();clearTimeout(syncT);const v=typeof s15Read==='function'?s15Read():null;sessionStorage.removeItem('om_role');sessionStorage.removeItem('om_patid');sessionStorage.removeItem('ra_unlocked');sessionStorage.removeItem('om_session15');if(v&&typeof s15Release73==='function')s15Release73(v);session='';armed=false;ptLogin();};
+ }
+ const home=ptHome;ptHome=function(){const r=home.apply(this,arguments);seed();return r;};
+ const go=ptGo;ptGo=function(){const r=go.apply(this,arguments);seed();return r;};
+ const section=patSection;patSection=function(){const r=section.apply(this,arguments);seed();return r;};
+ const login=ptLogin;ptLogin=function(){const r=login.apply(this,arguments);if(!ptRole()){session='';armed=false;}return r;};
+ window.addEventListener('popstate',e=>{
+  if(window.__exit63Leaving)return;
+  if(!ptRole()){if(window.__ovBack90&&window.__ovBack90(e))return;history.pushState({exit14guard:true},'');if(window.portalExit14)window.portalExit14();return;}
+  // Replace the consumed guard before acting, including after any number of No/Back cycles.
+  history.pushState({portalBack99:true},'');armed=true;
+  if(document.getElementById('v71logout')){document.getElementById('v71logout').remove();return;}
+  if(window.__ovBack90&&window.__ovBack90(e))return;
+  const m=document.getElementById('wfmodal');if(m){m.querySelector('#wfclose')?.click();if(m.isConnected)m.remove();return;}
+  if(document.body.classList.contains('inra')||window.__ptPage!=='home'){ptHome('home');return;}
+  ask();
+ });
+ window.portalLogout99=ask;setTimeout(seed,500);
 })();
 
 /* v5.73 */
@@ -3009,11 +3008,11 @@ document.addEventListener('click',e=>{
  }
 
  async function wfDelete77(id){
-  try{const r=wfState().reports[id];if(!r)throw Error('Report not found. Tap Sync / reload.');
+  try{if(!wfDeleteAllowed105(id))throw Error('Only Admin can delete a final-approved report.');const r=wfState().reports[id];if(!r)throw Error('Report not found. Tap Sync / reload.');
    const ok=await ynBox66('Delete this report?','Delete <b>'+esc(r.title||'this report')+'</b>?<br><br>It is removed for everyone it was sent to or came from (preparer, Admin, PM, AE/TPI/TPA, EIC) and from the main Sheet. This cannot be undone.');
    if(!ok)return false;
    if(SC.url&&navigator.onLine){try{await drSync();await wfSync()}catch(e){}}
-   const cur=wfState().reports[id]||r,key=cur.sourceKey||r.sourceKey||'';
+   if(!wfDeleteAllowed105(id))throw Error('Only Admin can delete a final-approved report.');const cur=wfState().reports[id]||r,key=cur.sourceKey||r.sourceKey||'';
    const copies=Object.values(wfState().reports).filter(x=>x.id===id||(key&&x.sourceKey===key));
    if(key){try{const ex=drLive(key);if(ex)drCommit(key,{deleted:true,date:ex.date,person:ex.person,createdAt:ex.createdAt,deletedAt:Date.now(),deletedBy:wfActor()})}catch(e){}}
    for(const x of copies)wfPut('purge',x.id,{purged:true,at:Date.now(),source:key,by:wfActor()},x.head);
@@ -3467,7 +3466,7 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
  /* ---- 3. Back button: close the top dialog first, never leave the app ---- */
  const SKIP_IDS=new Set(['side','patside','pside','fmtside','ov','patov','pov','fmtov','gate','toast','pbody','patmain','exit14']);
  const KNOWN=['wfmodal','v71logout','wfsb73box','isov','fmtview'];
- function isOverlay(el){if(el.nodeType!==1||!el.isConnected)return false;const t=el.tagName;if(t==='SCRIPT'||t==='STYLE'||t==='LINK'||t==='IFRAME')return false;if(SKIP_IDS.has(el.id))return false;if(KNOWN.includes(el.id))return true;
+ function isOverlay(el){if(el.id==='v71logout')return false;if(el.nodeType!==1||!el.isConnected)return false;const t=el.tagName;if(t==='SCRIPT'||t==='STYLE'||t==='LINK'||t==='IFRAME')return false;if(SKIP_IDS.has(el.id))return false;if(KNOWN.includes(el.id))return true;
   const cs=getComputedStyle(el);if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden'||el.hidden)return false;const r=el.getBoundingClientRect();return r.width>=innerWidth*.9&&r.height>=innerHeight*.9&&!/toast|side|gate/i.test(el.id+' '+el.className)}
  const list=()=>Array.from(document.body.children).filter(isOverlay);
  let pushed=0,skip=0,pending=false;
@@ -4138,7 +4137,7 @@ drRender=function(B,date,person,draft,notice){
  try{
   if(!drIsPat()||!drCurrent)return r;
   const d=drCurrent,h=B.querySelector('.drmid h2'),fs=B.querySelector('.drmid fieldset');
-  if(!h||!fs||fs.disabled||d.createdAt)return r;
+  if(!h||!fs||fs.disabled)return r;
   const key=d.date+'|'+d.person,on=window.__drPre12&&window.__drPre12.key===key;
   h.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap';
   h.insertAdjacentHTML('beforeend','<label id="drprev12" style="font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="drprevchk12" style="width:auto;margin:0" '+(on?'checked':'')+'> Same as previous report</label>');
@@ -4497,7 +4496,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r28';
+const APP_REV76='iocl-portal-shell-v5.99.15-r30';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4542,7 +4541,7 @@ html body .pl .pc img.lg.om-team-logo{width:176px!important;height:176px!importa
 (()=>{const api=sApi;sApi=async function(){try{return await api.apply(this,arguments)}catch(e){if(ptRole()&&/SESSION_EXPIRED/.test(String(e.message)))s15End('This user logged in on another device, or this session ended. Log in again to use this device.');throw e}};})();
 </script><style>.drlocrow83>#drlocation82{min-height:44px;width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #c6cfdb;border-radius:8px}</style><script>
 /* Items90/92/93: Admin tab order, explicit name-only signing, matching eye state. */
-(()=>{const tabs=drTabs;drTabs=function(active,person){const box=document.createElement('div');box.innerHTML=tabs.apply(this,arguments);const bar=box.querySelector('.drtabs');if(ptRole()==='admin'&&bar?.children.length>1)bar.prepend(bar.lastElementChild);const p=drIsPat()?drPerson(drMe()):person?drPerson(person):null,small=bar?.querySelector('.drname59');if(small&&p?.name){small.textContent='👤 ('+[p.name,p.designation].filter(Boolean).join(' / ')+')'}return box.innerHTML};
+(()=>{const tabs=drTabs;drTabs=function(active,person){const box=document.createElement('div');box.innerHTML=tabs.apply(this,arguments);const bar=box.querySelector('.drtabs');const p=drIsPat()?drPerson(drMe()):person?drPerson(person):null,small=bar?.querySelector('.drname59');if(small&&p?.name){small.textContent='👤 ('+[p.name,p.designation].filter(Boolean).join(' / ')+')'}return box.innerHTML};
  const open=patOpen;patOpen=function(sec){if(ptRole()==='admin'&&!sec)sec='reports';return open.call(this,sec)};
  const login=ptLogin;ptLogin=function(){const out=login.apply(this,arguments),b=document.getElementById('peye'),input=document.getElementById('ppw');if(!b||!input)return out;const paint=()=>{const visible=input.type==='text';b.setAttribute('aria-label',visible?'Hide password':'Show password');b.setAttribute('aria-pressed',String(visible));b.title=visible?'Password visible - hide password':'Password hidden - show password';b.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'+(visible?'':'<path d="M3 3l18 18" stroke-width="2.2"/>')+'</svg>'};b.onclick=()=>{input.type=input.type==='password'?'text':'password';paint()};paint();return out};
  const signHtml=wfSignHtml;wfSignHtml=function(r){const box=document.createElement('div');box.innerHTML=signHtml.apply(this,arguments);box.querySelectorAll('img').forEach(img=>{if(!img.getAttribute('src'))img.remove()});return box.innerHTML};
@@ -4568,6 +4567,50 @@ html body .pl .pc img.lg.om-team-logo{width:176px!important;height:176px!importa
 <!-- Revision23: restore hosted external-module loaders. No team records changed. -->
 
 <!-- Revision24: source-preserving multiple KMZ/KML files and combined nearest checks. -->
+
+<style id="issueActions98">html body .isc .rpbtns{display:flex!important;flex-wrap:wrap!important;gap:6px!important;max-width:100%;min-width:0}html body .isc .rpbtns button{display:block!important;visibility:visible!important;min-height:44px;white-space:normal;line-height:1.15}@media(max-width:700px){html body .isc .rpbtns{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-flow:row!important;grid-auto-columns:auto!important;width:100%!important}html body .isc .rpbtns .rpb{min-width:0!important;padding:6px 3px!important;font-size:12px!important;overflow-wrap:anywhere}}</style>
+<!-- Revision25: issue actions fit mobile; Copy removed; all-role Back logout confirmation. -->
+
+<script>/* Item100 safe portion: a Reports redraw must not become the Daily Report form. */
+(()=>{const render=drRender;drRender=function(B,...args){if(ptRole()==="admin"&&window.__patSec==="reports"&&B?.id==="patmain"&&!args[0]&&!args[1]&&!window.__rpEdit&&!window.__rpRO)return rptAdmin(B);return render.call(this,B,...args);};})();
+</script>
+
+<script>/* Item101: same current-day entry and shared locations for every patroller ID. */
+(()=>{const open=patOpen;patOpen=function(sec){if(ptRole()==="pat"&&(!sec||sec==="daily")){drCurrent=null;window.__rpRO="";window.__rpEdit="";window.__drPre12=null;return open.call(this,"daily");}return open.apply(this,arguments);};const sync=drSync;drSync=async function(){const result=await sync.apply(this,arguments);const B=document.getElementById("patmain");if(drIsPat()&&window.__patSec==="daily"&&B?.isConnected&&drCurrent?.person===drMe()&&B.querySelector(".drmid fieldset")&&!B.querySelector(".drmid fieldset").disabled){drCapture();const open=!B.querySelector("#drlocpanel83")?.hidden;drLocationMount82(B,true);const panel=B.querySelector("#drlocpanel83");if(panel)panel.hidden=!open;}return result;};})();
+</script>
+
+<script>
+/* Item102: cleared and deleted issue records, without photos. */
+function isDeleted102(){if(ptRole()!=='admin')return [];const all=Object.values(isLoad().ops).sort((a,b)=>a.ts-b.ts||a.id.localeCompare(b.id)),previous={},latest={};for(const op of all){if(!op.key?.startsWith('issue:'))continue;if(!op.data?.deleted)previous[op.key]=op.data;latest[op.key]=op.data;}return Object.entries(latest).filter(([k,v])=>v?.deleted).map(([k,v])=>({...previous[k],...v,photo:'',status:'deleted'})).sort((a,b)=>(b.deletedAt||0)-(a.deletedAt||0));}
+const isDeleteBefore102=isDelete;
+isDelete=function(x,B){try{const cur=isAll().find(z=>z.id===x.id);if(!cur||!isCan(cur))throw Error('This report cannot be deleted now (24 hours are over).');if(!confirm('Delete this issue report ('+isLabel(cur)+')? It will leave Issues. Admin can see its record in Deleted Issues.'))return;isCommit('issue:'+cur.id,{...cur,photo:'',deleted:true,status:'deleted',deletedAt:Date.now(),deletedBy:isWho(),deletedByName:isWhoName()});isSync();isRender(B,'Issue deleted. Its record is kept in Admin Deleted Issues.');}catch(e){const er=document.getElementById('drerror');if(er)er.textContent=e.message;}};
+{const render=isSolvedRender;isSolvedRender=function(B){const result=render.apply(this,arguments);if(ptRole()!=='admin')return result;const rows=isDeleted102(),host=B.querySelector('.drmid');if(!host)return result;const section=document.createElement('section');section.id='isdeleted102';section.innerHTML='<h2>Deleted Issues</h2><p class="hint">Admin only. Deleted records are kept for reference. Photos are not shown.</p>'+rows.map(x=>'<article class="drcard"><b>'+esc(isLabel(x))+'</b><p class="hint">Reported by '+esc(x.byName||x.person||'Not recorded')+' | Raised '+esc(drWhen(x.createdAt))+'</p><p>'+esc(x.network||'Pipeline not recorded')+'</p><p>Location: '+(Number.isFinite(+x.lat)&&Number.isFinite(+x.lon)?esc((+x.lat).toFixed(6)+', '+(+x.lon).toFixed(6)):'Not recorded')+'</p><p class="hint">Deleted: '+esc(drWhen(x.deletedAt))+(x.deletedByName?' by '+esc(x.deletedByName):'')+'</p></article>').join('')+(rows.length?'':'<div class="drcard">No deleted issues found.</div>');host.appendChild(section);return result;};}
+
+</script>
+
+<script>
+/* Item104: EIC oversight and selected final-authority signatures. */
+function wfSection104(r){if(String(r.owner||'').startsWith('pat:')||r.type==='daily'||r.type==='monthly')return 'Patrollers';const p=wfOrgPerson85(r.owner);return p?.department||ptRoleName(r.owner)||r.type||'Other';}
+function wfEligible104(r){return ['pm','ae','eic'].includes(ptRole())&&!!r&&!r.conflict&&!wfFinal86(r)&&wfActive(r)&&r.status!=='Draft'&&r.owner!==wfActor()&&wfFinalRole89(r)===wfActor();}
+{const mine=wfMine;wfMine=function(r){return (ptRole()==='eic'&&r.status!=='Draft')||mine.apply(this,arguments);};}
+window.__wfSelect104=new Map();
+async function wfBulk104(B,selection){const bulkRole=ptRole();if(!['pm','ae','eic'].includes(bulkRole))throw Error('Bulk final approval is available to AEO, AE/TPI/TPA and EIC only.');if(!SC.url||!SC.key||!navigator.onLine)throw Error('Connect to the main Sheet and go online before bulk approval.');if(!selection.length)throw Error('Select at least one report awaiting your final approval.');await wfFresh();let state=wfState();for(const [id,head] of selection){const r=state.reports[id];if(!wfEligible104(r)||r.head!==head)throw Error('A selected report changed or is no longer awaiting your final approval. No signatures applied. Reload and select again.');}
+ const signer=wfSigner();if(!signer.image)throw Error('Save your signature before bulk approval.');const titles=selection.map(([id])=>state.reports[id].title);const yes=await ynBox66('Put Signature - Final Authority', '<p>Apply '+esc(wfSigLabel85(signer))+' to '+selection.length+' selected report(s) and give Final Approval?</p><img alt="Approver signature" style="max-width:240px;max-height:90px" src="'+esc(signer.image)+'"><ul style="max-height:35vh;overflow:auto">'+titles.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul><p>Use the individual View flow if any report still needs review.</p>');if(!yes)return {cancelled:true};await wfFresh();state=wfState();for(const [id,head] of selection){if(!wfEligible104(state.reports[id])||state.reports[id].head!==head)throw Error('A selected report changed during confirmation. No signatures applied. Reload and select again.');}const currentSigner=wfSigner();if(JSON.stringify({...currentSigner,at:0})!==JSON.stringify({...signer,at:0}))throw Error('Your signature or name changed. No signatures applied. Try again.');
+ let completed=0,error='';for(const [id,head] of selection){try{if(ptRole()!==bulkRole||!wfEligible104(wfState().reports[id])||wfState().reports[id].head!==head)throw Error('Report changed before signature.');await wfMutate(id,head,'sign','','');const after=wfState().reports[id];if(after.status!=='Approved'||after.approvedBy!==bulkRole)throw Error('Final approval could not be verified.');completed++;window.__wfSelect104.delete(id);}catch(e){error=e.message;break;}}
+ let synced=await wfSync();if(synced&&wfLoad().pending.length)synced=await wfSync();return {completed,total:selection.length,error,synced:!!synced&&!wfLoad().pending.length};
+}
+{const render=wfStatusPage;wfStatusPage=function(B){const result=render.apply(this,arguments);if(!['pm','ae','eic'].includes(ptRole())||!B)return result;const sub=B.querySelector('.sub');if(sub&&ptRole()==='eic')sub.textContent='All reports are available for EIC oversight, including reports closed by other final authorities. Use section and preparer filters to narrow the list.';const source=Object.values(wfState().reports).filter(r=>r.status!=='Draft'),sections=[...new Set(source.map(wfSection104))].sort(),people=[...new Set(source.map(r=>r.owner))].sort((a,b)=>wfName(a).localeCompare(wfName(b)));const panel=document.createElement('div');panel.id='wffilters104';panel.className='pcard';panel.innerHTML='<h3>Sections and preparers</h3><div class="wfactions"><label>Section<select id="wfsection104"><option value="">All sections</option>'+sections.map(s=>'<option value="'+esc(s)+'" '+(s===window.__wfSection104?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label><label>Prepared by<select id="wfperson104"><option value="">All people</option>'+people.map(p=>'<option value="'+esc(p)+'" '+(p===window.__wfPerson104?'selected':'')+'>'+esc(wfName(p))+'</option>').join('')+'</select></label></div><h3>Final Authority - '+esc(ptRoleName(ptRole()))+'</h3><div class="wfactions"><button class="btn sec" id="wfselect104">Select eligible filtered reports</button><button class="btn sec" id="wfclear104">Clear selection</button><button class="btn" id="wfput104">Put Signature</button></div><p class="hint" id="wfselected104"></p><p class="hint">Only reports waiting with your role as final authority can be selected. Reports closed by other roles are view-only here.</p><p id="wfresult104" role="status"></p>';B.querySelector('#wfstatus')?.before(panel);panel.querySelectorAll('select').forEach(s=>s.style.cssText='display:block;min-height:44px;width:100%;max-width:100%;box-sizing:border-box;border:1px solid #b9c4d6;border-radius:8px;background:#fff;padding:8px');const state=wfState(),visible=[];const rows=[...B.querySelectorAll('tr[data-report71]')];rows.sort((a,b)=>wfSection104(state.reports[a.dataset.report71]).localeCompare(wfSection104(state.reports[b.dataset.report71])));let section='';for(const row of rows){const r=state.reports[row.dataset.report71];if(!r)continue;if((window.__wfSection104&&wfSection104(r)!==window.__wfSection104)||(window.__wfPerson104&&r.owner!==window.__wfPerson104)){row.remove();continue;}const group=wfSection104(r),body=row.parentElement;if(group!==section){const h=document.createElement('tr');h.className='wfgroup104';h.innerHTML='<td colspan="6"><b>'+esc(group)+'</b></td>';body.appendChild(h);section=group;}body.appendChild(row);if(wfEligible104(r)){visible.push(r);const l=document.createElement('label');l.style.cssText='display:flex;gap:8px;align-items:center;min-height:44px';const input=document.createElement('input');input.type='checkbox';input.checked=window.__wfSelect104.get(r.id)===r.head;input.onchange=()=>{if(input.checked)window.__wfSelect104.set(r.id,r.head);else window.__wfSelect104.delete(r.id);count();};l.append(input,document.createTextNode('Select for final approval'));row.firstElementChild.prepend(l);}}
+ const count=()=>{const valid=visible.filter(r=>window.__wfSelect104.get(r.id)===r.head);panel.querySelector('#wfselected104').textContent=valid.length+' selected of '+visible.length+' eligible filtered report(s)';panel.querySelector('#wfput104').disabled=!valid.length;};count();panel.querySelector('#wfsection104').onchange=e=>{window.__wfSection104=e.target.value;window.__wfSelect104.clear();wfStatusPage(B);};panel.querySelector('#wfperson104').onchange=e=>{window.__wfPerson104=e.target.value;window.__wfSelect104.clear();wfStatusPage(B);};panel.querySelector('#wfselect104').onclick=()=>{window.__wfSelect104.clear();visible.forEach(r=>window.__wfSelect104.set(r.id,r.head));wfStatusPage(B);};panel.querySelector('#wfclear104').onclick=()=>{window.__wfSelect104.clear();wfStatusPage(B);};panel.querySelector('#wfput104').onclick=async()=>{const button=panel.querySelector('#wfput104');button.disabled=true;const chosen=visible.filter(r=>window.__wfSelect104.get(r.id)===r.head).map(r=>[r.id,r.head]);try{const out=await wfBulk104(B,chosen);if(out.cancelled)return;wfStatusPage(B);const status=B.querySelector('#wfresult104');if(status)status.textContent=out.completed+' of '+out.total+' selected reports final-approved. '+(out.synced?'Synced to main Sheet.':'Saved locally; Sheet sync pending. Retry Sync / reload.')+(out.error?' Stopped: '+out.error:'');}catch(e){panel.querySelector('#wfresult104').textContent=e.message;}finally{if(button.isConnected)count();}};return result;};}
+
+/* Item105: no non-Admin deletion of finally approved report or source. */
+function wfDeleteAllowed105(id){const r=wfState().reports[id];return ptRole()==='admin'||!r||!Object.values(wfState().reports).some(x=>(x.id===id||(r.sourceKey&&x.sourceKey===r.sourceKey))&&wfFinal86(x));}
+{const put=wfPut;wfPut=function(kind,key){if(kind==='purge'&&!wfDeleteAllowed105(key))throw Error('Only Admin can delete a final-approved report.');return put.apply(this,arguments);};const commit=drCommit;drCommit=function(key,data){if(data?.deleted&&ptRole()!=='admin'&&Object.values(wfState().reports).some(r=>r.sourceKey===key&&wfFinal86(r)))throw Error('Only Admin can delete a final-approved report.');return commit.apply(this,arguments);};}
+{const del=window.wfDelete77;window.wfDelete77=async function(id){if(!wfDeleteAllowed105(id)){toast('Only Admin can delete a final-approved report.');return false;}return del.apply(this,arguments);};}
+function wfHideDelete105(B){if(ptRole()==='admin'||!B)return;for(const row of B.querySelectorAll('[data-report71]')){if(!wfDeleteAllowed105(row.dataset.report71))row.querySelectorAll('[data-wfd77],.btn.red,[data-delete64]').forEach(b=>b.remove());}}
+{const page=wfStatusPage;wfStatusPage=function(B){const r=page.apply(this,arguments);wfHideDelete105(B);return r;};const dialog=wfDialog;wfDialog=function(id){const r=dialog.apply(this,arguments);if(!wfDeleteAllowed105(id))document.getElementById('wfmodal')?.querySelectorAll('#wfdel77,#wfxdel,[data-wa="delete"],[data-wa="purge"]').forEach(b=>b.remove());return r;};}
+{const commit=isCommit;isCommit=function(key,data){if(data?.deleted&&ptRole()!=='admin'&&Object.values(wfState().reports).some(r=>r.sourceKey===key&&wfFinal86(r)))throw Error('Only Admin can delete a final-approved issue report.');return commit.apply(this,arguments);};}
+
+</script>
 
 <script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
 const asset45Jobs=new Map();
