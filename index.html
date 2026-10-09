@@ -1359,29 +1359,29 @@ function ptLogin(){
  let busy=false,prefetched=false;
  const go=async()=>{
   if(busy)return;busy=true;
-  const done=async(r,pid,pw)=>{await s15Claim(r,pid,pw);if(view!==ptLoginView||!button.isConnected){if(!ptRole())s15Release73(s15Read());return}sessionStorage.setItem('om_role',r);if(r==='pat')sessionStorage.setItem('om_patid',pid);else sessionStorage.removeItem('om_patid');drCurrent=null;sessionStorage.setItem('ra_unlocked',ptCanRA()?'1':'0');if(r==='admin'&&await sha(pw)==='eb40d251d22da32930e5675adb3e743394949fb496f59b9c67783083d0acebcc')sessionStorage.setItem('om_must','1');if(r==='pat'){window.__patSec='daily';patOpen('daily')}else ptHome();requestAnimationFrame(()=>requestAnimationFrame(()=>{window.__entered55=true;wfHeaders()}))};
+  let proof132=null;const done=async(r,pid,pw)=>{await s15Claim(r,pid,pw,proof132);if(view!==ptLoginView||!button.isConnected){if(!ptRole())s15Release73(s15Read());return}sessionStorage.setItem('om_role',r);if(r==='pat')sessionStorage.setItem('om_patid',pid);else sessionStorage.removeItem('om_patid');drCurrent=null;sessionStorage.setItem('ra_unlocked',ptCanRA()?'1':'0');if(r==='admin'&&await sha(pw)==='eb40d251d22da32930e5675adb3e743394949fb496f59b9c67783083d0acebcc')sessionStorage.setItem('om_must','1');if(r==='pat'){window.__patSec='daily';patOpen('daily')}else ptHome();requestAnimationFrame(()=>requestAnimationFrame(()=>{window.__entered55=true;wfHeaders()}))};
   const started=performance.now(),r=$('#prl').value,pw=$('#ppw').value,button=$('#pgo'),error=$('#pe');
-  button.disabled=true;button.textContent='Checking password...';error.textContent='';const slowTimer=setTimeout(()=>{if(busy&&view===ptLoginView&&error.isConnected&&!error.textContent)error.textContent='Checking your login with the team Sheet. Please wait...'},4000);
+  button.disabled=true;button.textContent='Checking password...';error.classList.add('loginchecking131');error.setAttribute('role','status');error.setAttribute('aria-live','polite');error.textContent='Checking password...';const slowTimer=setTimeout(()=>{if(busy&&view===ptLoginView&&error.isConnected&&!error.textContent)error.textContent='Checking your login with the team Sheet. Please wait...'},4000);
   try{
    const pid=r==='pat'?$('#ppat').value:'';if(r==='pat'&&!pid)throw Error('Select your name');const h=r==='pat'?ptGet().ppw[pid]:ptGet().pw[r];
-   const checked=h?ptCheck(pw,h):Promise.resolve(false);
+   const checked=h?loginProof132(pw,h).then(x=>{proof132=x;return x.valid}):Promise.resolve(false);
    const quick=h?await ptLoginWait(checked):false;
    if(view!==ptLoginView||!button.isConnected)return;
    if(h&&!quick){error.textContent='Wrong password';$('#ppw').value='';return}
    button.textContent='Verifying...';
    let verification;
-   if(quick&&(r!=='pat'||drPeople().some(p=>p.id===pid))){if(view!==ptLoginView||!button.isConnected)return;button.textContent='Checking single-device login...';await done(r,pid,pw);setTimeout(()=>ptSync(false).catch(()=>{}),500);return}
+   if(quick&&(r!=='pat'||drPeople().some(p=>p.id===pid))){if(view!==ptLoginView||!button.isConnected)return;button.textContent='Checking single-device login...';error.textContent='Checking login with the team Sheet...';await done(r,pid,pw);setTimeout(()=>ptSync(false).catch(()=>{}),500);return}
    verification=SC.url&&navigator.onLine?ptSync(false):Promise.resolve(true);const [valid,synced]=await ptLoginWait(Promise.all([checked,verification]));
    if(view!==ptLoginView||!button.isConnected)return;
    if(!synced)throw Error('Cannot check the latest login settings. '+ptError+' Wait a minute, check your connection and tap Login again.');
    const current=r==='pat'?ptGet().ppw[pid]:ptGet().pw[r];if(!current)throw Error(r==='pat'?'No password is set for this patroller yet. Ask Admin.':'Password not set for this role. Ask Admin.');if(r==='pat'&&!drPeople().some(p=>p.id===pid))throw Error('This name is no longer a Patroller in the Organogram. Ask Admin.');
    // A remote password change invalidates the parallel check. Recheck the new hash.
-   const ok=JSON.stringify(h)===JSON.stringify(current)?valid:await ptLoginWait(ptCheck(pw,current),60000-(performance.now()-started));
+   const ok=JSON.stringify(h)===JSON.stringify(current)?valid:await ptLoginWait(loginProof132(pw,current).then(x=>{proof132=x;return x.valid}),60000-(performance.now()-started));
    if(view!==ptLoginView||!button.isConnected)return;
-   if(ok){await done(r,pid,pw)}
+   if(ok){error.textContent='Checking login with the team Sheet...';await done(r,pid,pw)}
    else{error.textContent='Wrong password';$('#ppw').value=''}
   }catch(e){if(view===ptLoginView&&error.isConnected){error.textContent=e.message;if(/Lock timeout|Failed to fetch|network failure|request timed out/i.test(e.message))error.textContent='Login could not finish because the team Sheet is busy or the connection was interrupted. Wait a minute and tap Login again. Saved work is unchanged.';if(/ALREADY_LOGGED_IN/.test(e.message))alert('Already logged in on another device. Log out there first, or wait up to 5 minutes after closing it.');}}
-  finally{clearTimeout(slowTimer);busy=false;if(button.isConnected){button.disabled=false;button.textContent='Login'}}
+  finally{clearTimeout(slowTimer);proof132=null;error.classList.remove('loginchecking131');busy=false;if(button.isConnected){button.disabled=false;button.textContent='Login'}}
  };
  // Do not read Sheet settings while a password is being typed.
  $('#ppw').oninput=()=>{};
@@ -3634,7 +3634,7 @@ async function p96Request(url,key,body){
  const text=await r.text();let j;try{j=JSON.parse(text)}catch(e){throw Error(/accounts\.google|sign in|signin|authorization|permission|access denied/i.test(text)?'Google sign-in/access page received, not Sheet JSON. Check Execute as Me / Anyone access and owner authorization.':method+' '+body.action+': non-JSON response ('+r.headers.get('content-type')+'). Check the deployed /exec script.');}
  if(!j||j.ok!==true)throw Error(j?.error||method+' '+body.action+': no success confirmation.');
  const ping=typeof j.msg==='string'&&!Object.prototype.hasOwnProperty.call(j,'items')&&!Object.prototype.hasOwnProperty.call(j,'ids')&&!Object.prototype.hasOwnProperty.call(j,'rows')&&!Object.prototype.hasOwnProperty.call(j,'resetDone');
- if(ping)throw transport(method+' '+body.action+' returned the connection health check instead of action data. No empty record list was accepted.');
+ if(ping)throw transport(body.action==='session_claim'?'Login could not be verified: the server returned its connection health check, not a login result. Ask Admin to deploy the latest backend as a New version and check the Web app URL. No session confirmation was accepted.':method+' '+body.action+' returned the connection health check instead of action data. No empty record list was accepted.');
  if(body.action==='list'&&(!j.ids||typeof j.ids!=='object'||Array.isArray(j.ids)))throw Error(method+' list response missing ids object.');
  if(body.action==='get'&&(!j.items||typeof j.items!=='object'||Array.isArray(j.items))){const type=j.items===null?'null':Array.isArray(j.items)?'array':typeof j.items;const ids=(Array.isArray(body.ids)?body.ids:[]).join(', ');const fields=Object.keys(j).map(k=>k+':'+(j[k]===null?'null':Array.isArray(j[k])?'array':typeof j[k])).join(', ');throw Error(method+' get response missing items object. Requested record(s): '+ids+'. items type: '+type+'. Response fields: '+fields+'. This is not an empty record list. Ask Admin to check the complete v5.99.15 Apps Script and deploy a New version; do not delete Sheet records.');}
  if(body.action==='project_backup'&&(!Array.isArray(j.rows)||!Array.isArray(j.sheets)||typeof j.revision!=='string'||typeof j.archiveRevision!=='string'))throw Error(method+' project_backup response is incomplete. Backup and deletion remain blocked.');
@@ -3652,14 +3652,14 @@ async function p96Request(url,key,body){
   catch(e){if(c.signal.aborted)throw cancelled();if(e.name==='AbortError'&&timedOut&&readOnly)throw transport(method+' '+body.action+' request timed out after '+timeout/1000+' seconds.');throw e;}
   finally{clearTimeout(timer);c.signal.removeEventListener('abort',cancel);}
  };
- const post=async()=>timed('POST',async(signal)=>{let r;try{r=await fetch(url,{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',cache:'no-store',signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:encoded})}catch(e){if(e.name==='AbortError')throw e;throw transport('POST '+body.action+' network failure: '+e.message)}
+ const post=async()=>timed('POST',async(signal)=>{let r;try{r=await fetch(url+(url.includes('?')?'&':'?')+'action='+encodeURIComponent(body.action),{method:'POST',mode:'cors',credentials:'omit',redirect:'follow',cache:'no-store',signal,headers:{'Content-Type':'text/plain;charset=utf-8'},body:encoded})}catch(e){if(e.name==='AbortError')throw e;throw transport('POST '+body.action+' network failure: '+e.message)}
  try{return await parse(r,'POST')}catch(e){if(e.name==='AbortError'||e.portalTransport593)throw e;if(e instanceof TypeError)throw transport('POST '+body.action+' response network failure: '+e.message);throw e}});
  try{
   const failures=[];
   // Retry transport, timer-timeout or HTTP-status failures only for reads. A lost write response can mean the write already happened.
   for(let attempt=0;attempt<(readOnly?2:1);attempt++){
    try{return await post()}catch(e){if(e.name==='AbortError')throw e;if(!e.portalTransport593&&!(readOnly&&e.portalHTTP595))throw e;
-    if(!readOnly)throw Error(e.message+'. Write outcome is unknown. Check Sheet/backup status before retrying; no write was repeated.');
+    if(!readOnly)throw Error(e.message+(body.action==='session_claim'?'. Login outcome could not be verified; the portal remains closed. The request was not repeated.':'. Write outcome is unknown. Check Sheet/backup status before retrying; no write was repeated.'));
     failures.push(e.message);if(attempt===0)await new Promise(resolve=>setTimeout(resolve,400));
    }
   }
@@ -4352,10 +4352,10 @@ function omStable110(root,fn){if(!root)return fn();const snap=omScrollState110(r
 /* Single-session lease. Server support is required; no offline/legacy bypass. */
 let s15Busy=null;
 function s15Read(){try{return JSON.parse(sessionStorage.getItem('om_session15')||'null')}catch(e){return null}}
-async function s15Claim(role,pid,pw){
+async function s15Claim(role,pid,pw,checked132=null){
  if(!SC.url||!SC.key||!navigator.onLine)throw Error('Connect to the team Sheet and go online to log in. A single-device session must be checked with the server.');
- const generation=s15Generation73,url=SC.url,key=SC.key,login=role==='pat'?'pat:'+pid:role,v=role==='pat'?ptGet().ppw[pid]:ptGet().pw[role],proof=typeof v==='string'?await sha(pw):await ptDerive(await sha(pw),v.salt,v.iterations),saved=s15Read();
- await s15Drain73();const recovery=s15Recover73(login),x=await p96Request(SC.url,SC.key,{action:'session_claim',login,proof,prehash:await sha(pw),token:saved?.login===login&&saved.url===SC.url?saved.token:recovery?.token||'',tmo:30000});
+ const generation=s15Generation73,url=SC.url,key=SC.key,login=role==='pat'?'pat:'+pid:role,v=role==='pat'?ptGet().ppw[pid]:ptGet().pw[role],bundle132=checked132?.valid&&checked132.record===JSON.stringify(v)?checked132:await loginProof132(pw,v),proof=bundle132.proof,saved=s15Read();
+ await s15Drain73();const recovery=s15Recover73(login),x=await p96Request(SC.url,SC.key,{action:'session_claim',login,proof,prehash:bundle132.prehash,token:saved?.login===login&&saved.url===SC.url?saved.token:recovery?.token||'',tmo:30000});
  if(generation!==s15Generation73||url!==SC.url||key!==SC.key){if(x.token)s15Release73({login,token:x.token,expires:x.expires,url});throw Error('Login changed or was cancelled. Tap Login again.')}if(x.sessionVersion!==15||!x.token||!Number.isFinite(x.expires))throw Error('Admin must update the Apps Script backend to v5.99.15 before login.');
  sessionStorage.setItem('om_session15',JSON.stringify({login,token:x.token,expires:x.expires,url:SC.url}));s15Forget73(login);
 }
@@ -4535,7 +4535,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r42';
+const APP_REV76='iocl-portal-shell-v5.99.15-r43';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4762,5 +4762,12 @@ function sheetMark129(){if(!SC.url||!SC.key)return;try{localStorage.setItem('om_
 /* Item130: mobile report-preparer roles fixed to Day; all desktop roles retain themes. */
 function themeFixed130(){return matchMedia('(max-width:700px)').matches&&['pat','hse','mech','elec','erv'].includes(ptRole());}
 (()=>{const apply=ptThemeApply;ptThemeApply=function(t){document.body.classList.toggle('themefixed130',themeFixed130());return apply(themeFixed130()?'day':t);};const style=document.createElement('style');style.textContent='@media(max-width:700px){body.themefixed130 .thm:not(.wfnotice){display:none!important}}';document.head.append(style);let fixed=themeFixed130();addEventListener('resize',()=>{const now=themeFixed130();if(now!==fixed){fixed=now;ptThemeApply(ptThemeGet());}});ptThemeApply(ptThemeGet());})();
+
+</script>
+
+<script>
+/* Items131-133: ephemeral proof reuse, truthful checking status, no authentication bypass. */
+async function loginProof132(password,record){const prehash=await sha(password);const proof=typeof record==='string'?prehash:record?.scheme==='pbkdf2-sha256-prehash-v1'?await ptDerive(prehash,record.salt,record.iterations):'';return {prehash,proof,record:JSON.stringify(record),valid:!!proof&&proof===(typeof record==='string'?record:record?.hash)};}
+(()=>{const style=document.createElement('style');style.textContent='@keyframes loginLed131{0%,100%{opacity:1}50%{opacity:.6}}.pl #pe.loginchecking131{color:#b42318;animation:loginLed131 1.5s ease-in-out infinite}.pl #pe.loginchecking131::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:middle}@media(prefers-reduced-motion:reduce){.pl #pe.loginchecking131{animation:none}}';document.head.append(style);})();
 
 </script>
