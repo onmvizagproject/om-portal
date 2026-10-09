@@ -1567,7 +1567,7 @@ setInterval(()=>{if(ptRole()&&document.visibilityState==='visible')ptSync(false)
 document.addEventListener('visibilitychange',()=>{if(ptRole()&&document.visibilityState==='visible')ptSync(false)});
 /*V520*/
 
-function ptRefreshView(){const P=document.getElementById('portal');if(!P||P.className!=='on'||document.body.classList.contains('inra')||window.__ptPage!=='home'||!ptRole())return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;ptHome('home')}
+function ptRefreshView(){const P=document.getElementById('portal');if(!P||P.className!=='on'||document.body.classList.contains('inra')||window.__ptPage!=='home'||!ptRole())return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;/* Organogram reads current config on next deliberate open; keep this viewport. */}
 function v520Wake(){if(document.visibilityState!=='visible')return;try{ptSync(false)}catch(e){}if(SC.url&&typeof raStarted!=='undefined'&&raStarted&&sessionStorage.getItem('ra_unlocked')==='1')scheduleSync(300)}
 window.addEventListener('focus',v520Wake);window.addEventListener('pageshow',v520Wake);
 document.addEventListener('focusout',()=>{if(!window.__raStale)return;setTimeout(()=>{const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;window.__raStale=0;try{setLogos();hdrBadge();bar();tab(curTab)}catch(e){}},400)});
@@ -2009,7 +2009,7 @@ function drRender(B,date,person,draft,notice){
  drCurrent=draft?drClone(draft):saved?drClone(saved):drBlank(date,person);
  const d=drCurrent,p=drPerson(person),edit=(pat&&st.edit&&window.__rpRO!==date+'|'+person)||(!pat&&ptRole()==='admin'&&window.__rpEdit===date+'|'+person);drSeenAdm=saved?(saved.adminEditedAt||0):0;
  B.innerHTML=`<section class="drapp drfx">${drTabs('daily',person)}<div class="drmid"><h2>Daily Report</h2><p class="hint">CGD/MM/SF/26 - Pipeline Surveillance Report</p>${notice?`<div class="drok" role="status">${esc(notice)}</div>`:''}<div class="drcard drgrid">${pat?`<label>Report date<input type="date" id="drdate" value="${date}" max="${drToday()}"></label>`:`<div class="drtotal">Report date<b>${esc(drDate(date))}</b></div>`}${drLocationUI82(d,edit)}${pat?'':`<div class="drtotal">Performed by<b>${esc(p?.name||'')}</b><span>${esc(p?.designation||'')}</span></div>`}</div><fieldset ${edit?'':'disabled'}><div class="drcard"><h3>Shift and travel</h3><div class="drgrid"><label>Shift<select id="drshift">${['A','B','C','General'].map(x=>`<option ${d.shift===x?'selected':''}>${x}</option>`).join('')}</select></label>${drTime('start','Start time',d)}${drTime('end','End time',d)}${drField('dropening','Opening km',d.opening,'number')}${drField('drclosing','Closing km',d.closing,'number')}<div class="drtotal">Total covered<b id="drtotal"></b></div></div></div><div class="drcard"><h3>Activity description</h3><label>Activity<select id="dractivity">${DR_ACT.map(a=>`<option value="${a[0]}" ${a[0]===drActive?'selected':''}>${a[1]}</option>`).join('')}</select></label><div id="drarea"></div></div><div class="drcard"><h3>6. Charging details (if any)</h3><div class="drgrid"><label>Pipeline material<select id="drctype"><option ${d.charging.type==='MDPE'?'selected':''}>MDPE</option><option ${d.charging.type==='Steel'?'selected':''}>Steel</option></select></label><label>Pipe size<select id="drcsize"></select></label>${drField('drclength','Length ('+(d.charging.type==='MDPE'?'metres':'inches')+')',d.charging.length,'number')}${drField('drcarea','Area name',d.charging.area)}${['pole','stone','plate','tf','sr'].map(k=>drField('drc'+k,k.toUpperCase(),d.charging[k])).join('')}</div></div><div class="drcard"><h3>Encroachment details</h3>${drTextBox('encroach',d.encroach,'Encroachment (type in English)')}<p class="hint">Blank encroachment prints as Nil.</p></div><div class="drcard"><h3>Signature and comments</h3>${p?.signature?`<img class="drsig" src="${esc(p.signature)}" alt="Signature"><label class="drcheck"><input id="drsignature" type="checkbox" ${d.signatureConfirmed?'checked':''}> Print my signature on the report</label>`:'<p class="hint">No signature is uploaded for this patroller in the Organogram, so none will print. Ask Admin to upload it.</p>'}<label>Optional comments<textarea id="drcomment" rows="2">${esc(d.comment)}</textarea></label><p class="hint">Reviewed by and GA In-charge stay blank until review routing is set up.</p></div></fieldset></div><div class="drbar"><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p><div class="draction"><button id="drsync">Synchronize</button>${st.mode!=='new'||edit?`<button id="drpdf" class="sv" ${pat&&!st.edit&&!RPT_PDF_LOCKED?'disabled style="opacity:.4"':''}>Download PDF</button>`:''}${edit&&!pat?`<button id="drasave" class="sv">Save changes (Admin)</button><button id="drdel" class="sv" style="background:#b42318;color:#fff">Delete report</button>`:edit?(saved&&saved.status==='Submitted'?`<button id="drsave" class="sv">Save changes and update Admin</button>`:`<button id="drsave" class="sv">Save draft</button><button id="drsubmit" class="sv">Submit to Admin</button>`)+`${saved?'<button id="drdel" class="sv" style="background:#b42318;color:#fff">Delete report</button>':''}`:''}${pat&&window.__rpCame?'<button id="drbackrep">Back to Reports</button>':''}${pat?'':'<button id="drback">Back to list</button>'}</div></div></section>`;
- const sizes=()=>{const steel=$('#drctype').value==='Steel',vals=steel?[2,3,6,8,12]:[20,32,63,90,125,180];$('#drcsize').innerHTML=vals.map(n=>`<option value="${n}" ${String(n)===d.charging.size?'selected':''}>${n} ${steel?'inch':'mm'}</option>`).join('')};sizes();$('#drctype').onchange=()=>{drCapture();d.charging.type=$('#drctype').value;d.charging.size=d.charging.type==='Steel'?'2':'20';drPaintFromDraft(B,d)};
+ const sizes=()=>{const steel=$('#drctype').value==='Steel',vals=steel?[2,3,6,8,12]:[20,32,63,90,125,180];$('#drcsize').innerHTML=vals.map(n=>`<option value="${n}" ${String(n)===d.charging.size?'selected':''}>${n} ${steel?'inch':'mm'}</option>`).join('')};sizes();$('#drctype').onchange=()=>{drCapture();d.charging.type=$('#drctype').value;d.charging.size=d.charging.type==='Steel'?'2':'20';sizes();B.dispatchEvent(new Event('input',{bubbles:true}))};
  drLocationBind82(B,edit);if($('#drdate'))$('#drdate').onchange=()=>drSwitch(B,$('#drdate').value);
  $('#dractivity').onchange=()=>{drCapture();drActive=$('#dractivity').value;drActivity()};$('#dropening').oninput=$('#drclosing').oninput=drKm;drActivity();drKm();
  if($('#drsave'))$('#drsave').onclick=()=>drSave('draft');if($('#drsubmit'))$('#drsubmit').onclick=()=>drSave('submit');if($('#drdel'))$('#drdel').onclick=drDelete;
@@ -2082,7 +2082,7 @@ async function drPdf(d,o){o=o||{};const {PDFDocument,StandardFonts,rgb}=PDFLib;c
  await row(o.sigs.perf?[{...o.sigs.perf,comment:o.sigs.perf.comment||d.comment||''}]:[],0);await row(o.sigs.rev,1);await row(o.sigs.ga?[o.sigs.ga]:[],2)
  }
  const bytes=await pdf.save();if(!o.noDl)fmtBlob(new Blob([bytes],{type:'application/pdf'}),'SF-26_Daily_'+d.date+'_'+(p.name||'Patroller').replace(/[^a-z0-9]+/gi,'_')+'.pdf');return bytes}
-async function drInit(B){drRender(B);const pat=drIsPat();let before='';if(pat){drCapture();before=drCurrent?drNorm(drCurrent):''}await drSync();if(!B.isConnected||window.__patSec!=='daily')return;if(pat){drCapture();if(drCurrent&&before===drNorm(drCurrent))drRender(B,drCurrent.date,drCurrent.person)}else if($('#dradminlist'))drAdminHome(B)}
+async function drInit(B){drRender(B);const pat=drIsPat();let before='';if(pat){drCapture();before=drCurrent?drNorm(drCurrent):''}await drSync();if(!B.isConnected||window.__patSec!=='daily')return;if(pat){drCapture();if(drCurrent){const status110=B.querySelector('#drstatus');if(status110)status110.textContent=drStatus();}}else if($('#dradminlist'))drAdminHome(B)}
 window.addEventListener('online',()=>{if(ptRole())drSync()});
 </script><script>/* v5.45: separate "Reports" tab for patrollers (own reports) and Admin (all patrollers + their reports). Same data, 24 h rules and Sheet sync as v5.43. */
 (()=>{if(!PAT_SECS.some(x=>x.id==='reports'))PAT_SECS.splice(2,0,{id:'reports',label:'Reports',icon:'&#128193;'});
@@ -2104,10 +2104,10 @@ function rptAdmin(B){drBox=B;drCurrent=null;const fs=window.__drFs||'all',fp=win
  B.innerHTML=`<section class="drapp"><h2>Reports (Admin)</h2><p class="hint">All patrollers and all their reports. Reports appear here when submitted, and automatically 24 hours after first save if not submitted. Admin view is read-only: Admin cannot edit or delete patrollers' reports. Every report is also written to the "${DR_SHEET}" tab of the main Sheet.</p><div class="rpwrap"><div><h3>Patrollers</h3><button class="rpper ${fp?'':'on'}" data-pp=""><b>All patrollers</b><span>${all.length} report(s)</span></button>${ids.map(id=>{const c=cnt(id);return `<button class="rpper ${fp===id?'on':''}" data-pp="${esc(id)}"><b>${esc(drPerson(id)?.name||id)}</b><span>${esc(drPerson(id)?.designation||'')}<br>${c.n} report(s), ${c.s} submitted</span></button>`}).join('')||'<div class="drcard">No patrollers in the Organogram.</div>'}</div><div><label>Show<select id="drfs"><option value="all" ${fs==='all'?'selected':''}>All reports</option><option value="sub" ${fs==='sub'?'selected':''}>Submitted</option><option value="nosub" ${fs==='nosub'?'selected':''}>Draft / not submitted</option></select></label><div id="dradminlist">${rows.length?rows.map((r,i)=>rptCard(r,i,false,true)).join(''):'<div class="drcard">No reports yet.</div>'}</div></div></div><div class="draction"><button id="drsync">Sync / reload</button></div><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p></section>`;
  $$('[data-pp]',B).forEach(b=>b.onclick=()=>{window.__drFp=b.dataset.pp;rptAdmin(B)});$('#drfs').onchange=()=>{window.__drFs=$('#drfs').value;rptAdmin(B)};rptBind(B,rows,false);
  $('#drsync').onclick=async()=>{const b=$('#drsync');b.disabled=true;try{await drSync();if(window.__patSec==='reports')rptAdmin(B)}finally{if(b.isConnected)b.disabled=false}}}
-async function rptInit(B){const role=ptRole(),draw=()=>role==='pat'?rptPatroller(B):role==='admin'?rptAdmin(B):(B.innerHTML='<section class="drapp"><div class="drnotice">No access.</div></section>');draw();await drSync();if(B.isConnected&&window.__patSec==='reports'&&$('#drsync')&&!$('#drerror').textContent)draw()}
+async function rptInit(B){const role=ptRole(),draw=()=>role==='pat'?rptPatroller(B):role==='admin'?rptAdmin(B):(B.innerHTML='<section class="drapp"><div class="drnotice">No access.</div></section>');draw();const before110=JSON.stringify([drView(),wfState().reports]),role110=ptRole();await drSync();if(B.isConnected&&ptRole()===role110&&window.__patSec==='reports'&&$('#drsync')&&!$('#drerror').textContent&&before110!==JSON.stringify([drView(),wfState().reports]))draw()}
 /* Admin: Daily Report tab now holds only Admin configuration; the report list lives in Reports. Back from a viewed report returns to Reports. */
 drAdminHome=function(B){if(window.__patSec==='reports')return rptAdmin(B);drBox=B;drCurrent=null;B.innerHTML=`<section class="drapp drfx">${drTabs('daily')}<div class="drmid"><h2>Daily Report (Admin)</h2><p class="hint">Patrollers fill reports from their own login. All reports are in Reports.</p><div id="dradmin"></div></div><div class="drbar"><p class="hint" id="drstatus" role="status">${esc(drStatus())}</p><p class="pe" id="drerror" role="alert"></p><div class="draction"><button id="drsync">Synchronize</button></div></div></section>`;$('#drsync').onclick=async()=>{const b=$('#drsync');b.disabled=true;try{await drSync();if($('#dradmin'))drAdmin()}finally{if(b.isConnected)b.disabled=false}};drAdmin()};
-drInit=async function(B){const open=window.__drOpen;window.__drOpen=null;drRender(B,open||undefined);const pat=drIsPat();let before='';if(pat){drCapture();before=drCurrent?drNorm(drCurrent):''}await drSync();if(!B.isConnected||window.__patSec!=='daily')return;if(pat){drCapture();if(drCurrent&&before===drNorm(drCurrent))drRender(B,drCurrent.date,drCurrent.person)}else if($('#dradmin')&&!drCurrent)drAdminHome(B)};
+drInit=async function(B){const open=window.__drOpen;window.__drOpen=null;drRender(B,open||undefined);const pat=drIsPat();let before='';if(pat){drCapture();before=drCurrent?drNorm(drCurrent):''}await drSync();if(!B.isConnected||window.__patSec!=='daily')return;if(pat){drCapture();if(drCurrent){const status110=B.querySelector('#drstatus');if(status110)status110.textContent=drStatus();}}else if($('#dradmin')&&!drCurrent)drAdminHome(B)};
 </script><script>/* v5.45: Patroller menu order, left-aligned pages, Reports with date search and View/Edit/Delete/PDF buttons, Admin edit/delete, 24 h lock for patroller. */
 const RPT_PDF_LOCKED=true;let drSeenAdm=0;
 (()=>{PAT_SECS.length=0;PAT_SECS.push({id:'daily',label:'Daily Report',icon:'&#128221;'},{id:'reports',label:'Reports',icon:'&#128193;'},{id:'monthly',label:'Monthly Report',icon:'&#128197;'},{id:'pipe',label:'Pipeline Asset Locator',icon:'&#128205;',src:'pipeTool'});
@@ -2644,7 +2644,7 @@ send67=async function(){
  try{await drSync()}catch(e){}
  if(!B.isConnected||window.__patSec!=='daily'||!drCurrent||drKey(drCurrent.date,drCurrent.person)!==key)return;
  if(JSON.stringify(drLive(key)||null)===snap)return;
- drCapture();if(before===drNorm(drCurrent))drRender(B,drCurrent.date,drCurrent.person)}}
+ drCapture();const status110=B.querySelector('#drstatus');if(status110)status110.textContent='Saved report changed on the Sheet. Use Sync / reload to review it. Your open entries are kept.';}}
 dr69Paint();
 /* Full package source captured once after startup, or on export. */
 </script>
@@ -2729,7 +2729,7 @@ wfDialog=function(id){wfDialog70(id);try{const r=wfState().reports[id];if(!r||!w
  const hint=document.createElement('p');hint.className='hint';hint.textContent='The signature goes into your own box in the report (Reviewed by / GA In-charge row). Press View to check it before Send.';row.after(hint)}catch(e){}};
 /* PM direct-choice: allow Admin and PM to pick the next role */
 /* Items & Rates description: grows with text */
-const fit=t=>{t.style.height='auto';t.style.overflow='hidden';t.style.resize='none';t.style.height=(t.scrollHeight+2)+'px'};
+const fit=t=>{const stamp=t.value+'|'+t.clientWidth;if(t.__fit110===stamp)return;t.__fit110=stamp;t.style.height='auto';t.style.overflow='hidden';t.style.resize='none';t.style.height=(t.scrollHeight+2)+'px'};
 const fitAll=()=>document.querySelectorAll('textarea[data-ie$=".d"]').forEach(t=>{t.rows=1;fit(t)});
 document.addEventListener('input',e=>{if(e.target.matches&&e.target.matches('textarea[data-ie$=".d"]'))fit(e.target)});
 new MutationObserver(ms=>{if(ms.length&&ms.every(m=>m.target.closest?.('.pclk,#dr69badge')||m.target.parentElement?.closest('.pclk,#dr69badge')))return;clearTimeout(window.__fit71);window.__fit71=setTimeout(fitAll,60)}).observe(document.body,{childList:true,subtree:true});
@@ -2804,7 +2804,7 @@ const ptOrg70=ptOrg;ptOrg=function(B){ptOrg70(B);const w=B.querySelector('.orgwr
   if(document.body.classList.contains('inra')||window.__ptPage!=='home'){ptHome('home');return;}
   ask();
  });
- window.portalLogout99=ask;setTimeout(seed,500);
+ window.portalLogout99=ask;window.addEventListener('pageshow',()=>{armed=false;seed();});window.addEventListener('focus',()=>{if(ptRole()&&!history.state?.portalBack99){armed=false;seed();}});setTimeout(seed,500);
 })();
 
 /* v5.73 */
@@ -3464,7 +3464,7 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
  /* ---- 2. remove the green "PDF" download button on report cards (View PDF stays) ---- */
  function stripPdf(root){(root||document).querySelectorAll('button[data-p],button[data-rp]').forEach(b=>{if(b.textContent.trim()==='PDF')b.remove()})}
  /* ---- 3. Back button: close the top dialog first, never leave the app ---- */
- const SKIP_IDS=new Set(['side','patside','pside','fmtside','ov','patov','pov','fmtov','gate','toast','pbody','patmain','exit14']);
+ const SKIP_IDS=new Set(['portal','app','patshell','fmtshell','side','patside','pside','fmtside','ov','patov','pov','fmtov','gate','toast','pbody','patmain','exit14']);
  const KNOWN=['wfmodal','v71logout','wfsb73box','isov','fmtview'];
  function isOverlay(el){if(el.id==='v71logout')return false;if(el.nodeType!==1||!el.isConnected)return false;const t=el.tagName;if(t==='SCRIPT'||t==='STYLE'||t==='LINK'||t==='IFRAME')return false;if(SKIP_IDS.has(el.id))return false;if(KNOWN.includes(el.id))return true;
   const cs=getComputedStyle(el);if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden'||el.hidden)return false;const r=el.getBoundingClientRect();return r.width>=innerWidth*.9&&r.height>=innerHeight*.9&&!/toast|side|gate/i.test(el.id+' '+el.className)}
@@ -3472,7 +3472,7 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
  let pushed=0,skip=0,pending=false;
  function reconcile(){pending=false;if(window.__exit63Leaving)return;const n=list().length;
   while(pushed<n){history.pushState({ov90:++pushed},'')}
-  if(pushed>n){const k=pushed-n;pushed=n;skip++;history.go(-k)}}
+  if(pushed>n){pushed=n;/* Leave guard entries in place; never traverse behind the role Back handler. */}}
  function schedule(){if(pending)return;pending=true;Promise.resolve().then(reconcile)}
  function closeTop(el){const q=s=>el.querySelector(s);const b=el.id==='wfmodal'?q('#wfclose'):el.id==='v71logout'?q('#v71n'):el.id==='fmtview'?q('#fvclose'):(q('[data-n]')||Array.from(el.querySelectorAll('button')).find(x=>/^(close|cancel|no)$/i.test(x.textContent.trim())));
   if(b){try{b.click()}catch(e){}}if(el.isConnected)el.remove()}
@@ -4259,6 +4259,45 @@ window.wfShare15=async function(r,m){if(!m?.isConnected||m.querySelector('#wfsha
 })();
 
 </script>
+<script>
+/* Item111: Admin-only department filter, derived from report source/format routing. */
+function wfDepartments111(r){
+ if(r.type==='daily'||r.type==='monthly'||r.type==='issues'||['daily','monthly','issues'].includes(r.routeKey))return ['Patroller'];
+ const key=String(r.routeKey||''),id=key.startsWith('aomp:')?key.slice(5):r.snapshot?.id;
+ const format=id?fmtLoad().find(x=>x.id===id):null;
+ if(format){return [...new Set((format.groups||[format.group]).map(x=>x==='Pipeline Surveillance'?'Patroller':x==='Common'?'Common formats':x==='HSC'?'HSE':x))];}
+ if(String(r.owner).startsWith('pat:'))return ['Patroller'];const role={hse:'HSE',mech:'Mechanical',elec:'Electrical'}[r.owner];if(role)return [role];
+ const dept=(wfOrgPerson85(r.owner)?.department||'').toLowerCase();if(/hse|hsc/.test(dept))return ['HSE'];if(/mechanical/.test(dept))return ['Mechanical'];if(/electrical/.test(dept))return ['Electrical'];return ['Common formats'];
+}
+(()=>{const page=wfStatusPage;wfStatusPage=function(B){const out=page.apply(this,arguments);if(ptRole()!=='admin'||!B)return out;const show=B.querySelector('#wfstf'),label=show?.closest('label');if(!label)return out;const row=document.createElement('div');row.className='wfdepartment111';label.before(row);row.append(label);const dept=document.createElement('label');dept.innerHTML='Department<select id="wfdepartment111"><option value="">All departments</option>'+['Patroller','HSE','Mechanical','Electrical','Common formats'].map(x=>'<option '+(window.__wfDept111===x?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';row.append(dept);const state=wfState();let count=0;B.querySelectorAll('[data-report71]').forEach(el=>{const r=state.reports[el.dataset.report71];if(window.__wfDept111&&r&&!wfDepartments111(r).includes(window.__wfDept111)){el.remove();}else count++;});if(!count&&B.querySelector('.wfsttw')){const empty=document.createElement('div');empty.className='pcard';empty.textContent='No reports to show for this department and the selected filters.';B.querySelector('.wfsttw').replaceWith(empty);}dept.querySelector('select').onchange=e=>{window.__wfDept111=e.target.value;wfStatusPage(B);};return out;};
+const style=document.createElement('style');style.textContent='.wfdepartment111{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;width:100%;max-width:560px}.wfdepartment111 label{display:flex!important;flex-direction:column!important;gap:5px;min-width:0!important;margin:0!important;flex:none!important}.wfdepartment111 select,#pbody .wfdepartment111 #wfstf{width:100%!important;min-width:0!important;max-width:100%!important;min-height:44px;box-sizing:border-box;padding:8px;border:1px solid #b9c4d6;border-radius:8px;font:inherit}@media(max-width:350px){#pbody .wfdepartment111 select,#pbody .wfdepartment111 #wfstf{font-size:11px!important;padding:4px!important}}';document.head.appendChild(style);
+})();
+
+</script>
+<script>
+(()=>{const s=document.createElement('style');s.textContent='#patmain .drmid,#pbody:not(.orghome),#app{overflow-anchor:none}';document.head.appendChild(s)})();
+/* Item110: background reads must not replace a working form or reset its viewport. */
+function omScrollState110(root){
+ const nodes=[root,...root.querySelectorAll('*')].filter(e=>e.scrollTop||e.scrollLeft);
+ const path=e=>{const p=[];while(e&&e!==root){p.unshift([...e.parentElement.children].indexOf(e));e=e.parentElement;}return p;};
+ const active=document.activeElement,inside=root.contains(active);
+ return {root,x:scrollX,y:scrollY,nodes:nodes.map(e=>({e,id:e.id,kind:e.matches('.drmid')?'.drmid':e.matches('.orgwrap')?'.orgwrap':e.matches('.wfpreview')?'.wfpreview':'',path:path(e),top:e.scrollTop,left:e.scrollLeft})),focus:inside?{e:active,id:active.id,path:path(active),start:active.selectionStart,end:active.selectionEnd}:null};
+}
+function omRestore110(s){
+ if(!s?.root.isConnected)return;if(s.root.id==='patmain'&&typeof drFit==='function')drFit();const find=o=>o.e.isConnected?o.e:o.id?s.root.querySelector('#'+CSS.escape(o.id)):o.kind?s.root.querySelector(o.kind):o.path.reduce((e,i)=>e?.children[i],s.root);
+ const f=s.focus,el=f&&find(f);if(el&&el!==document.activeElement){try{el.focus({preventScroll:true});if(f.start!=null)el.setSelectionRange(f.start,f.end)}catch(e){}}
+ for(const o of s.nodes){const e=find(o);if(e){e.scrollTop=o.top;e.scrollLeft=o.left;}}
+ if(scrollX!==s.x||scrollY!==s.y)window.scrollTo({left:s.x,top:s.y,behavior:'instant'});
+}
+function omStable110(root,fn){if(!root)return fn();const snap=omScrollState110(root);try{return fn()}finally{omRestore110(snap)}}
+(()=>{
+ const render=drRender;drRender=function(B,date,person){const same=!!B?.querySelector('#drshift')&&drCurrent&&(!date||date===drCurrent.date)&&(!person||person===drCurrent.person);return same?omStable110(B,()=>render.apply(this,arguments)):render.apply(this,arguments);};
+ const activity=drActivity;drActivity=function(){const B=document.getElementById('patmain');return omStable110(B,()=>activity.apply(this,arguments));};
+ for(const name of ['rptPatroller','rptAdmin','wfStatusPage']){const base=window[name];window[name]=function(B){const existing=B&&(name==='wfStatusPage'?B.querySelector('.wfstt,#wfstf'):B.querySelector('.rprow,#drsync'));return existing?omStable110(B,()=>base.apply(this,arguments)):base.apply(this,arguments);};}
+ const tab0=tab;tab=function(n){return n===curTab?omStable110(document.getElementById('app')||document.body,()=>tab0.apply(this,arguments)):tab0.apply(this,arguments);};
+})();
+
+</script>
 </body><script>
 /* v5.99.15: compact mobile UI and PDF-only completed/received report views. */
 (()=>{
@@ -4496,7 +4535,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r34';
+const APP_REV76='iocl-portal-shell-v5.99.15-r35';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4576,7 +4615,7 @@ html body .pl .pc img.lg.om-team-logo{width:176px!important;height:176px!importa
 </script>
 
 <script>/* Item101: same current-day entry and shared locations for every patroller ID. */
-(()=>{const open=patOpen;patOpen=function(sec){if(ptRole()==="pat"&&(!sec||sec==="daily")){drCurrent=null;window.__rpRO="";window.__rpEdit="";window.__drPre12=null;return open.call(this,"daily");}return open.apply(this,arguments);};const sync=drSync;drSync=async function(){const result=await sync.apply(this,arguments);const B=document.getElementById("patmain");if(drIsPat()&&window.__patSec==="daily"&&B?.isConnected&&drCurrent?.person===drMe()&&B.querySelector(".drmid fieldset")&&!B.querySelector(".drmid fieldset").disabled){drCapture();const open=!B.querySelector("#drlocpanel83")?.hidden;drLocationMount82(B,true);const panel=B.querySelector("#drlocpanel83");if(panel)panel.hidden=!open;}return result;};})();
+(()=>{const open=patOpen;patOpen=function(sec){if(ptRole()==="pat"&&(!sec||sec==="daily")){drCurrent=null;window.__rpRO="";window.__rpEdit="";window.__drPre12=null;return open.call(this,"daily");}return open.apply(this,arguments);};const sync=drSync;drSync=async function(){return sync.apply(this,arguments);};})();
 </script>
 
 <script>
@@ -4640,7 +4679,7 @@ function drApplyTotals107(){const d=drCurrent;if(!d?.assetBasis107)return;if(d.c
 {const render=drRender;drRender=function(B){const result=render.apply(this,arguments);if(drCurrent?.assetBasis107&&B?.querySelector('#drarea')&&!drCatalog107&&!drCatalogPending107)drLoadCatalog107();return result;};const bind=drLocationBind82;drLocationBind82=function(B,edit){const result=bind.apply(this,arguments);if(edit&&drCurrent?.assetBasis107){const identity=drCurrent.date+'|'+drCurrent.person;B.querySelectorAll('[data-append88],[data-remove88]').forEach(button=>{const click=button.onclick;button.onclick=function(){drCapture();const result=click?.apply(this,arguments);if(drCurrent&&drCurrent.date+'|'+drCurrent.person===identity)drActivity();return result;};});}return result;};}
 {const check=drCheck;drCheck=function(d){check.apply(this,arguments);if(d.assetBasis107)for(const n of Object.values(d.totals||{}))if(n!==''&&n!=null&&(!Number.isInteger(+n)||+n<0))throw Error('Asset totals must be whole numbers, zero or above.');};}
 
-{const sync=drSync;drSync=async function(){const result=await sync.apply(this,arguments);if(drCurrent?.assetBasis107&&document.querySelector('#patmain .drmid fieldset')&&!document.querySelector('#patmain .drmid fieldset').disabled){const net=await pipeRead('net').catch(()=>null);if(net)drCatalog107=drAssetCatalog107(net);drCapture();drActivity();}return result;};}
+{const sync=drSync;drSync=async function(){return sync.apply(this,arguments);};}
 /* Preserve the SF-26 page, with a full inventory/SR appendix for new-basis reports. */
 {const pdf=drPdf;drPdf=async function(d,o){if(!d.assetBasis107)return pdf.apply(this,arguments);const raw=await pdf.call(this,d,{...(o||{}),noDl:true}),doc=await PDFLib.PDFDocument.load(raw),font=await doc.embedFont(PDFLib.StandardFonts.Helvetica),bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);const first=doc.getPages()[0],H=first.getHeight();for(const [kind,top] of [['valve',263.9],['route',383.9]]){const split=d.assetBreakdown107?.[kind];if(!split)continue;first.drawRectangle({x:216.4,y:H-top-12.3,width:57.8,height:12.9,color:PDFLib.rgb(1,1,1)});first.drawText(String(d.totals[kind]??''),{x:220,y:H-top-5.7,size:6.5,font});const splitText='MDPE '+(split.MDPE!==''?split.MDPE:'-')+' / Steel '+(split.Steel!==''?split.Steel:'-');const splitSize=Math.min(4.8,54/font.widthOfTextAtSize(splitText,1));first.drawText(splitText,{x:218,y:H-top-10.7,size:splitSize,font});}const bytes=await doc.save();if(!o?.noDl)fmtBlob(new Blob([bytes],{type:'application/pdf'}),'Patroller_Report_'+d.date+'_'+d.person+'.pdf');return bytes;};}
 
