@@ -4151,7 +4151,7 @@ drRender=function(B,date,person,draft,notice){
     window.__drPre12={key,from:p.date,orig:drClone({activities:c.activities,charging:c.charging,encroach:c.encroach,comment:c.comment})};
     c.activities=drClone(p.activities||{});c.charging=drClone(p.charging||c.charging);c.encroach=p.encroach||'';c.comment=p.comment||'';
    }else if(window.__drPre12&&window.__drPre12.key===key){Object.assign(c,drClone(window.__drPre12.orig));window.__drPre12=null}
-   drRender(B,c.date,c.person,c);
+   drPaintPrevious123(B);
   };
  }catch(e){}
  return r};
@@ -4535,7 +4535,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r39';
+const APP_REV76='iocl-portal-shell-v5.99.15-r40';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4691,7 +4691,7 @@ function drApplyTotals107(){const d=drCurrent;if(!d?.assetBasis107)return;if(d.c
 function drAeoArea115(){const address=String(ptGet().addr||PT_ADDR).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(),candidates=[...drLocationList82().map(x=>x.name),...Object.values(drCatalog107?.areas||{})].filter(x=>!/^aeo$/i.test(x)),matches=[...new Set(candidates)].filter(x=>{const n=String(x).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();return n&&(' '+address+' ').includes(' '+n+' ');}).sort((a,b)=>b.length-a.length);return matches[0]||'';}
 {const list=drLocationList82;drLocationList82=function(){return list.apply(this,arguments).sort((a,b)=>(/^aeo$/i.test(b.name)?1:0)-(/^aeo$/i.test(a.name)?1:0));};}
 (()=>{
- const bind=drLocationBind82;drLocationBind82=function(B,edit){const out=bind.apply(this,arguments);if(ptRole()!=='pat')return out;const host=B.querySelector('.drloc82'),input=host?.querySelector('#drlocation82'),panel=host?.querySelector('#drlocpanel83'),route=host?.querySelector('.drroute88');if(!host||!input)return out;const show=open=>{if(route)route.hidden=!open;if(panel)panel.hidden=!open;input.setAttribute('aria-expanded',String(open));};show(false);input.onclick=()=>show(true);input.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();show(true)}if(e.key==='Escape')show(false)};host.addEventListener('focusout',e=>{if(e.relatedTarget&&!host.contains(e.relatedTarget))show(false)});host.addEventListener('click',()=>{if(panel&&!panel.hidden&&route)route.hidden=false});return out;};
+ const bind=drLocationBind82;drLocationBind82=function(B,edit){const out=bind.apply(this,arguments);if(ptRole()!=='pat')return out;const host=B.querySelector('.drloc82'),input=host?.querySelector('#drlocation82'),panel=host?.querySelector('#drlocpanel83'),route=host?.querySelector('.drroute88');if(!host||!input)return out;const show=open=>{if(route)route.hidden=!open;if(panel)panel.hidden=!open;input.setAttribute('aria-expanded',String(open));};show(false);input.onclick=()=>show(input.getAttribute('aria-expanded')!=='true');input.onkeydown=e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();show(true)}if(e.key==='Escape')show(false)};host.addEventListener('focusout',e=>{if(e.relatedTarget&&!host.contains(e.relatedTarget))show(false)});host.addEventListener('click',()=>{if(panel&&!panel.hidden&&route)route.hidden=false});return out;};
  document.addEventListener('pointerdown',e=>{const host=document.querySelector('#patmain .drloc82');if(ptRole()==='pat'&&host&&!host.contains(e.target)){host.querySelectorAll('.drroute88,#drlocpanel83').forEach(n=>n.hidden=true);host.querySelector('#drlocation82')?.setAttribute('aria-expanded','false');}},true);
  const render=drRender;drRender=function(B){const out=render.apply(this,arguments);if(ptRole()!=='pat'||!B?.querySelector('#drshift'))return out;B.querySelector('#drcomment')?.closest('.drcard')?.remove();for(const [id,label] of [['drctype','Charging Details (if any)'],['drencroach','Encroachment Details (if any)']]){const card=B.querySelector('#'+id)?.closest('.drcard');if(!card||card.tagName==='DETAILS')continue;const details=document.createElement('details');details.className='drcard drcollapse117';const summary=document.createElement('summary');summary.textContent=label;details.append(summary);card.querySelector('h3')?.remove();while(card.firstChild)details.append(card.firstChild);card.replaceWith(details);}return out;};
  const style=document.createElement('style');style.textContent='#patmain .drroute88[hidden]{display:none!important}#patmain #drprev12{background:none!important;border:0!important;padding:0!important;box-shadow:none!important}#patmain #drprevchk12{appearance:auto!important;width:16px!important;height:16px!important;min-height:0!important;max-height:16px!important;margin:0!important;padding:0!important;box-shadow:none!important;border:0!important;flex:0 0 16px!important}#patmain .drcollapse117>summary{font-weight:700;cursor:pointer;min-height:44px;display:list-item;list-style-position:inside;line-height:44px}#patmain .drcollapse117[open]>summary{margin-bottom:12px}#patmain .drmobile116 h3{margin:0 0 14px}';document.head.appendChild(style);
@@ -4721,6 +4721,12 @@ function drActivate116(kind){const root=document.getElementById('drmobile116');i
 let drSaveSend122Busy=false;
 async function drSaveSend122(){if(drSaveSend122Busy)return;drSaveSend122Busy=true;const b=document.getElementById('drsave');if(b){b.disabled=true;b.textContent='Saving...';}try{await send67();}finally{drSaveSend122Busy=false;const current=document.getElementById('drsave');if(current){current.disabled=false;current.textContent='Save';}}}
 {const render=drRender;drRender=function(B){const out=render.apply(this,arguments);if(ptRole()!=='pat'||!B?.querySelector('#drshift'))return out;B.querySelectorAll('#drsend67,#wfdr').forEach(e=>e.remove());const save=B.querySelector('#drsave');if(save){save.textContent='Save';save.type='button';save.onclick=drSaveSend122;save.style.flex='1 1 100%';}return out;};}
+
+</script>
+
+<script>
+/* Item123: reuse controls, no full-form rebuild or Sheet request on checkbox toggle. */
+function drPaintPrevious123(B){const d=drCurrent,active=drActive;return omStable110(B,()=>{const root=B.querySelector('#drmobile116');if(root){drMobileBusy116=true;try{for(const a of DR_ACT){drActivate116(a[0]);drActivity();}drActivate116(active);}finally{drMobileBusy116=false;}}else drActivity();for(const [key,value]of Object.entries(d.charging||{})){const el=B.querySelector('#drc'+key);if(el)el.value=value??'';}const size=B.querySelector('#drcsize');if(size){const steel=d.charging.type==='Steel';size.innerHTML=(steel?[2,3,6,8,12]:[20,32,63,90,125,180]).map(n=>'<option value="'+n+'">'+n+(steel?' inch':' mm')+'</option>').join('');size.value=d.charging.size;}const enc=B.querySelector('#drencroach');if(enc)enc.value=d.encroach||'';const comment=B.querySelector('#drcomment');if(comment)comment.value=d.comment||'';const hint=B.querySelector('#drprevhint12');if(hint)hint.textContent=window.__drPre12?.key===d.date+'|'+d.person?'Filled from your report of '+drDate(window.__drPre12.from)+'. Change anything you need, then save.':'';B.dispatchEvent(new Event('input',{bubbles:true}));});}
 
 </script>
 
