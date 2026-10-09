@@ -4535,7 +4535,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r38';
+const APP_REV76='iocl-portal-shell-v5.99.15-r39';
 (()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4714,6 +4714,14 @@ function drActivate116(kind){const root=document.getElementById('drmobile116');i
 
 <script>/* Item121 owner-confirmed Admin fallback for newly prepared reports only. */
 {const blank=drBlank;drBlank=function(){const d=blank.apply(this,arguments),totals=drView().config?.totals||{};d.adminPreset121={};for(const k of ['valve','sr','pole','route'])if(totals[k]!==''&&totals[k]!=null&&Number.isInteger(+totals[k])&&+totals[k]>=0)d.adminPreset121[k]=+totals[k];return d;};}
+</script>
+
+<script>
+/* Item122: one Save performs the existing footer save/Sheet-send/Reports flow. */
+let drSaveSend122Busy=false;
+async function drSaveSend122(){if(drSaveSend122Busy)return;drSaveSend122Busy=true;const b=document.getElementById('drsave');if(b){b.disabled=true;b.textContent='Saving...';}try{await send67();}finally{drSaveSend122Busy=false;const current=document.getElementById('drsave');if(current){current.disabled=false;current.textContent='Save';}}}
+{const render=drRender;drRender=function(B){const out=render.apply(this,arguments);if(ptRole()!=='pat'||!B?.querySelector('#drshift'))return out;B.querySelectorAll('#drsend67,#wfdr').forEach(e=>e.remove());const save=B.querySelector('#drsave');if(save){save.textContent='Save';save.type='button';save.onclick=drSaveSend122;save.style.flex='1 1 100%';}return out;};}
+
 </script>
 
 <script>/* Hosted-only module payloads: login opens before the pipeline/schedule downloads. */
