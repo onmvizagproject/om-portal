@@ -4530,7 +4530,7 @@ function wfOpenHolder75(id){const r=wfState().reports[id];if(!wfHolder75(r))retu
 </script><style>.rpbtns .rpb.s{background:#137137;color:white}@media(max-width:700px){.rpbtns:has([data-send75]){flex-wrap:wrap}.rpbtns [data-send75]{flex:1 1 100%}}</style>
 <script>
 /* Item76: fresh small version checks at open/resume; safe activation without discarding forms. */
-const APP_REV76='iocl-portal-shell-v5.99.15-r52';
+const APP_REV76='iocl-portal-shell-v5.99.15-r53';
 (()=>{return;let job=null,last=0,reload=false;
  function safe(){if(window.__update94Own)return false;return !!document.querySelector('.pl')&&!document.querySelector('#pcn:not([hidden])')&&!document.getElementById('pgo')?.disabled&&!document.getElementById('ppw')?.value}
  function activate(r){if(!r.waiting)return;if(safe()){reload=true;update54Status('Update under progress... 100%');r.waiting.postMessage({activate74:true})}else update54Status('New version is ready. Save your work, close all app tabs, then reopen to use it.')}
@@ -4946,5 +4946,69 @@ const UPDATE148=(()=>{if(!('serviceWorker' in navigator)||location.protocol==='f
 </script>
 <style>
 #update54{top:auto!important;bottom:64px!important;left:12px!important;right:12px!important;max-width:500px;padding:9px 12px!important;border-radius:12px!important;font-size:12px!important;pointer-events:none}#update54 progress{height:6px!important}#updateDock74 #update54{position:static!important;pointer-events:auto}
+
+</style>
+
+<script>
+/* Item149: Patroller Daily Report, MDPE and Steel side by side first, section total below. */
+{const clean=drClean147;drClean147=function(){clean.apply(this,arguments);for(const box of document.querySelectorAll('#patmain .drtotal')){const label=box.querySelector(':scope>span');if(label&&/^(Valve Chambers|Route\/RCC Markers|Route|RCC)/i.test(label.textContent)&&!/^Total\b/i.test(label.textContent))label.textContent='Total '+label.textContent;const pair=box.querySelector(':scope>.drsplit120,:scope>.drgrid');if(pair)pair.classList.add('drpair149');}};drClean147();}
+/* Item149b: Valve/Route manual total is MDPE + Steel, calculated while typing. KMZ-complete totals are unchanged. */
+function drSum149(box){const splits=[...box.querySelectorAll('[data-manualsplit107]')],total=box.querySelector('#drmanualtotal107,[data-id116=drmanualtotal107]');if(!splits.length||!total)return;const filled=splits.filter(x=>String(x.value).trim()!=='');total.readOnly=true;total.placeholder='Auto total';total.value=filled.length?String(splits.reduce((n,x)=>n+(Number(x.value)||0),0)):'';}
+{const clean=drClean147;drClean147=function(){clean.apply(this,arguments);for(const box of document.querySelectorAll('#patmain .drtotal'))drSum149(box);};}
+{const apply=drApplyTotals107;drApplyTotals107=function(){apply.apply(this,arguments);const d=drCurrent;if(!d?.assetBreakdown107)return;for(const kind of ['valve','route']){const b=d.assetBreakdown107[kind];if(b&&!b.complete&&(b.MDPE!==''||b.Steel!==''))d.totals[kind]=(Number(b.MDPE)||0)+(Number(b.Steel)||0);}};}
+{const cap=drCapture;drCapture=function(){for(const box of document.querySelectorAll('#patmain .drtotal'))drSum149(box);return cap.apply(this,arguments);};}
+document.addEventListener('input',e=>{if(e.target?.matches?.('[data-manualsplit107]')){const box=e.target.closest('.drtotal');if(box){drSum149(box);try{drCapture();}catch(x){}}}},true);
+drClean147();
+/* Item150: login names smaller than the role so the role stays dominant on mobile. */
+{const labels=loginLabels147;loginLabels147=function(){labels.apply(this,arguments);const select=document.getElementById('prl'),detail=document.getElementById('prlnames147');if(!select||!detail)return;const text=select.selectedOptions[0]?.textContent||'',m=text.match(/^(.*?)\s*\((.*)\)\s*$/);if(!m){detail.hidden=true;return;}detail.hidden=false;detail.textContent='';const role=document.createElement('b'),names=document.createElement('span');role.textContent=m[1];names.textContent=m[2];detail.append(role,names);};}
+{const login=ptLogin;ptLogin=function(){const r=login.apply(this,arguments);loginLabels147();return r;};}
+/* Item151A: one double beep on every login that has a returned/approved report notice. */
+(()=>{let ctx=null,was=false,want=false,until=0;const AC=window.AudioContext||window.webkitAudioContext;
+ function unlock(){try{if(!ctx&&AC)ctx=new AC();if(ctx&&ctx.state==='suspended')ctx.resume();}catch(e){}}
+ ['pointerdown','touchstart','keydown','click'].forEach(e=>document.addEventListener(e,unlock,{passive:true,capture:true}));
+ function beep(){try{unlock();if(!ctx)return false;const t=ctx.currentTime+.05;for(let i=0;i<2;i++){const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=1500;o.connect(g);g.connect(ctx.destination);const a=t+i*.22;g.gain.setValueAtTime(0,a);g.gain.linearRampToValueAtTime(.35,a+.01);g.gain.setValueAtTime(.35,a+.11);g.gain.linearRampToValueAtTime(0,a+.14);o.start(a);o.stop(a+.16);}window.__loginBeeps151=(window.__loginBeeps151||0)+1;return true;}catch(e){return false;}}
+ window.__beepLogin151=beep;
+ setInterval(()=>{let inside=false;try{inside=!!(window.__entered55&&window.__ptPage!=='login'&&ptRole());}catch(e){}
+  if(!inside){was=false;want=false;window.__beep78Done=true;return;}
+  if(!was){was=true;want=true;until=Date.now()+90000;window.__beep78Done=true;}
+  if(want){if(Date.now()>until){want=false;return;}let rows=[];try{rows=wfInbox();}catch(e){}if(rows&&rows.length){want=false;beep();}}},150);
+})();
+/* Item151B/C: missed Daily Reports from 1 Sep 2026, Leave tick, small leave summaries. */
+const LEAVE_START151='2026-09-01';
+function lvKey151(date,person){return 'leave:'+date+':'+person}
+function lvIs151(date,person){try{const v=drView()[lvKey151(date,person)];return !!(v&&v.leave&&!v.deleted);}catch(e){return false;}}
+function lvIso151(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function lvFmt151(iso){const [y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function lvMonth151(person){const ym=drToday().slice(0,7),out=[];try{for(const [k,v] of Object.entries(drView())){if(k.startsWith('leave:')&&v&&v.leave&&!v.deleted&&v.person===person&&String(v.date).startsWith(ym))out.push(v.date);}}catch(e){}return out.sort();}
+function lvMissed151(person){const filled=new Set();try{for(const r of drAllReports())if(r.person===person)filled.add(r.date);}catch(e){}const out=[],t=new Date();t.setHours(0,0,0,0);const d=new Date(t);d.setDate(d.getDate()-1);while(lvIso151(d)>=LEAVE_START151){const iso=lvIso151(d);if(!filled.has(iso)&&!lvIs151(iso,person))out.push(iso);d.setDate(d.getDate()-1);if(out.length>400)break;}return out;}
+function lvOpenDate151(date){const go=()=>{const i=document.getElementById('drdate');if(i){i.value=date;i.dispatchEvent(new Event('change',{bubbles:true}));}};if(window.__patSec==='daily'&&document.getElementById('drdate'))go();else{patSection('daily');setTimeout(go,500);}}
+function lvBox151(){const role=ptRole(),host=document.getElementById('patmain');if(!host||!['pat','admin','pm'].includes(role))return;const sec=window.__patSec;if(role==='admin'&&sec!=='reports')return;if(role==='pm'&&sec!=='leaves')return;if(role==='pat'&&!(sec==='daily'||sec==='reports'))return;
+ const old=document.getElementById('lv151');if(old)old.remove();const box=document.createElement('div');box.id='lv151';box.className='lv151';const yesterday=(()=>{const d=new Date();d.setDate(d.getDate()-1);return lvIso151(d);})();
+ if(role==='pat'){const me=drMe();if(!me)return;const missed=lvMissed151(me),lv=lvMonth151(me);if(missed.length){const p=document.createElement('p');p.className='lvmiss151';p.append(document.createTextNode((missed[0]===yesterday?'You did not fill yesterday\'s report. ':'')+'Not filled ('+missed.length+'): '));missed.slice(0,6).forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.textContent=lvFmt151(d);b.onclick=()=>lvOpenDate151(d);p.append(b);});if(missed.length>6)p.append(document.createTextNode(' +'+(missed.length-6)+' earlier'));p.append(document.createTextNode(' Tick Leave for a day off.'));box.append(p);}
+  const s=document.createElement('p');s.className='lvsum151';s.textContent='Leaves this month: '+lv.length+(lv.length?' ('+lv.map(lvFmt151).join(', ')+')':'');box.append(s);}
+ else{const ppl=drPeople();const s=document.createElement('details');s.className='lvsum151';const sm=document.createElement('summary');sm.textContent='Leaves this month (all patrollers)';s.append(sm);ppl.forEach(p=>{const l=lvMonth151(p.id),r=document.createElement('p');r.textContent=p.name+': '+l.length+(l.length?' ('+l.map(lvFmt151).join(', ')+')':'');s.append(r);});if(!ppl.length){const r=document.createElement('p');r.textContent='No patrollers listed.';s.append(r);}s.open=true;box.append(s);}
+ const mid=host.querySelector('.drmid');if(mid){const h=mid.querySelector('h2');if(h)h.after(box);else mid.prepend(box);}else host.prepend(box);}
+function lvTick151(){if(ptRole()!=='pat'||window.__patSec!=='daily')return;const date=document.getElementById('drdate'),me=drMe();let t=document.getElementById('drleave151');if(!date||!me){t?.closest('label')?.remove();return;}const label=date.closest('label');if(!label)return;const locked=!!document.querySelector('#patmain .drmid fieldset')?.disabled;const hasReport=drAllReports().some(r=>r.person===me&&r.date===date.value);if(!t){const l=document.createElement('label');l.className='drcheck lvtick151';l.innerHTML='<input type="checkbox" id="drleave151"> Leave on this date';label.after(l);t=l.querySelector('input');t.addEventListener('change',()=>{const d=document.getElementById('drdate').value;if(!d)return;drCommit(lvKey151(d,me),{leave:true,date:d,person:me,deleted:!t.checked,updatedAt:Date.now()});try{drSync();}catch(e){}lvBox151();});}
+ t.checked=lvIs151(date.value,me);t.disabled=hasReport||locked;const l=t.closest('label');l.title=hasReport?'A report is already saved for this date.':'';}
+{let busy=false,timer=null;const run=()=>{timer=null;if(busy)return;busy=true;try{if(ptRole()&&window.__ptPage!=='login'){lvTick151();if(!document.getElementById('lv151'))lvBox151();}}catch(e){}busy=false;};new MutationObserver(()=>{if(!timer)timer=setTimeout(run,200);}).observe(document.body,{childList:true,subtree:true});document.addEventListener('change',e=>{if(e.target?.id==='drdate')setTimeout(()=>{lvTick151();lvBox151();},100);},true);}
+{const sync=drSync;drSync=async function(){const r=await sync.apply(this,arguments);try{lvTick151();lvBox151();}catch(e){}return r;};}
+
+/* Item152: Admin Patroller menu gets Daily Report above Monthly Report; it opens the all-patrollers Reports screen. Item151C: PM gets a small Patroller Leaves screen. */
+if(!PAT_SECS.some(x=>x.id==='leaves'))PAT_SECS.push({id:'leaves',label:'Patroller Leaves',icon:'&#128197;'});
+{const secs=patRoleSecs;patRoleSecs=function(r){const l=secs.apply(this,arguments).filter(id=>id!=='leaves'||r==='pm');if(r==='admin'&&!l.includes('daily'))return PAT_SECS.map(x=>x.id).filter(id=>id==='daily'||l.includes(id));if(r==='pm'&&!l.includes('leaves'))return [...l,'leaves'];return l;};}
+{const sec=patSection;patSection=function(id){if(id==='leaves'&&ptRole()==='pm'){const B=document.getElementById('patmain');window.__patSec='leaves';document.querySelectorAll('#patside [data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s==='leaves'));B.innerHTML='<section class="drapp"><div class="drmid"><h2>Patroller Leaves</h2><p class="hint">Daily Report leaves marked by patrollers.</p></div></section>';lvBox151();return;}const out=sec.apply(this,arguments);if(ptRole()==='admin'&&(id==='daily'||id==='reports'))document.querySelectorAll('#patside [data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s==='daily'));return out;};}
+
+</script>
+<style>
+#patmain .drtotal>.drpair149{order:-3;display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:0 0 6px!important;padding:0!important}
+#patmain .drtotal>.drpair149 label{min-width:0}
+#patmain .drtotal>.drpair149 input{width:100%;min-width:0;box-sizing:border-box}
+#patmain .drtotal>span{order:-2}
+#patmain #drmanualtotal107[readonly],#patmain [data-id116=drmanualtotal107][readonly]{background:#f1f5f9;font-weight:700}
+#prlnames147{display:block;margin-top:6px;line-height:1.35;max-width:100%;overflow-wrap:anywhere}
+#prlnames147 b{display:block;font-size:15px;font-weight:700}
+#prlnames147 span{display:block;font-size:12px;font-weight:400;opacity:.8}
+#prl{font-size:15px;max-width:100%}
+.lv151{margin:8px 0;font-size:13px;line-height:1.4}.lv151 p{margin:4px 0}.lvmiss151{padding:8px 10px;border-radius:8px;background:#fff4e5;color:#7a4a00}.lvmiss151 button{min-height:30px!important;padding:2px 8px!important;margin:2px 4px 2px 0;border:1px solid #d69a3a;border-radius:14px;background:#fff;font-size:12px;cursor:pointer}.lvsum151{color:#334155;font-size:12.5px}.lvsum151 summary{cursor:pointer;font-weight:600}.lvtick151{font-size:14px}
 
 </style>
