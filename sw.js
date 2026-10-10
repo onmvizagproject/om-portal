@@ -1,5 +1,5 @@
 /* v5.99.15 r12: immediate cached launch, bounded installs, visible update status. */
-const CACHE='iocl-portal-shell-v5.99.15-r54';
+const CACHE='iocl-portal-shell-v5.99.15-r55';
 const HASHES148={"apple-touch-icon.png":"57907d512a141fbf20c43a5742e2fc5f4b2821ecaa533e82b29082291aaf4698","icon-maskable-512.png":"c2e93dc235eb284855769a0d37daba8a86d79b2dfa2b3414dea6f48699d7bb92","schedule-module.b64":"5bbaca0e9e51e7c9a2e61e8c8f8cca3aae4bb13217027579d2fd0735fa163d03","manifest.webmanifest":"283a329ad8f8683ed55c94ddd034c0a6020143a831197fd445b929355f4aed56","index.html":"b975e0e2dc5b1b27a420650f2b30dd68a517850eb37844e6ed3a662d1883315b","pipeline-module.b64":"33424c1d4fc6335fe32f603398d232d46ff9fdf36b320da65be7678c7958adad","icon-192.png":"44805d488ec57e7269f182f65d8e02a5de286123b84dbdd769825a7a88228358","icon-512.png":"838ced7a5be902adfecdc7c6cb7d6c74815ee1debaec969dd13170d536344ce0"};
 const ROOT=new URL('./',self.location.href),APP=new URL('index.html',ROOT).href;
 const FILES=['index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','icon-maskable-512.png','pipeline-module.b64','schedule-module.b64'].map(p=>new URL(p,ROOT).href);
