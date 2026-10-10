@@ -5051,7 +5051,12 @@ async function fmtShow155(x){
  ov.innerHTML='<div class="fpbar"><b class="fpt">'+esc(x.code)+' - '+esc(x.name)+'</b><button class="btn sm sec" id="fpshare">Share</button><button class="btn sm" id="fpclose">Close</button></div><div class="fphost" id="fphost"><div class="fpmsg">Opening...</div></div>';
  document.body.appendChild(ov);
  $('#fpclose').onclick=fmtClose155;
- $('#fpshare').onclick=async()=>{try{const u=fmtBytes(x),f=new File([u],x.filename,{type:xl?FMT_XMIME:FMT_MIME});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:x.code+' - '+x.name})}else{fmtDownload(x.id)}}catch(e){if(e&&e.name!=='AbortError'){try{fmtDownload(x.id)}catch(_){}}}};
+ const fpf=(()=>{const u=fmtBytes(x),m=xl?FMT_XMIME:FMT_MIME,alt=xl?['application/vnd.ms-excel']:['application/msword'];return [m,...alt,'application/octet-stream'].map(t=>{try{return new File([u],x.filename,{type:t})}catch(e){return null}}).filter(Boolean)})();
+ $('#fpshare').onclick=()=>{const hint=document.getElementById('fpshint')||(()=>{const d=document.createElement('div');d.id='fpshint';d.style.cssText='background:#fff7e0;color:#6a4b00;font-size:13px;padding:8px 12px;display:none';document.getElementById('fphost').before(d);return d})();hint.style.display='none';
+  const ok=navigator.share&&navigator.canShare?fpf.filter(f=>{try{return navigator.canShare({files:[f]})}catch(e){return false}}):[];
+  if(!ok.length&&navigator.share){ok.push(fpf[0])}
+  if(!navigator.share){hint.innerHTML='This browser cannot open the share sheet. <button class="btn sm sec" id="fpdl">Download file</button>';hint.style.display='block';$('#fpdl').onclick=()=>fmtDownload(x.id);return}
+  navigator.share({files:[ok[0]],title:x.name}).catch(e=>{if(e&&e.name==='AbortError')return;hint.innerHTML='This phone would not share this file type directly. <button class="btn sm sec" id="fpdl">Download file instead</button>';hint.style.display='block';const d=$('#fpdl');if(d)d.onclick=()=>fmtDownload(x.id)})};
  const host=$('#fphost');
  try{
   if(xl){const w=XLSX.read(fmtBytes(x),{type:'array'});host.innerHTML='<div class="fpx">'+w.SheetNames.map(n=>'<h3 style="margin:14px 8px 4px">'+esc(n)+'</h3>'+XLSX.utils.sheet_to_html(w.Sheets[n],{header:'',footer:''})).join('')+'</div>'}
