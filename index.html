@@ -1677,7 +1677,7 @@ function fmtStore(x){const v=JSON.parse(localStorage.getItem(FMT_KEY)||'{}');v[x
 function fmtMessage(s){fmtStatus=s;const e=$('#fmtstatus');if(e)e.textContent=s}
 function fmtDownload(id){const x=fmtLoad().find(x=>x.id===id);if(!x)return;const b=atob(x.b64),u=Uint8Array.from(b,c=>c.charCodeAt(0));fmtBlob(new Blob([u],{type:x.kind==='xlsx'?FMT_XMIME:FMT_MIME}),x.filename)}
 function fmtBlob(b,name){const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000)}
-function fmtOpen(sec){const r=ptRole(),m=MODULES.find(x=>x.id==='misc');if(!r)return ptLogin();if(!ptSees(m,r))return ptHome();ptOrgCleanup();document.body.classList.remove('inra');window.__ptPage='misc';sec=sec||window.__fmtSec||'formats';window.__fmtSec=sec;const P=$('#portal');P.className='on';P.innerHTML=`<div id="fmtshell"><div class="top"><button class="hb" id="fmthome" aria-label="Back to Portal">&#8962;<span class="hbt"> Portal</span></button><button class="menu" id="fmtmenu" aria-label="AOMP menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>Common / Public / Miscellaneous Formats</b><span>O&amp;M Team - Visakhapatnam GA | v5.99.15</span></div><div class="raph"><button class="thm" aria-label="Change theme"></button><div class="pclk">${ptClockText()}</div><span class="rb">&#128100; ${esc(ptRoleName(r))}</span><button class="lo" id="fmtlogout">Logout</button></div></div><nav id="fmtside"><h3>AOMP</h3><button data-fsec="planner">AOMP Planner</button><button data-fsec="schedule">AOMP Working Schedule</button><button data-fsec="formats">AOMP Formats</button></nav><div id="fmtov"></div><main id="fmtmain"></main></div>`;ptThemeApply(ptThemeGet());fmtSize();$('#fmthome').onclick=()=>ptHome();$('#fmtlogout').onclick=()=>{clearTimeout(syncT);(sessionStorage.removeItem('om_role'),sessionStorage.removeItem('om_patid'));sessionStorage.removeItem('ra_unlocked');ptLogin()};const close=()=>{$('#fmtside').classList.remove('open');$('#fmtov').classList.remove('on')};$('#fmtmenu').onclick=()=>{$('#fmtside').classList.toggle('open');$('#fmtov').classList.toggle('on')};$('#fmtov').onclick=close;$$('#fmtside button').forEach(b=>b.onclick=()=>{window.__fmtSec=b.dataset.fsec;fmtSection(b.dataset.fsec);close()});pipeSchedule();fmtSection(sec);window.scrollTo(0,0)}
+function fmtOpen(sec){const r=ptRole(),m=MODULES.find(x=>x.id==='misc');if(!r)return ptLogin();if(!ptSees(m,r))return ptHome();ptOrgCleanup();document.body.classList.remove('inra');window.__ptPage='misc';sec=sec||window.__fmtSec||'planner';window.__fmtSec=sec;const P=$('#portal');P.className='on';P.innerHTML=`<div id="fmtshell"><div class="top"><button class="hb" id="fmthome" aria-label="Back to Portal">&#8962;<span class="hbt"> Portal</span></button><button class="menu" id="fmtmenu" aria-label="AOMP menu">&#9776;</button><img class="om-team-logo" src="${LOGO_OM_TEAM}" alt="O&M Team - CGD Gas Control & Safety"><div class="tt"><b>Common / Public / Miscellaneous Formats</b><span>O&amp;M Team - Visakhapatnam GA | v5.99.15</span></div><div class="raph"><button class="thm" aria-label="Change theme"></button><div class="pclk">${ptClockText()}</div><span class="rb">&#128100; ${esc(ptRoleName(r))}</span><button class="lo" id="fmtlogout">Logout</button></div></div><nav id="fmtside"><button type="button" id="fmtaomp" class="fmtgrp" aria-expanded="true" aria-controls="fmtaompkids"><span>AOMP</span><i aria-hidden="true">&#9662;</i></button><div id="fmtaompkids" class="fmtkids"><button data-fsec="planner">AOMP Planner</button><button data-fsec="schedule">AOMP Working Schedule</button><button data-fsec="formats">AOMP Formats</button></div></nav><div id="fmtov"></div><main id="fmtmain"></main></div>`;ptThemeApply(ptThemeGet());fmtSize();$('#fmthome').onclick=()=>ptHome();$('#fmtlogout').onclick=()=>{clearTimeout(syncT);(sessionStorage.removeItem('om_role'),sessionStorage.removeItem('om_patid'));sessionStorage.removeItem('ra_unlocked');ptLogin()};const close=()=>{$('#fmtside').classList.remove('open');$('#fmtov').classList.remove('on')};$('#fmtmenu').onclick=()=>{$('#fmtside').classList.toggle('open');$('#fmtov').classList.toggle('on')};$('#fmtov').onclick=close;$$('#fmtside button[data-fsec]').forEach(b=>b.onclick=()=>{window.__fmtSec=b.dataset.fsec;fmtSection(b.dataset.fsec);close()});{const g=$('#fmtaomp'),k=$('#fmtaompkids');g.onclick=()=>{const o=g.getAttribute('aria-expanded')!=='true';g.setAttribute('aria-expanded',o);k.hidden=!o;g.classList.toggle('closed',!o)}}pipeSchedule();fmtSection(sec);window.scrollTo(0,0)}
 function fmtSize(){const t=$('#fmtshell .top');if(t){const h=t.getBoundingClientRect().height;$('#fmtside').style.top=h+'px';$('#fmtov').style.top=h+'px';$('#fmtshell').style.setProperty('--fmttop',h+'px')}}
 window.addEventListener('resize',fmtSize);
 
@@ -3465,7 +3465,7 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
  function stripPdf(root){(root||document).querySelectorAll('button[data-p],button[data-rp]').forEach(b=>{if(b.textContent.trim()==='PDF')b.remove()})}
  /* ---- 3. Back button: close the top dialog first, never leave the app ---- */
  const SKIP_IDS=new Set(['portal','app','patshell','fmtshell','side','patside','pside','fmtside','ov','patov','pov','fmtov','gate','toast','pbody','patmain','exit14']);
- const KNOWN=['wfmodal','v71logout','wfsb73box','isov','fmtview'];
+ const KNOWN=['wfmodal','v71logout','wfsb73box','isov','fmtview','fmtpdf155'];
  function isOverlay(el){if(el.id==='v71logout')return false;if(el.nodeType!==1||!el.isConnected)return false;const t=el.tagName;if(t==='SCRIPT'||t==='STYLE'||t==='LINK'||t==='IFRAME')return false;if(SKIP_IDS.has(el.id))return false;if(KNOWN.includes(el.id))return true;
   const cs=getComputedStyle(el);if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden'||el.hidden)return false;const r=el.getBoundingClientRect();return r.width>=innerWidth*.9&&r.height>=innerHeight*.9&&!/toast|side|gate/i.test(el.id+' '+el.className)}
  const list=()=>Array.from(document.body.children).filter(isOverlay);
@@ -5024,3 +5024,44 @@ function rsetOpen153(){const r=ptRole();if(!RSET153[r])return;const B=document.g
 .rset153 label{display:block;margin:12px 0 4px;font-weight:600}.rset153 input{display:block;width:100%;box-sizing:border-box;min-height:46px;padding:10px 12px;border:1px solid #b8c4d6;border-radius:8px;font:inherit}.rset153 #rssave{width:100%;min-height:48px;margin-top:14px;border:0;border-radius:10px;background:#0b4f9c;color:#fff;font:inherit;font-weight:700;cursor:pointer}.rset153 .pe{color:#b42318;margin-top:8px;min-height:18px}
 
 </style>
+<style id="css155">#fmtside button#fmtaomp{display:flex!important;justify-content:space-between;align-items:center;gap:10px;width:100%;margin-left:0!important;font-weight:800!important;background:#e6effa!important;color:#0b4f9c!important}
+#fmtside button#fmtaomp i{font-style:normal;transition:transform .2s}
+#fmtside button#fmtaomp.closed i{transform:rotate(-90deg)}
+#fmtside .fmtkids{display:flex;flex-direction:column;gap:5px;padding-left:10px}
+#fmtside .fmtkids[hidden]{display:none}
+#fmtside .fmtkids button{margin-left:0!important}
+#fmtside button#fmtaomp:hover,#fmtside button#fmtaomp:focus-visible{background:#e8730c!important;color:#fff!important}
+#fmtpdf155{position:fixed;inset:0;z-index:95;background:#6b7280;display:flex;flex-direction:column}
+#fmtpdf155 .fpbar{background:#fff;display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid #ddd}
+#fmtpdf155 .fpt{font-size:14px;flex:1 1 auto;color:#0b3d78;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#fmtpdf155 .fphost{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px}
+#fmtpdf155 .fphost .docx-wrapper{background:transparent!important;padding:0!important}
+#fmtpdf155 .fpx{background:#fff;color:#111;padding:8px;overflow:auto}
+#fmtpdf155 .fpx table{border-collapse:collapse;font-size:12px}#fmtpdf155 .fpx td,#fmtpdf155 .fpx th{border:1px solid #bbb;padding:2px 5px}
+#fmtpdf155 .fpmsg{background:#fff;padding:20px;border-radius:10px;margin:20px auto;max-width:520px;text-align:center}
+a.fmtlink155{color:#0b4f9c;font-weight:700;text-decoration:underline;cursor:pointer}
+</style>
+<script id="js155">/* Item156/157: open a format inside the portal (Word view or Excel view) with only Close and Share. */
+function fmtResolve155(n){const d=fmtLoad();let c=null;n=+n;if(n===6)return d.find(x=>x.id==='cngro');if(n===7)return d.find(x=>x.id==='lcv');const k=n-3;if(k<1)return null;c='CGD/MM/SF/'+String(k).padStart(2,'0');return d.find(x=>x.code===c)||null}
+function fmtClose155(){const o=document.getElementById('fmtpdf155');if(o)o.remove();document.body.classList.remove('fvopen')}
+async function fmtShow155(x){
+ if(!x){try{toast('This format is not uploaded in AOMP Formats yet.')}catch(e){alert('This format is not uploaded in AOMP Formats yet.')}return}
+ fmtClose155();
+ const xl=x.kind==='xlsx',ov=document.createElement('div');ov.id='fmtpdf155';
+ ov.innerHTML='<div class="fpbar"><b class="fpt">'+esc(x.code)+' - '+esc(x.name)+'</b><button class="btn sm sec" id="fpshare">Share</button><button class="btn sm" id="fpclose">Close</button></div><div class="fphost" id="fphost"><div class="fpmsg">Opening...</div></div>';
+ document.body.appendChild(ov);
+ $('#fpclose').onclick=fmtClose155;
+ $('#fpshare').onclick=async()=>{try{const u=fmtBytes(x),f=new File([u],x.filename,{type:xl?FMT_XMIME:FMT_MIME});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:x.code+' - '+x.name})}else{fmtDownload(x.id)}}catch(e){if(e&&e.name!=='AbortError'){try{fmtDownload(x.id)}catch(_){}}}};
+ const host=$('#fphost');
+ try{
+  if(xl){const w=XLSX.read(fmtBytes(x),{type:'array'});host.innerHTML='<div class="fpx">'+w.SheetNames.map(n=>'<h3 style="margin:14px 8px 4px">'+esc(n)+'</h3>'+XLSX.utils.sheet_to_html(w.Sheets[n],{header:'',footer:''})).join('')+'</div>'}
+  else{fmtLibs();host.innerHTML='<div id="fpstyle"></div><div id="fpdoc"></div>';await docx.renderAsync(fmtBytes(x),$('#fpdoc'),$('#fpstyle'),{className:'docx',inWrapper:true,ignoreWidth:false,ignoreHeight:false,breakPages:true,ignoreLastRenderedPageBreak:true,renderHeaders:true,renderFooters:true,renderFootnotes:false,renderEndnotes:false,useBase64URL:true,experimental:false});
+   const w=host.querySelector('.docx-wrapper'),sec=w&&w.querySelector('section.docx');if(sec){w.style.zoom=1;const pw=sec.getBoundingClientRect().width,av=host.clientWidth-16;w.style.zoom=Math.min(1,av/pw)}}
+ }catch(e){host.innerHTML='<div class="fpmsg">Could not display this format: '+esc(e.message||String(e))+'</div>'}
+}
+window.addEventListener('message',e=>{const d=e.data;if(d&&typeof d==='object'&&d.omFmt155!==undefined){const x=d.code?fmtLoad().find(y=>y.code===d.code):fmtResolve155(d.omFmt155);fmtShow155(x)}});
+/* format numbers shown as text in the AOMP Planner become links */
+function fmtLink155(){const m=document.getElementById('fmtmain');if(!m||document.getElementById('fmtpdf155'))return;m.querySelectorAll('table td').forEach(td=>{if(td.querySelector('a.fmtlink155,input,select,textarea,button'))return;const w=document.createTreeWalker(td,NodeFilter.SHOW_TEXT);const hits=[];let n;while(n=w.nextNode()){if(/(?:CGD\/MM\/)?\bSF[\/\- ]?\d{1,2}\b/i.test(n.data))hits.push(n)}hits.forEach(t=>{const f=document.createDocumentFragment();let s=t.data,r=/(?:CGD\/MM\/)?\bSF[\/\- ]?(\d{1,2})\b/ig,i=0,q;while((q=r.exec(s))){f.appendChild(document.createTextNode(s.slice(i,q.index)));const a=document.createElement('a');a.className='fmtlink155';a.dataset.sf=q[1];a.textContent=q[0];f.appendChild(a);i=q.index+q[0].length}f.appendChild(document.createTextNode(s.slice(i)));t.replaceWith(f)})})}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.fmtlink155');if(!a)return;e.preventDefault();const c='CGD/MM/SF/'+String(+a.dataset.sf).padStart(2,'0');fmtShow155(fmtLoad().find(x=>x.code===c))});
+{let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(fmtLink155,150)}).observe(document.documentElement,{childList:true,subtree:true})}
+</script>
