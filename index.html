@@ -5064,4 +5064,24 @@ window.addEventListener('message',e=>{const d=e.data;if(d&&typeof d==='object'&&
 function fmtLink155(){const m=document.getElementById('fmtmain');if(!m||document.getElementById('fmtpdf155'))return;m.querySelectorAll('table td').forEach(td=>{if(td.querySelector('a.fmtlink155,input,select,textarea,button'))return;const w=document.createTreeWalker(td,NodeFilter.SHOW_TEXT);const hits=[];let n;while(n=w.nextNode()){if(/(?:CGD\/MM\/)?\bSF[\/\- ]?\d{1,2}\b/i.test(n.data))hits.push(n)}hits.forEach(t=>{const f=document.createDocumentFragment();let s=t.data,r=/(?:CGD\/MM\/)?\bSF[\/\- ]?(\d{1,2})\b/ig,i=0,q;while((q=r.exec(s))){f.appendChild(document.createTextNode(s.slice(i,q.index)));const a=document.createElement('a');a.className='fmtlink155';a.dataset.sf=q[1];a.textContent=q[0];f.appendChild(a);i=q.index+q[0].length}f.appendChild(document.createTextNode(s.slice(i)));t.replaceWith(f)})})}
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a.fmtlink155');if(!a)return;e.preventDefault();const c='CGD/MM/SF/'+String(+a.dataset.sf).padStart(2,'0');fmtShow155(fmtLoad().find(x=>x.code===c))});
 {let t=0;new MutationObserver(()=>{clearTimeout(t);t=setTimeout(fmtLink155,150)}).observe(document.documentElement,{childList:true,subtree:true})}
+/* Item162: faster left-edge swipe (opens while moving, wider edge zone), draggable edge handle that remembers its place. */
+(()=>{
+ const mq=()=>matchMedia('(max-width:700px)').matches;
+ const st=document.createElement('style');st.textContent='@media(max-width:700px){#fmtside,#patside,#pside{transition:transform .12s ease-out!important}#fmtov,#patov,#pov{transition:none!important}#edge51{touch-action:none;width:22px!important;height:58px!important;opacity:.92;-webkit-tap-highlight-color:transparent}#edge51.drag155{background:#cfe2f8!important;box-shadow:0 0 0 3px #0b4f9c55!important}}';document.head.appendChild(st);
+ const menuOpen=()=>{if(!mq()||document.getElementById('wfmodal')||document.querySelector('.pl')||document.getElementById('fmtview')||document.getElementById('fmtpdf155'))return false;const n=document.getElementById('patside')||document.getElementById('fmtside')||document.getElementById('pside');if(!n||n.classList.contains('open'))return false;const o=document.getElementById('patov')||document.getElementById('fmtov')||document.getElementById('pov');n.classList.add('open');o&&o.classList.add('on');return true};
+ let s=null,done=false;
+ document.addEventListener('touchstart',e=>{const t=e.touches[0];done=false;s=t&&t.clientX<=40&&!(e.target.closest&&e.target.closest('#edge51'))?{x:t.clientX,y:t.clientY}:null},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!s||done)return;const t=e.touches[0];if(!t)return;const dx=t.clientX-s.x,dy=Math.abs(t.clientY-s.y);if(dx>28&&dx>dy*1.2){done=true;menuOpen()}else if(dy>40&&dy>dx)s=null},{passive:true});
+ document.addEventListener('touchend',()=>{s=null},{passive:true});
+ const h=document.getElementById('edge51');if(!h)return;
+ const KEY='om_edge_top155',put=y=>{const mx=innerHeight-h.offsetHeight-8;y=Math.max(8,Math.min(mx,y));h.style.top=y+'px';return y};
+ const sv=parseFloat(localStorage.getItem(KEY));if(!isNaN(sv))put(sv);
+ addEventListener('resize',()=>{const v=parseFloat(localStorage.getItem(KEY));if(!isNaN(v))put(v)});
+ let d=null,moved=false;
+ h.addEventListener('touchstart',e=>{const t=e.touches[0];d={y:t.clientY,top:h.getBoundingClientRect().top};moved=false;h.classList.add('drag155')},{passive:true});
+ h.addEventListener('touchmove',e=>{if(!d)return;const t=e.touches[0],dy=t.clientY-d.y;if(Math.abs(dy)>6)moved=true;if(moved){e.preventDefault();put(d.top+dy)}},{passive:false});
+ h.addEventListener('touchend',()=>{h.classList.remove('drag155');if(moved){localStorage.setItem(KEY,String(parseFloat(h.style.top)));h.dataset.blk=String(Date.now())}d=null});
+ h.addEventListener('click',e=>{if(h.dataset.blk&&Date.now()-(+h.dataset.blk)<500){e.stopImmediatePropagation();e.preventDefault();h.dataset.blk=''}},true);
+ h.title='Tap to open the menu. Drag up or down to move this handle.';
+})();
 </script>
