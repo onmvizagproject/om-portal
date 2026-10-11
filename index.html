@@ -5090,6 +5090,12 @@ body:has(#pat60) #patmain .drmid .drdate139>label.lvtick151{display:flex!importa
 #drsr107 .srlist176 label{display:flex;align-items:center;gap:8px;font-size:14px;margin:0}
 #drsr107 .srlist176 input{width:20px!important;height:20px!important;min-height:0!important;margin:0!important;flex:none}
 #drsr107 select.sradd176{margin-top:4px;max-width:100%}
+/* Item178 header icons: equal size and even spacing, centered in the row */
+@media(max-width:700px){
+body .pt{gap:8px!important;align-items:center!important}
+html body #portal .pt button.wfnotice.wfnotice,body .pt button.thm.thm,body .pt .rb,body .pt button#plo.lo,body .pt button.settings15,body .pt button.thm{width:40px!important;height:40px!important;min-width:40px!important;max-width:40px!important;box-sizing:border-box!important;margin-top:0!important;margin-bottom:0!important;margin-right:0!important;display:flex!important;align-items:center;justify-content:center;padding:0!important}
+body .pt .rb,body .pt button#plo.lo,body .pt button.settings15,body .pt button.thm{margin-left:0!important}
+}
 </style>
 <script id="js155">/* Item156/157: open a format inside the portal (Word view or Excel view) with only Close and Share. */
 function fmtResolve155(n){const d=fmtLoad();let c=null;n=+n;if(n===6)return d.find(x=>x.id==='cngro');if(n===7)return d.find(x=>x.id==='lcv');const k=n-3;if(k<1)return null;c='CGD/MM/SF/'+String(k).padStart(2,'0');return d.find(x=>x.code===c)||null}
