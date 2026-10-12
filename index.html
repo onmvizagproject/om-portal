@@ -2074,12 +2074,12 @@ async function drPdf(d,o){o=o||{};const {PDFDocument,StandardFonts,rgb}=PDFLib;c
  const emb=async(im,act)=>{im=await window.omSigFix(im,act);const u=Uint8Array.from(atob(im.split(',')[1]),c=>c.charCodeAt(0));return im.startsWith('data:image/png')?await pdf.embedPng(u):await pdf.embedJpg(u)};
  const centerText=(value,x,top,w,h,fs)=>{value=omDateText84(String(value||''));if(!value)return;if(/[^\x00-\x7F]/.test(value))throw Error('The PDF requires English text for names and comments.');let size=fs,ls=[];for(;size>=5;size-=.25){ls=lines(value,w,size);if(ls.length*(size+1)<=h&&ls.every(t=>font.widthOfTextAtSize(t,size)<=w))break}if(size<5)throw Error('Text too long for the SF-26 signature cell. Shorten the comment.');const y=top+(h-ls.length*(size+1))/2;ls.forEach((t,i)=>page.drawText(t,{x,y:H-y-size-i*(size+1),size,font,color:rgb(0,0,0)}))};
  /* Item185: Performed by and GA In-charge rows short, Reviewed by row tall. Same total block height as the template. */
- const TOPS=[587.38,621.38,704.88],HS=[34,83.5,34],LABELS=['Performed by','Reviewed by','GA In-charge'];
+ const NR=Math.max(1,(o.sigs.rev||[]).filter(Boolean).length),RH=(738.88-587.38)/(NR+2),TOPS=[587.38,587.38+RH,587.38+RH*(NR+1)],HS=[RH,RH*NR,RH],LABELS=['Performed by','Reviewed by','GA In-charge'];
  for(const [left,right]of [[30.88,163.38],[163.38,295.88],[295.88,428.38],[428.38,573.12]])white(left+.6,587.38+.6,right-left-1.2,738.88-587.38-1.2);
  for(const y of [TOPS[1],TOPS[2]])page.drawLine({start:{x:30.88,y:H-y},end:{x:573.12,y:H-y},thickness:.75,color:rgb(0,0,0)});
  for(let k=0;k<3;k++)page.drawText(LABELS[k],{x:35,y:H-(TOPS[k]+HS[k]/2)-3.5,size:10,font:bold,color:rgb(0,0,0)});
  const row=async(list,k)=>{list=(list||[]).filter(Boolean);const top=TOPS[k],n=Math.max(1,list.length),rh=HS[k]/n;if(rh<16)throw Error('Too many signers for the SF-26 signature row.');const fs=Math.max(6,Math.min(9,rh/3.2)),ih=Math.min(60,rh-6);
- for(let i=0;i<list.length;i++){const signer=list[i],y=top+i*rh;if(i)page.drawLine({start:{x:164.2,y:H-y},end:{x:572.3,y:H-y},thickness:.5,color:rgb(0,0,0)});
+ for(let i=0;i<list.length;i++){const signer=list[i],y=top+i*rh;if(i)page.drawLine({start:{x:163.38,y:H-y},end:{x:573.12,y:H-y},thickness:.5,color:rgb(0,0,0)});
  if(signer.image){const image=await emb(signer.image,signer.actor),dim=image.scaleToFit(120,ih);page.drawImage(image,{x:163.5+(132.5-dim.width)/2,y:H-y-(rh+dim.height)/2,width:dim.width,height:dim.height})}
  centerText((signer.name||signer.actor)?wfSigLabel85(signer):'',302,y+3,120.5,rh-6,fs);centerText(signer.comment||'',434.5,y+3,132.8,rh-6,fs)
  }};
@@ -5281,4 +5281,13 @@ window.sp189=function(B,n,t,word){try{let el=document.getElementById('sp189');co
 el.querySelector('progress').max=t;el.querySelector('progress').value=n;el.querySelector('.hint').textContent=word+' '+n+' of '+t;}catch(e){}};
 {const bar=(txt)=>{let b=document.getElementById('sp189s');if(!b){b=document.createElement('div');b.id='sp189s';b.setAttribute('role','status');b.style.cssText='position:fixed;left:8px;right:8px;bottom:12px;z-index:99999;background:#fff;border:1px solid #a2b1bf;border-radius:8px;padding:8px 10px;box-shadow:0 2px 8px #0003;font-size:14px';b.innerHTML='<div class="t"></div><progress style="width:100%"></progress>';document.body.append(b)}b.querySelector('.t').textContent=txt;return b};
 const m=wfMutate;wfMutate=async function(id,head,action){const single=!window.__wfBatch138&&['forward','approve','send'].includes(action);let b;if(single)b=bar(action==='approve'?'Publishing...':'Sending...');try{const x=await m.apply(this,arguments);if(single){b.querySelector('.t').textContent=action==='approve'?'Publishing... saving to Sheet':'Sending... saving to Sheet';const done=()=>{const e=document.getElementById('sp189s');if(e)e.remove()};Promise.resolve(wfBusy||wfSync()).then(()=>{const e=document.getElementById('sp189s');if(e){e.querySelector('.t').textContent=action==='approve'?'Published':'Sent';setTimeout(done,1200)}},done)}return x}catch(e){const x=document.getElementById('sp189s');if(x)x.remove();throw e}}}
+
+/* Item191: login password - no browser "Save password?" prompt, keyboard hides on outside tap */
+{const SEL='#ppw,#pw,#rapw',st=document.createElement('style');st.textContent='input[data-ns191]{-webkit-text-security:disc;text-security:disc}input[data-ns191][data-show191="1"]{-webkit-text-security:none}';document.head.append(st);
+const fix=()=>{document.querySelectorAll(SEL).forEach(i=>{if(i.dataset.ns191)return;i.dataset.ns191='1';i.type='text';i.setAttribute('autocomplete','off');i.setAttribute('autocapitalize','none');i.setAttribute('autocorrect','off');i.setAttribute('spellcheck','false');i.setAttribute('enterkeyhint','go');i.name='f'+Math.random().toString(36).slice(2,8);
+const eye=i.parentElement&&i.parentElement.querySelector('#peye');if(eye){const n=eye.cloneNode(true);eye.replaceWith(n);n.onclick=()=>{const v=i.dataset.show191==='1';i.dataset.show191=v?'0':'1';n.setAttribute('aria-label',v?'Show password':'Hide password');n.setAttribute('aria-pressed',String(!v))}}})};
+new MutationObserver(fix).observe(document.documentElement,{childList:true,subtree:true});fix();
+const hide=e=>{const a=document.activeElement;if(a&&a.dataset&&a.dataset.ns191&&e.target!==a&&!(e.target.closest&&e.target.closest('#peye'))){a.blur()}};
+document.addEventListener('pointerdown',hide,true);document.addEventListener('touchstart',hide,true);
+document.addEventListener('keydown',e=>{const a=document.activeElement;if(e.key==='Enter'&&a&&a.dataset&&a.dataset.ns191)setTimeout(()=>a.blur(),0)},true)}
 </script>
