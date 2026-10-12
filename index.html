@@ -3395,11 +3395,11 @@ wfSigFill=function(root,rows){
  const template=targets.find(tr=>/^performed by/i.test(tr.cells[0].textContent.trim()))||targets[0];
  const widths=[...template.cells].slice(0,4).map(c=>c.getBoundingClientRect().width);
  const total=widths.reduce((a,b)=>a+b,0);const fractions=widths.length===4&&total?widths.map(w=>w/total):[.25,.25,.25,.25];
- const make=(label,signer)=>{const tr=document.createElement('tr');tr.style.cssText='height:68px;min-height:68px;page-break-inside:avoid;break-inside:avoid';
+ const make=(label,signer)=>{const isRev=/^reviewed by/i.test(label),RH=isRev?84:46;const tr=document.createElement('tr');tr.style.cssText='height:'+RH+'px;min-height:'+RH+'px;page-break-inside:avoid;break-inside:avoid';
   [label,'','',''].forEach((text,index)=>{const td=document.createElement('td');td.style.cssText='box-sizing:border-box;border:1px solid #000!important;padding:6px!important;margin:0;vertical-align:middle!important;width:'+fractions[index]*100+'%;font:11px Arial!important;color:#000;white-space:normal;overflow-wrap:anywhere';
-   const box=document.createElement('div');box.style.cssText='box-sizing:border-box;min-height:54px;display:flex;align-items:center;justify-content:'+(index===1?'center':'flex-start')+';font:11px Arial!important;line-height:1.2;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:0';
+   const box=document.createElement('div');box.style.cssText='box-sizing:border-box;min-height:'+(RH-14)+'px;display:flex;align-items:center;justify-content:'+(index===1?'center':'flex-start')+';font:11px Arial!important;line-height:1.2;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:0';
    if(index===0){box.textContent=label;box.style.fontWeight='700'}
-   else if(index===1&&signer?.image){const im=document.createElement('img');im.src=signer.image;im.style.cssText='display:block;max-width:120px;max-height:40px;width:auto;height:auto;object-fit:contain;margin:0;padding:0;border:0;transform:none';box.appendChild(im)}
+   else if(index===1&&signer?.image){const im=document.createElement('img');im.src=signer.image;im.style.cssText='display:block;max-width:'+(isRev?150:110)+'px;max-height:'+(isRev?66:32)+'px;width:auto;height:auto;object-fit:contain;margin:0;padding:0;border:0;transform:none';box.appendChild(im)}
    else if(index===2)box.textContent=signer?wfSigLabel85(signer):'';
    else if(index===3)box.textContent=signer?.comment||'';td.appendChild(box);tr.appendChild(td)
   });return tr};
@@ -5093,8 +5093,13 @@ body:has(#pat60) #patmain .drmid .drdate139>label.lvtick151{display:flex!importa
 /* Item178 header icons: equal size and even spacing, centered in the row */
 @media(max-width:700px){
 body .pt{gap:8px!important;align-items:center!important}
-html body #portal .pt button.wfnotice.wfnotice,body .pt button.thm.thm,body .pt .rb,body .pt button#plo.lo,body .pt button.settings15,body .pt button.thm{width:40px!important;height:40px!important;min-width:40px!important;max-width:40px!important;box-sizing:border-box!important;margin-top:0!important;margin-bottom:0!important;margin-right:0!important;display:flex!important;align-items:center;justify-content:center;padding:0!important}
+html body #portal .pt button.wfnotice.wfnotice,body .pt .rb,body .pt button#plo.lo,body .pt button.settings15,body .pt button.thm{width:40px!important;height:40px!important;min-width:40px!important;max-width:40px!important;box-sizing:border-box!important;margin-top:0!important;margin-bottom:0!important;margin-right:0!important;display:flex!important;align-items:center;justify-content:center;padding:0!important}
 body .pt .rb,body .pt button#plo.lo,body .pt button.settings15,body .pt button.thm{margin-left:0!important}
+/* Item179: theme button joins the right-side icon row */
+html body #portal .pt button.thm.thm{width:auto!important;max-width:none!important;min-width:40px!important;margin-left:auto!important;padding:0 10px!important;font-size:12px!important;height:40px!important;display:block!important;width:40px!important;min-width:40px!important;padding:0!important;font-size:0!important;line-height:38px!important;text-align:center}
+html body #portal .pt button.thm.thm::first-letter{font-size:20px!important}
+html body #portal .pt button.wfnotice.wfnotice{margin-left:0!important}
+
 }
 </style>
 <script id="js155">/* Item156/157: open a format inside the portal (Word view or Excel view) with only Close and Share. */
