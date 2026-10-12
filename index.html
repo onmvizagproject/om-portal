@@ -5101,6 +5101,8 @@ html body #portal .pt button.thm.thm::first-letter{font-size:20px!important}
 html body #portal .pt button.wfnotice.wfnotice{margin-left:0!important}
 
 }
+
+#wfdelbar182{display:flex;flex-wrap:wrap;align-items:center;gap:10px}#wfdelbar182 .btn.red{background:#b42318;color:#fff;border:0}
 </style>
 <script id="js155">/* Item156/157: open a format inside the portal (Word view or Excel view) with only Close and Share. */
 function fmtResolve155(n){const d=fmtLoad();let c=null;n=+n;if(n===6)return d.find(x=>x.id==='cngro');if(n===7)return d.find(x=>x.id==='lcv');const k=n-3;if(k<1)return null;c='CGD/MM/SF/'+String(k).padStart(2,'0');return d.find(x=>x.code===c)||null}
@@ -5193,4 +5195,48 @@ window.drSrPanel176=function(a,rows,areaNames,panel,host){a.srSelections107=a.sr
   const left=areaNames.filter(n=>!areas.includes(n));if(left.length){const s=document.createElement('select');s.className='sradd176';s.innerHTML='<option value="">+ Add area</option>'+left.map(n=>'<option>'+esc(n)+'</option>').join('');s.onchange=()=>{if(!s.value)return;drCapture();a.srAreas107[prob]=[...(a.srAreas107[prob]||[]),s.value];drActivity();};sec.append(s)}
   upd();panel.append(sec)});
  if(!any)panel.insertAdjacentHTML('beforeend','<p class="hint">Enter the damaged or modification-required count above, then add the areas.</p>');if(!rows.length)panel.insertAdjacentHTML('beforeend','<p class="hint">No SR inventory matched the selected areas. Type a qualified area + SR identifier in remarks instead.</p>');};
+
+/* Item182: Admin delete of completed records - instant refresh, Yes/No box, Select All for Delete. Admin only. */
+function admRefresh182(note){try{window.__rpEdit='';const B=document.querySelector('#pbody')||document.querySelector('#patmain');if(B&&B.querySelector('#wfstf,.wfstt')){wfStatusPage(B)}else if(typeof rptAdmin==='function'){rptAdmin(document.querySelector('#patmain'),note||'')}}catch(e){}}
+async function admDelete182(items){
+ try{
+  if(ptRole()!=='admin')throw Error('Only Admin can delete a completed report.');
+  items=items.filter(x=>x&&x.date&&x.person||x&&x.id);if(!items.length)return false;
+  const many=items.length>1;
+  const ok=await ynBox66(many?'Delete '+items.length+' reports?':'Delete this report?',many?'Delete the <b>'+items.length+' selected</b> reports?<br><br>Each report, its approved / signed copy and every approver copy are removed on all devices and from the main Sheet. This cannot be undone.':'Delete this report'+(items[0].title?': <b>'+esc(items[0].title)+'</b>':'')+'?<br><br>The report, its approved / signed copy and every approver copy are removed on all devices and from the main Sheet. This cannot be undone.');
+  if(!ok)return false;
+  let n=0;window.__wfBatch138=true;
+  try{for(const it of items){
+   const st=wfState().reports;
+   if(it.id){const r=st[it.id];if(!r||!wfFinal86(r))continue;
+    if(r.type==='daily'&&r.snapshot?.date){const key=drKey(r.snapshot.date,r.snapshot.person),ex=drLive(key);if(ex)drCommit(key,{deleted:true,date:r.snapshot.date,person:r.snapshot.person,createdAt:ex.createdAt,deletedAt:Date.now(),deletedBy:'admin'});
+     const cs=new Map();cs.set(r.id,r);for(const c of Object.values(wfState().reports).filter(x=>x.sourceKey===key))cs.set(c.id,c);for(const c of cs.values())wfPut('purge',c.id,{purged:true,at:Date.now(),source:key,by:'admin'},c.head)}
+    else wfPut('purge',r.id,{purged:true,at:Date.now(),by:'admin'},r.head);n++}
+   else{const key=drKey(it.date,it.person),ex=drLive(key);if(!ex)continue;
+    drCommit(key,{deleted:true,date:it.date,person:it.person,createdAt:ex.createdAt,deletedAt:Date.now(),deletedBy:'admin'});
+    for(const c of Object.values(st).filter(x=>x.sourceKey===key))wfPut('purge',c.id,{purged:true,at:Date.now(),source:key,by:'admin'},c.head);n++}
+  }}finally{window.__wfBatch138=false}
+  try{wfHeaders()}catch(e){}
+  document.getElementById('wfmodal')?.remove();
+  admRefresh182(n+' report(s) deleted.');
+  toast(n?(n+' report'+(n>1?'s':'')+' deleted.'):'Nothing to delete.');
+  if(n&&SC.url&&navigator.onLine){(async()=>{try{const a=await drSync(),b=await wfSync();toast(a&&b?'Main Sheet updated.':'Saved here; Sheet sync pending.')}catch(e){toast('Saved here; Sheet sync pending.')}})()}
+  return n>0;
+ }catch(e){toast(e.message);return false}
+}
+{const old=rptDelete;rptDelete=function(date,person){if(ptRole()!=='admin')return old.apply(this,arguments);return admDelete182([{date,person}])};}
+{const page=wfStatusPage;wfStatusPage=function(B){const out=page.apply(this,arguments);if(ptRole()!=='admin'||!B)return out;
+ const state=wfState().reports,rows=[...B.querySelectorAll('[data-report71]')].filter(r=>wfFinal86(state[r.dataset.report71]));
+ const boxes=[];
+ for(const row of rows){const id=row.dataset.report71,r=state[id];
+  const del=[...row.querySelectorAll('button')].find(b=>/^Delete record/i.test(b.textContent.trim()));
+  if(del){del.onclick=e=>{e.preventDefault();e.stopPropagation();admDelete182([{id,title:r.title}])}}
+  const lab=document.createElement('label');lab.style.cssText='display:flex;align-items:center;gap:8px;min-height:44px';const i=document.createElement('input');i.type='checkbox';i.dataset.seldel182=id;boxes.push(i);lab.append(i,document.createTextNode('Select to delete'));row.firstElementChild.prepend(lab)}
+ const card=B.querySelector('#wfadminbulk135');
+ if(rows.length&&card){const d=document.createElement('div');d.className='wfactions';d.id='wfdelbar182';d.style.marginTop='8px';d.innerHTML='<label style="display:inline-flex;align-items:center;gap:8px;margin:0"><input id="wfdelall182" type="checkbox" style="width:16px;height:16px">Select All for Delete</label><button id="wfdelsel182" class="btn red" disabled>Delete selected</button><span id="wfdelcnt182" class="hint"></span>';card.querySelector('.wfactions')?.after(d);
+  const all=d.querySelector('#wfdelall182'),btn=d.querySelector('#wfdelsel182'),cnt=d.querySelector('#wfdelcnt182');
+  const sync=()=>{const n=boxes.filter(b=>b.checked).length;all.checked=!!boxes.length&&n===boxes.length;all.indeterminate=n>0&&n<boxes.length;btn.disabled=!n;cnt.textContent=n+' of '+boxes.length+' completed report(s) selected'};
+  boxes.forEach(b=>b.addEventListener('change',sync));all.onchange=()=>{boxes.forEach(b=>b.checked=all.checked);sync()};
+  btn.onclick=()=>admDelete182(boxes.filter(b=>b.checked).map(b=>({id:b.dataset.seldel182,title:state[b.dataset.seldel182]?.title})));sync()}
+ return out};}
 </script>
