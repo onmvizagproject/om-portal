@@ -5114,6 +5114,9 @@ html body #portal .pt button.wfnotice.wfnotice{margin-left:0!important}
 
 .lvsel184{width:auto!important;min-height:36px;margin:0 6px;padding:2px 8px;font-size:14px}
 .lvsum151{display:flex!important;flex-wrap:wrap;align-items:center;gap:4px 6px}
+
+/* Item194: mobile header - app logo stays far left, all icons packed to the right in every role */
+@media(max-width:900px){html body .pt>.om-team-logo{margin-right:auto!important}html body .pt>.thm{margin-left:0!important}}
 </style>
 <script id="js155">/* Item156/157: open a format inside the portal (Word view or Excel view) with only Close and Share. */
 function fmtResolve155(n){const d=fmtLoad();let c=null;n=+n;if(n===6)return d.find(x=>x.id==='cngro');if(n===7)return d.find(x=>x.id==='lcv');const k=n-3;if(k<1)return null;c='CGD/MM/SF/'+String(k).padStart(2,'0');return d.find(x=>x.code===c)||null}
@@ -5267,7 +5270,7 @@ window.lvSel184=function(){const s=document.createElement('select');s.className=
 window.lvTxt184=function(l){return l.length+(l.length===1?' day':' days')+(l.length?' ('+l.map(lvFmt151).join(', ')+')':'')};
 
 /* Item186/188: nobody moves a report forward without their own signature (Admin forwards without signing, as before) */
-window.wfSignNeed186=function(r){try{if(!r||ptRole()==='admin')return '';const mine=(r.signatures||[]).find(s=>s.actor===wfActor());if(!mine)return 'Please put your signature first, then send.';if(!mine.image)return 'Your signature image is missing. Ask Admin to upload it in the Organogram, then put your signature again.'}catch(e){}return ''};
+window.wfSignNeed186=function(r){try{if(!r||ptRole()==='admin')return '';const mine=(r.signatures||[]).find(s=>s.actor===wfActor());if(!mine||!(mine.name||mine.designation))return 'Please put your signature first, then send.'}catch(e){}return ''};
 {const m=wfMutate;wfMutate=async function(id,head,action){if(['send','forward','approve'].includes(action)){const need=wfSignNeed186(wfState().reports[id]);if(need)throw Error(need)}return m.apply(this,arguments)};}
 document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('[data-wa="send"],[data-wa="forward"],[data-wa="approve"]');if(!b)return;const need=wfSignNeed186(wfState().reports[wfSelected]);if(!need)return;e.stopImmediatePropagation();e.preventDefault();const x=document.getElementById('wferr');if(x)x.textContent=need;toast(need)},true);
 /* Item187: every finished (final-approved) report view gets Download PDF beside Share and Close */
@@ -5293,4 +5296,13 @@ new MutationObserver(fix).observe(document.documentElement,{childList:true,subtr
 const hide=e=>{const a=document.activeElement;if(a&&a.dataset&&a.dataset.ns191&&e.target!==a&&!(e.target.closest&&e.target.closest('#peye'))){a.blur()}};
 let wasF=null;document.addEventListener('pointerdown',e=>{wasF=(e.target&&e.target.dataset&&e.target.dataset.ns191&&document.activeElement===e.target)?e.target:null},true);document.addEventListener('click',e=>{if(wasF&&e.target===wasF){wasF.blur()}wasF=null},true);document.addEventListener('pointerdown',hide,true);document.addEventListener('touchstart',hide,true);
 document.addEventListener('keydown',e=>{const a=document.activeElement;if(e.key==='Enter'&&a&&a.dataset&&a.dataset.ns191)setTimeout(()=>a.blur(),0)},true)}
+
+/* Item195: every text/number/textarea box in every role - tap outside, or tap the already-focused box again, hides the keyboard; tap a box to bring it back */
+{const TXT=el=>el&&(el.tagName==='TEXTAREA'||el.isContentEditable||(el.tagName==='INPUT'&&!/^(checkbox|radio|file|button|submit|reset|range|color|image|hidden)$/i.test(el.type)));
+let was=null,moved=false,sx=0,sy=0;
+document.addEventListener('pointerdown',e=>{const a=document.activeElement;was=(TXT(a)&&e.target===a)?a:null;moved=false;sx=e.clientX;sy=e.clientY},true);
+document.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8)moved=true},true);
+document.addEventListener('click',e=>{const a=document.activeElement;if(!TXT(a)||moved||e.isTrusted===false&&!e.detail&&!was)return;const t=e.target;
+if(t===a){if(was===a){let collapsed=true;try{collapsed=a.selectionStart==null||a.selectionStart===a.selectionEnd}catch(x){}if(collapsed)setTimeout(()=>a.blur(),0)}return}
+if(t.closest&&t.closest('input,textarea,select,[contenteditable="true"],label'))return;setTimeout(()=>{if(document.activeElement===a)a.blur()},0)},true)}
 </script>
