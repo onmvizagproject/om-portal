@@ -5548,4 +5548,50 @@ window.__autoSync208=auto;}
  P.setItem=function(k,v){const r=set.apply(this,arguments);if(k===K&&this===localStorage)put(String(v));return r};
  (async()=>{try{const d=await idb();const q=d.transaction('kv').objectStore('kv').get(K);q.onsuccess=()=>{d.close();const raw=q.result;if(!raw)return;let a={},b={};try{a=JSON.parse(raw)||{}}catch(e){}try{b=JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){}const m={...a,...b};for(const k of Object.keys(a)){if(k in b&&a[k]!==b[k]){const have=String(b[k]).split('~');if(!have.includes(a[k]))m[k]=[a[k],...have].slice(0,3).join('~')}}if(JSON.stringify(m)!==JSON.stringify(b)){localStorage.setItem(K,JSON.stringify(m));try{wfHeaders()}catch(e){}}};q.onerror=()=>d.close()}catch(e){}})();
 })();
+
+/* Item 223: Admin Settings > "App storage check" (READ ONLY). Shows how much of this phone's browser storage the app uses, which saved items are biggest, whether any changes are still waiting for the Sheet, and whether any value is held only in memory because storage was full. It never deletes, clears or changes anything. A cleanup option is only designed after these real numbers are seen. */
+(function(){
+ if(typeof ptAdmin!=='function')return;
+ const LAB=[[/^ns_ra_bill_pack_v1$/,'RA Bills (bills, items, logos)'],[/^ra_trash_v4$/,'RA Bills trash (deleted bills kept for restore)'],[/^om_patroller_daily_v542$/,'Daily patrol reports'],[/^om_approval_v557$/,'Approval records (status, signatures, history)'],[/^om_approval_seen_v557$/,'Notification seen marks'],[/^om_aomp_formats_v530$/,'Team formats'],[/^om_pipe_issues_v550$/,'Pipeline issues'],[/^om_aomp_planner_v532$/,'Planner'],[/^om_aomp_schedule_v535$/,'Working schedule'],[/^om_portal_v1$/,'Portal settings and organogram'],[/^om_roadmap_v1$/,'Roadmap'],[/^om_mysig_/,'Saved signature'],[/^om_main_logo_v1$/,'Portal logo'],[/^ra_sync_cfg_v3$/,'Sheet connection settings'],[/^ra_pw_v3$/,'Passwords (hashed)'],[/^om_pending_v51$/,'Changes waiting to reach the Sheet'],[/^dr_sheet_sum_v543$/,'Daily report Sheet summary (cache)']];
+ const lab=k=>{for(const [r,t] of LAB)if(r.test(k))return t;return 'Other ('+k+')'};
+ const kb=n=>n>=1048576?(n/1048576).toFixed(2)+' MB':Math.max(1,Math.round(n/1024))+' KB';
+
+ const REB=[/^dr_sheet_sum_v543$/,/^om_pipeline_notice_v59910$/,/^om_approval_seen_v557$/,/^om_theme_v53$/,/^om_sheet_ready_v596$/];
+ function memHtml(mem){
+  if(!mem.length)return '<p><b>Held only in memory:</b> none.</p>';
+  const E=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const reb=mem.filter(k=>REB.some(r=>r.test(k))),oth=mem.filter(k=>!REB.some(r=>r.test(k)));
+  let h='';
+  if(reb.length)h+='<p><b>Kept in memory only (rebuildable, not your entries):</b> '+E([...new Set(reb.map(lab))].join(', '))+'. These come back from the Sheet or are only display marks, so no data loss from these.</p>';
+  if(oth.length)h+='<p style="color:#b00020"><b>Kept in memory only, not stored on this phone:</b> '+E([...new Set(oth.map(lab))].join(', '))+'. We cannot tell here whether the Sheet already has these. Keep the app open until the Sheet confirms.</p>';
+  return h}
+ async function report(){
+  const get=Storage.prototype.getItem,rows=[];let total=0;
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);const v=get.call(localStorage,k)||'';const n=k.length+v.length;total+=n;rows.push({t:lab(k),n,k})}
+  const by={};for(const r of rows){by[r.t]=(by[r.t]||0)+r.n}
+  const list=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  let est=null;try{if(navigator.storage&&navigator.storage.estimate)est=await navigator.storage.estimate()}catch(e){}
+  let pend=0;try{pend=Object.keys(ptPending()||{}).length}catch(e){}
+  let wfp=0;try{wfp=wfLoad().pending.length}catch(e){}
+  const mem=Object.keys(window.__memLS||{});
+  return {list,total,est,pend,wfp,mem,sheet:!!(typeof SC!=='undefined'&&SC.url&&SC.key)};
+ }
+ async function open(){
+  const o=wfOverlay('App storage check (read only)','<p class="hint">Reading...</p>');
+  const r=await report();
+  const E=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const lim='About 5 MB is the usual browser limit for this saved copy (MDN). Counted in characters, so it is an estimate.';
+  o.querySelector('.wfmodal').insertAdjacentHTML('beforeend','<div class="urg223">'+
+   '<p><b>Saved copy on this phone:</b> about '+kb(r.total)+' of the roughly 5 MB the browser allows. '+E(lim)+'</p>'+
+   (r.est&&r.est.quota?'<p><b>Whole app (incl. large files):</b> '+kb(r.est.usage||0)+' used of about '+kb(r.est.quota)+' this browser allows. This is a different, much bigger space.</p>':'')+
+   '<p><b>Sheet:</b> '+(r.sheet?'connected':'NOT connected')+'. <b>Changes still waiting for the Sheet:</b> '+(r.pend+r.wfp)+' ('+r.pend+' general, '+r.wfp+' approval records).</p>'+
+   memHtml(r.mem)+
+   '<table style="width:100%;border-collapse:collapse;font-size:14px">'+r.list.map(x=>'<tr><td style="padding:4px 6px;border-bottom:1px solid #ddd">'+E(x[0])+'</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right;white-space:nowrap">'+kb(x[1])+'</td></tr>').join('')+'</table>'+
+   '<p class="hint">Nothing was deleted or changed. Sizes show what takes space, not what is safe to remove.</p></div>');
+  o.querySelector('p.hint')?.remove();
+ }
+ const base=ptAdmin;
+ ptAdmin=function(B){const r=base.apply(this,arguments);try{if(ptRole()==='admin'&&B&&!B.querySelector('#stor223')){const c=document.createElement('div');c.id='stor223';c.className='pcard';c.innerHTML='<h3>App storage check</h3><p class="hint">Shows what uses this phone\'s saved app space. Read only, deletes nothing.</p><button class="btn sec" id="stor223b" type="button">Check app storage</button>';c.querySelector('#stor223b').onclick=open;B.appendChild(c)}}catch(e){}return r};
+ window.__storage223=open;
+})();
 </script>
