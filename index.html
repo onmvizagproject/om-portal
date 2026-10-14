@@ -2281,7 +2281,7 @@ function wfAdmin(B){let draft={...wfChain()};const roles=['admin','pm','ae','eic
  const from=$('#wffrom'),to=$('#wfto'),save=$('#wfcfgsave'),msg=$('#wfcfgerr');const paint=()=>{to.value=draft[from.value]||'';[...to.options].forEach(o=>o.disabled=o.value===from.value);$('#wfchainview').innerHTML=roles.map(r=>`<div><b>${esc(wfName(r))}</b><span> → </span>${draft[r]?esc(wfName(draft[r])):'Final Approval'}</div>`).join('')};from.onchange=paint;to.onchange=()=>{draft[from.value]=to.value;msg.textContent='Unsaved changes';paint()};paint();save.onclick=async()=>{save.disabled=true;try{if(ptRole()!=='admin')throw Error('Admin only');for(const r of roles){const seen=new Set();let at=r;while(at){if(seen.has(at))throw Error('Routing loop at '+wfName(at)+'. Choose a different To role.');seen.add(at);at=draft[at]||''}}if(!draft.pat)throw Error('Patroller must send to a receiving role.');await wfFresh();const current=wfConfig();wfPut('config','config',{...current,default:'admin',simpleRouting:true,chain:{...draft}});const ok=await wfSync();msg.textContent=ok?'Routing saved and synced for all users.':('Routing saved on this device. '+wfStatus())}catch(e){msg.textContent=e.message}finally{save.disabled=false}};
  // Limit full-width layout changes to Admin Settings. Keep original controls and their event handlers.
  const cards=[...B.children].filter(e=>e.classList.contains('pcard'));const grid=document.createElement('div');grid.className='admin-grid';cards.forEach(e=>grid.appendChild(e));B.appendChild(grid);const wf=$('#wfsettings');B.appendChild(wf);}
-function wfInbox(){const rows=Object.values(wfState().reports).filter(r=>(r.to===wfActor()&&['Pending','Returned'].includes(r.status))||(r.status==='Approved'&&(wfActor()==='admin'||r.owner===wfActor())));let seen={};try{seen=JSON.parse(localStorage.getItem('om_approval_seen_v557')||'{}')}catch(e){}return rows.filter(r=>{const v=seen[wfActor()+':'+r.id];return v!==r.head&&v!==wfNoteKey219(r)})}function wfNoteKey219(r){return (r.status||'')+'|'+(r.to||'')+'|'+(r.revision||1)+'|'+((r.history||[]).length)}
+function wfInbox(){const rows=Object.values(wfState().reports).filter(r=>(r.to===wfActor()&&['Pending','Returned'].includes(r.status))||(r.status==='Approved'&&(wfActor()==='admin'||r.owner===wfActor())));let seen={};try{seen=JSON.parse(localStorage.getItem('om_approval_seen_v557')||'{}')}catch(e){}return rows.filter(r=>{const v=seen[wfActor()+':'+r.id];return v!==r.head&&!String(v||'').split('~').includes(wfNoteKey219(r))})}function wfNoteKey219(r){return (r.status||'')+'|'+(r.to||'')+'|'+(r.revision||1)+'|'+((r.history||[]).length)}
 function wfProgress(r){return r.history.filter(h=>['Submit','Approve and forward','Send Back','Final approval'].includes(h.action)).map(h=>wfName(h.by)+(h.action==='Send Back'?' returned to ':h.action==='Final approval'?' approved; returned to ':' sent to ')+wfName(h.to)).join(' > ')||'Not sent yet'}
 
 function wfNotifications(){const rows=wfInbox();const o=wfOverlay('Notifications',rows.length?rows.map(r=>'<div class="pcard"><b>'+esc(r.status==='Returned'?'Report sent back':r.status==='Approved'?'Report approved':'New report / awaiting your action')+'</b><p>'+esc(r.title)+'</p>'+(r.status==='Returned'?'<p><b>Reason:</b> '+esc([...r.history].reverse().find(h=>h.action==='Send Back')?.note||'No reason recorded')+'</p>':'')+'<button class="btn" data-wn="'+r.id+'">Open report</button></div>').join(''):'<p>No new unread report notifications.</p>');let seen={};try{seen=JSON.parse(localStorage.getItem('om_approval_seen_v557')||'{}')}catch(e){}rows.forEach(r=>seen[wfActor()+':'+r.id]=wfNoteKey219(r));localStorage.setItem('om_approval_seen_v557',JSON.stringify(seen));$$('[data-wn]',o).forEach(b=>b.onclick=()=>wfDialog(b.dataset.wn));wfHeaders()}
@@ -5165,6 +5165,10 @@ html body #pbody #wffilters104.wfnone217>h3,html body #pbody #wffilters104.wfnon
 #wfmodal .wfgrid218>button{flex:none!important;min-width:0!important;width:auto!important;min-height:52px;height:100%;padding:6px 4px!important;font-size:13px!important;line-height:1.2;white-space:normal;overflow-wrap:normal;word-break:normal;hyphens:none;margin:0!important;display:flex;align-items:center;justify-content:center;text-align:center}
 /* Item 218b: notices (toast) are a wide readable box, not a tiny pill. Text and timing logic unchanged except longer messages stay a little longer. */
 html body #toast{left:12px!important;right:12px!important;bottom:84px!important;transform:none!important;width:auto!important;max-width:none!important;box-sizing:border-box;padding:12px 16px!important;border-radius:12px!important;font-size:14px!important;font-weight:600;line-height:1.35;text-align:center;white-space:normal;box-shadow:0 4px 14px rgba(0,0,0,.28)}
+/* Item 221: RA Bills header. The contractor logo sits at the right, right beside the Close (power) button. The Close icon is drawn as a shape (not a text character, which his Android font shows as a broken box). RA header only. */
+html body.inra .top .raph #logoR{margin:0 6px 0 4px!important;order:0}
+html body.inra .top .raph{flex:none!important;margin-left:auto!important}
+html body.inra .top .raph .lo::before{content:""!important;display:block!important;width:24px!important;height:24px!important;background:#fff!important;font:0/0 Arial!important;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v9'/><path d='M6.4 6.6a8 8 0 1 0 11.2 0'/></svg>") center/contain no-repeat!important;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3v9'/><path d='M6.4 6.6a8 8 0 1 0 11.2 0'/></svg>") center/contain no-repeat!important}
 </style>
 <script id="js155">/* Item156/157: open a format inside the portal (Word view or Excel view) with only Close and Share. */
 function fmtResolve155(n){const d=fmtLoad();let c=null;n=+n;if(n===6)return d.find(x=>x.id==='cngro');if(n===7)return d.find(x=>x.id==='lcv');const k=n-3;if(k<1)return null;c='CGD/MM/SF/'+String(k).padStart(2,'0');return d.find(x=>x.code===c)||null}
@@ -5357,10 +5361,10 @@ if(t.closest&&t.closest('input,textarea,select,[contenteditable="true"],label'))
 /* Item196: browser storage full ("exceeded the quota") must not block saving. Free rebuildable caches, retry, and keep the value in memory for this session if still full. */
 {const P=Storage.prototype,set=P.setItem,get=P.getItem,rem=P.removeItem;window.__memLS=window.__memLS||{};
 const isQ=e=>e&&(e.name==='QuotaExceededError'||/quota/i.test(e.message||''));
-const SAFE=['dr_sheet_sum_v543','om_approval_seen_v557','om_pipeline_notice_v59910'];
+const SAFE=['dr_sheet_sum_v543','om_pipeline_notice_v59910'];
 P.setItem=function(k,v){if(this!==localStorage)return set.call(this,k,v);try{set.call(this,k,v);if(k in window.__memLS)delete window.__memLS[k];return}catch(e){if(!isQ(e))throw e;
 for(const s of SAFE){if(s!==k&&localStorage.getItem(s)!=null){rem.call(this,s);try{set.call(this,k,v);delete window.__memLS[k];return}catch(x){if(!isQ(x))throw x}}}
-window.__memLS[k]=String(v);if(!window.__quotaWarn196){window.__quotaWarn196=1;try{toast('This device storage is full. Your change is kept for this session and sent to the Sheet. Free some space on the device.')}catch(x){}}}};
+window.__memLS[k]=String(v);if(!window.__quotaWarn196){window.__quotaWarn196=1;try{toast('This app storage in the phone browser is full (this is not Google Drive). Recent changes may not stay on this phone after you close the app. Wait for the Sheet to confirm before closing.')}catch(x){}}}};
 P.getItem=function(k){if(this===localStorage&&Object.prototype.hasOwnProperty.call(window.__memLS,k))return window.__memLS[k];return get.call(this,k)};
 P.removeItem=function(k){if(this===localStorage)delete window.__memLS[k];return rem.call(this,k)}}
 
@@ -5526,5 +5530,22 @@ window.__autoSync208=auto;}
  wfSync=function(){const before=localStorage.getItem(WF_KEY);const out=base.apply(this,arguments);
   Promise.resolve(out).then(()=>{try{if(window.__ptPage!=='_status')return;const B=document.querySelector('#pbody');if(!B||!['admin','pm','ae','eic','ga'].includes(ptRole()))return;if(localStorage.getItem(WF_KEY)===before)return;if(window.__wfWorking140||window.__wfBatch138)return;wfStatusPage(B)}catch(e){}},()=>{});
   return out};
+})();
+
+/* Item 221 (RA Bills header): the contractor logo is placed inside the right-hand header group, directly before the Close (power) button. setLogos replaces the logo in place, so it stays there. */
+(function(){
+ if(typeof ptRaHeader!=='function')return;
+ const base=ptRaHeader;
+ ptRaHeader=function(){const r=base.apply(this,arguments);try{const lo=document.querySelector('.top .raph #rlo'),lg=document.querySelector('.top #logoR');if(lo&&lg&&lg.parentElement!==lo.parentElement)lo.parentElement.insertBefore(lg,lo)}catch(e){}return r};
+})();
+
+/* Item 222: the "seen" marks for report notifications must survive a full browser storage. (a) The storage-full cleanup no longer deletes them (patch above). (b) They are also copied into IndexedDB, which has much more room, and restored when the app opens, so they survive even when the small localStorage is full and after the app is closed. Nothing else is changed or removed. */
+(function(){
+ const K='om_approval_seen_v557';
+ const idb=()=>new Promise((res,rej)=>{try{const q=indexedDB.open('om_seen222',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}catch(e){rej(e)}});
+ const put=async v=>{try{const d=await idb();const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,K);t.oncomplete=()=>d.close();t.onerror=t.onabort=()=>d.close()}catch(e){}};
+ const P=Storage.prototype,set=P.setItem;
+ P.setItem=function(k,v){const r=set.apply(this,arguments);if(k===K&&this===localStorage)put(String(v));return r};
+ (async()=>{try{const d=await idb();const q=d.transaction('kv').objectStore('kv').get(K);q.onsuccess=()=>{d.close();const raw=q.result;if(!raw)return;let a={},b={};try{a=JSON.parse(raw)||{}}catch(e){}try{b=JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){}const m={...a,...b};for(const k of Object.keys(a)){if(k in b&&a[k]!==b[k]){const have=String(b[k]).split('~');if(!have.includes(a[k]))m[k]=[a[k],...have].slice(0,3).join('~')}}if(JSON.stringify(m)!==JSON.stringify(b)){localStorage.setItem(K,JSON.stringify(m));try{wfHeaders()}catch(e){}}};q.onerror=()=>d.close()}catch(e){}})();
 })();
 </script>
