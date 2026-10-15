@@ -5630,3 +5630,55 @@ window.__autoSync208=auto;}
  window.__fmtSlim224={fnv,kept,migrate,idb,inflate,slim};
 })();
 </script>
+
+<script>/* Revision94: button hover highlight (orange border only, no fill/text/size change) + quiet click sounds for every role (approved from the CGD demo). Sound On/Off is remembered on this device; no sound until the first tap/click; hover sounds and motion are skipped when the device asks for reduced motion. Does not change any data, storage or workflow. */
+(()=>{
+if(window.__feel94)return;
+const KEY='om_snd94';
+const BTN='button,.btn,[role="button"],input[type="button"],input[type="submit"],input[type="reset"],summary';
+const on=()=>{try{return localStorage.getItem(KEY)!=='0'}catch(e){return true}};
+const CSS='@media(hover:hover){:where('+BTN+'):not(:disabled):not([aria-disabled="true"]):hover{outline:2px solid #e8730c;outline-offset:-2px}}'
++':where('+BTN+'):focus-visible{outline:3px solid #e8730c;outline-offset:2px}'
++'.snd94{border:1px solid #fff8;background:#ffffff1a;color:#fff;border-radius:10px;padding:6px 8px;font-size:14px;line-height:1;cursor:pointer;flex:none}'
++'.snd94.off{opacity:.65}';
+
+/* Border-only hover: strip fill/text/shadow/transform changes from existing :hover rules that target buttons */
+const STRIP=['background','background-color','background-image','color','box-shadow','transform','filter','opacity','text-shadow'];
+function neutral(doc){
+ if(doc.__neut94)return;const st=doc.__neut94={pending:[],seen:new WeakSet(),last:0};
+ const isBtn=el=>el.matches&&el.matches(BTN);
+ function collect(rules){for(const r of rules){try{if(r.selectorText){if(r.selectorText.indexOf(':hover')>=0&&!st.seen.has(r)){st.seen.add(r);st.pending.push(r)}}else if(r.cssRules)collect(r.cssRules)}catch(e){}}}
+ function scan(){const now=Date.now();if(now-st.last<1200)return;st.last=now;
+  for(const sh of doc.styleSheets){try{if(!sh.__n94||sh.__n94!==sh.cssRules.length){sh.__n94=sh.cssRules.length;collect(sh.cssRules)}}catch(e){}}
+  const keep=[];
+  for(const r of st.pending){let hit=false,other=false;
+   for(const part of r.selectorText.split(',')){if(part.indexOf(':hover')<0)continue;const base=part.replace(/:hover/g,'').trim();if(!base)continue;let els;try{els=doc.querySelectorAll(base)}catch(e){continue}
+    for(let i=0;i<els.length&&i<40;i++){if(isBtn(els[i]))hit=true;else other=true}}
+   if(hit&&!other){STRIP.forEach(p=>{try{r.style.removeProperty(p)}catch(e){}})}
+   else if(!hit&&!other)keep.push(r)}
+  st.pending=keep}
+ doc.__scan94=scan;scan();
+}
+function install(win){
+ let doc;try{doc=win.document;if(!doc||doc.__feel94)return;doc.__feel94=1}catch(e){return}
+ const st=doc.createElement('style');st.id='feel94css';st.textContent=CSS;(doc.head||doc.documentElement).appendChild(st);
+ let ctx=null,lastT=0,lastH=0;
+ const reduced=()=>{try{return win.matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
+ function tick(v,f){if(!on())return;const n=Date.now();if(n-lastT<35)return;lastT=n;try{const AC=win.AudioContext||win.webkitAudioContext;if(!AC)return;ctx=ctx||new AC();if(ctx.state==='suspended')ctx.resume();const o=ctx.createOscillator(),g=ctx.createGain(),t=ctx.currentTime;o.type='triangle';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*.45,t+.04);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.05);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.06)}catch(e){}}
+ const hit=e=>{const t=e.target;const el=t&&t.closest?t.closest(BTN):null;return el&&!el.disabled&&el.getAttribute('aria-disabled')!=='true'?el:null};
+ doc.addEventListener('pointerdown',e=>{const el=hit(e);if(!el)return;if(el.classList.contains('snd94'))return;tick(.05,950)},{capture:true,passive:true});
+ doc.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse'||reduced())return;const el=hit(e);if(!el||el.contains(e.relatedTarget))return;const n=Date.now();if(n-lastH<150)return;lastH=n;tick(.018,1500)},{capture:true,passive:true});
+ win.__feelTick94=tick;try{neutral(doc)}catch(e){}
+}
+install(window);
+/* same-origin module/preview frames (schedule, pipeline, formats) */
+function frames(){document.querySelectorAll('iframe').forEach(f=>{try{if(f.contentWindow&&f.contentDocument&&f.contentDocument.readyState!=='loading')install(f.contentWindow)}catch(e){}})}
+document.addEventListener('load',e=>{if(e.target&&e.target.tagName==='IFRAME'){try{install(e.target.contentWindow)}catch(x){}}},true);
+/* Sound On/Off button in every role header that has the right-hand header group */
+function label(b){const v=on();b.textContent=v?'\uD83D\uDD0A':'\uD83D\uDD07';b.classList.toggle('off',!v);b.setAttribute('aria-pressed',v?'true':'false');b.setAttribute('aria-label',v?'Click sounds on. Press to turn off':'Click sounds off. Press to turn on');b.title=v?'Click sounds: On':'Click sounds: Off'}
+function addBtn(){document.querySelectorAll('.raph,.pt').forEach(h=>{if(h.querySelector('.snd94'))return;const b=document.createElement('button');b.type='button';b.className='snd94';label(b);b.addEventListener('click',()=>{try{localStorage.setItem(KEY,on()?'0':'1')}catch(e){}document.querySelectorAll('.snd94').forEach(label);if(on()&&window.__feelTick94)window.__feelTick94(.05,950)});const lo=h.querySelector('.lo,#plo');if(lo&&lo.parentNode)lo.parentNode.insertBefore(b,lo);else h.appendChild(b)})}
+let tm=0;new MutationObserver(()=>{if(tm)return;tm=setTimeout(()=>{tm=0;addBtn();frames();try{document.__scan94&&document.__scan94();document.querySelectorAll('iframe').forEach(fr=>{try{fr.contentDocument.__scan94&&fr.contentDocument.__scan94()}catch(e){}})}catch(e){}},250)}).observe(document.documentElement,{childList:true,subtree:true});
+addBtn();window.__feel94=1;
+})();
+</script>
+<!-- Revision94: approved quiet click sounds (Sound On/Off) and border-only button hover for all roles. No data, storage, login or layout changes. -->
