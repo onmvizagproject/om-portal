@@ -5566,15 +5566,21 @@ window.__autoSync208=auto;}
   if(oth.length)h+='<p style="color:#b00020"><b>Kept in memory only, not stored on this phone:</b> '+E([...new Set(oth.map(lab))].join(', '))+'. We cannot tell here whether the Sheet already has these. Keep the app open until the Sheet confirms.</p>';
   return h}
  async function report(){
-  const get=Storage.prototype.getItem,rows=[];let total=0;
-  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);const v=get.call(localStorage,k)||'';const n=k.length+v.length;total+=n;rows.push({t:lab(k),n,k})}
+  const rows=[];let total=0,memTot=0;let fr=document.createElement('iframe');fr.style.display='none';fr.srcdoc='<!doctype html>';document.body.appendChild(fr);await new Promise(r=>{fr.onload=r;setTimeout(r,400)});let raw=null;try{raw=fr.contentWindow.localStorage}catch(e){}if(!raw)raw=localStorage;const memv=window.__memLS||{};
+  for(let i=0;i<raw.length;i++){const k=raw.key(i);const v=raw.getItem(k)||'';const n=k.length+v.length;total+=n;rows.push({t:lab(k),n,k})}
   const by={};for(const r of rows){by[r.t]=(by[r.t]||0)+r.n}
   const list=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  const memRows=Object.keys(memv).map(k=>({t:lab(k),n:k.length+String(memv[k]).length,k}));
+  const gz=async s=>{try{const cs=new Blob([s]).stream().pipeThrough(new CompressionStream('gzip'));return (await new Response(cs).arrayBuffer()).byteLength}catch(e){return null}};
+  const big=rows.filter(x=>x.n>200000).sort((a,b)=>b.n-a.n).slice(0,3),comp=[];
+  for(const x of big){const g=await gz(raw.getItem(x.k)||'');comp.push({t:x.t,n:x.n,g})}
+  for(const k of Object.keys(memv)){const v=String(memv[k]);if(v.length>200000){const g=await gz(v);comp.push({t:lab(k)+' (newer copy in memory)',n:v.length,g})}}
+  try{fr.remove()}catch(e){}
   let est=null;try{if(navigator.storage&&navigator.storage.estimate)est=await navigator.storage.estimate()}catch(e){}
   let pend=0;try{pend=Object.keys(ptPending()||{}).length}catch(e){}
   let wfp=0;try{wfp=wfLoad().pending.length}catch(e){}
   const mem=Object.keys(window.__memLS||{});
-  return {list,total,est,pend,wfp,mem,sheet:!!(typeof SC!=='undefined'&&SC.url&&SC.key)};
+  return {list,total,est,pend,wfp,mem,memRows,comp,sheet:!!(typeof SC!=='undefined'&&SC.url&&SC.key)};
  }
  async function open(){
   const o=wfOverlay('App storage check (read only)','<p class="hint">Reading...</p>');
@@ -5582,16 +5588,45 @@ window.__autoSync208=auto;}
   const E=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   const lim='About 5 MB is the usual browser limit for this saved copy (MDN). Counted in characters, so it is an estimate.';
   o.querySelector('.wfmodal').insertAdjacentHTML('beforeend','<div class="urg223">'+
-   '<p><b>Saved copy on this phone:</b> about '+kb(r.total)+' of the roughly 5 MB the browser allows. '+E(lim)+'</p>'+
+   '<p><b>Actually stored on this phone:</b> about '+kb(r.total)+' (estimate in characters; the browser limit is about 5 MB). '+E(lim)+'</p>'+(r.memRows.length?'<p><b>Newer copies held only in memory:</b> '+r.memRows.map(x=>E(x.t)+' '+kb(x.n)).join(', ')+'. These are on top of the stored size above.</p>':'')+
    (r.est&&r.est.quota?'<p><b>Whole app (incl. large files):</b> '+kb(r.est.usage||0)+' used of about '+kb(r.est.quota)+' this browser allows. This is a different, much bigger space.</p>':'')+
    '<p><b>Sheet:</b> '+(r.sheet?'connected':'NOT connected')+'. <b>Changes still waiting for the Sheet:</b> '+(r.pend+r.wfp)+' ('+r.pend+' general, '+r.wfp+' approval records).</p>'+
    memHtml(r.mem)+
+   (r.comp.length?'<p><b>Test only (nothing changed):</b> how small the biggest items would get if compressed: '+r.comp.map(x=>E(x.t)+' '+kb(x.n)+' to '+(x.g?kb(x.g):'n/a')).join('; ')+'.</p>':'')+
    '<table style="width:100%;border-collapse:collapse;font-size:14px">'+r.list.map(x=>'<tr><td style="padding:4px 6px;border-bottom:1px solid #ddd">'+E(x[0])+'</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;text-align:right;white-space:nowrap">'+kb(x[1])+'</td></tr>').join('')+'</table>'+
+   '<p><button class="btn sec" id="cmp223" type="button">Compare saved approval records with the Sheet</button></p><p class="hint" id="cmp223m">Read only. Checks every approval record on this phone against the copy in the Sheet.</p>'+
+   '<p><button class="btn sec" id="bk223" type="button">Download a backup of this phone\'s saved copy</button></p><p class="hint" id="bk223m">Saves a file with everything stored on this phone plus any newer copies held in memory. Nothing is deleted.</p>'+
    '<p class="hint">Nothing was deleted or changed. Sizes show what takes space, not what is safe to remove.</p></div>');
-  o.querySelector('p.hint')?.remove();
+  o.querySelector('#cmp223').onclick=async()=>{const m=o.querySelector('#cmp223m');try{if(!SC.url||!SC.key)throw Error('Sheet not connected.');m.textContent='Checking...';const norm=x=>JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(q=>[q,v[q]])):v);const list=(await sApi({action:'list'})).ids||{},ops=wfLoad().ops,ids=Object.keys(ops);let ok=0,diff=[],miss=[];const inList=ids.filter(i=>list[i]);ids.filter(i=>!list[i]).forEach(i=>miss.push(i));for(let i=0;i<inList.length;i+=10){const ch=inList.slice(i,i+10),g=(await sApi({action:'get',ids:ch})).items||{};for(const id of ch){let r=null;try{r=JSON.parse(g[id]?.text||'null')}catch(e){}if(r&&norm(r)===norm(ops[id]))ok++;else diff.push(id)}m.textContent='Checking '+Math.min(i+10,inList.length)+' of '+inList.length+'...'}m.style.color=(diff.length||miss.length)?'#b00020':'#146c2e';m.textContent='Records on this phone: '+ids.length+'. Same in the Sheet: '+ok+'. Different in the Sheet: '+diff.length+'. Not in the Sheet yet: '+miss.length+'. '+(diff.length||miss.length?'Keep the app open and online for a minute, then compare again. This check only reads; it does not fix differences.':'All match.')}catch(e){m.style.color='#b00020';m.textContent='Could not check: '+e.message}};
+  o.querySelector('#bk223').onclick=async()=>{const m=o.querySelector('#bk223m');try{const loc={};const fr=document.createElement('iframe');fr.style.display='none';fr.srcdoc='<!doctype html>';document.body.appendChild(fr);await new Promise(r=>{fr.onload=r;setTimeout(r,400)});let raw=null;try{raw=fr.contentWindow.localStorage}catch(e){}if(!raw)raw=localStorage;for(let i=0;i<raw.length;i++){const k=raw.key(i);loc[k]=raw.getItem(k)}fr.remove();const mem={...(window.__memLS||{})};fmtBlob(new Blob([JSON.stringify({version:'v5.99.15',created:new Date().toISOString(),stored:loc,newerInMemory:mem},null,1)],{type:'application/json'}),'OM_Phone_Saved_Copy_'+Date.now()+'.json');m.textContent='Backup file created ('+Object.keys(loc).length+' stored items, '+Object.keys(mem).length+' memory copies). Check that it saved.'}catch(e){m.textContent='Backup failed: '+e.message}};
+  o.querySelectorAll('p.hint').forEach(x=>{if(x.id!=='bk223m'&&x.textContent==='Reading...')x.remove()});
  }
  const base=ptAdmin;
  ptAdmin=function(B){const r=base.apply(this,arguments);try{if(ptRole()==='admin'&&B&&!B.querySelector('#stor223')){const c=document.createElement('div');c.id='stor223';c.className='pcard';c.innerHTML='<h3>App storage check</h3><p class="hint">Shows what uses this phone\'s saved app space. Read only, deletes nothing.</p><button class="btn sec" id="stor223b" type="button">Check app storage</button>';c.querySelector('#stor223b').onclick=open;B.appendChild(c)}}catch(e){}return r};
  window.__storage223=open;
+})();
+
+
+/* Item 224: Team formats no longer keep a second full copy of the shipped templates in the small browser storage. After a Sheet sync every format (about 2 MB) is saved on the phone even when it is byte-for-byte the same as the template inside this app. A format whose file is EXACTLY equal to the shipped template is saved as a short marker (id + checksum + length) ONLY after the full file has been saved in IndexedDB (large storage) and read back identical. When the app reads the formats, the full file is put back from the app's own template, or, if a later app version ships a different template, restored from the IndexedDB copy. Edited, uploaded or Sheet-changed formats stay full. Every shortened save is read back and compared; on any difference the full copy is written instead. */
+(()=>{const FK='om_aomp_formats_v530',DBN='om_fmtkeep224';const P=Storage.prototype,gi=P.getItem,si=P.setItem;let emb=null;
+ const E=()=>{if(emb)return emb;emb={};try{const a=JSON.parse(document.getElementById('aomp-format-data').textContent);for(const x of a)if(x&&x.id&&typeof x.b64==='string'&&x.b64.length>1000)emb[x.id]=x.b64}catch(e){emb={}}return emb};
+ const fnv=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(16)+':'+s.length};
+ const kept=new Set();let keptReady=false;
+ const idb=(m,f)=>new Promise(res=>{try{const q=indexedDB.open(DBN,1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onerror=q.onblocked=()=>res(undefined);q.onsuccess=()=>{try{const d=q.result,t=d.transaction('kv',m),o=t.objectStore('kv'),r=f(o);t.oncomplete=()=>{d.close();res(r?r.result:true)};t.onerror=t.onabort=()=>{d.close();res(undefined)}}catch(e){res(undefined)}}}catch(e){res(undefined)}});
+ const inflate=raw=>{if(raw==null||raw.indexOf('"_emb"')<0)return raw;let v;try{v=JSON.parse(raw)}catch(e){return raw}const em=E(),bad=[];for(const k in v){const y=v[k];if(y&&y._emb){const b=em[k];if(b&&fnv(b)===y._emb){y.b64=b;delete y._emb}else{bad.push([k,y._emb]);delete y.b64}}}if(bad.length){window.__fmtSlimBroken224=bad.map(x=>x[0]);restore(bad)}return JSON.stringify(v)};
+ /* a later app version shipped a different template: bring the kept full copy back from IndexedDB and store it full */
+ let restoring=false;
+ async function restore(bad){if(restoring)return;restoring=true;try{const got={};for(const [k,ck] of bad){const b=await idb('readonly',o=>o.get(k+'|'+ck));if(typeof b==='string'&&fnv(b)===ck)got[k]=b}
+  const lost=bad.filter(([k])=>!got[k]);if(lost.length){window.__fmtUnavailable224=lost.map(x=>x[0]);try{toast('Some format files are not available on this phone right now ('+lost.length+'). Connect to the Sheet and press Sync to download them again. Nothing was deleted.')}catch(e){}}
+  if(Object.keys(got).length){const raw=gi.call(localStorage,FK);const v=JSON.parse(raw);for(const k in got){if(v[k]&&v[k]._emb){v[k].b64=got[k];delete v[k]._emb}}si.call(localStorage,FK,JSON.stringify(v));lr=null;window.__fmtSlimBroken224=(window.__fmtSlimBroken224||[]).filter(k=>!got[k]);try{toast('Team format files were restored. Reopen the formats page.')}catch(e){}}}catch(e){}restoring=false}
+ const slim=(str,onlyKept)=>{let v;try{v=JSON.parse(str)}catch(e){return {s:str,need:[]}}if(!v||typeof v!=='object')return {s:str,need:[]};const em=E();let ch=0;const need=[];for(const k in v){const y=v[k];if(y&&typeof y.b64==='string'&&em[k]&&y.b64===em[k]&&!y._emb){const ck=fnv(em[k]);if(kept.has(k+'|'+ck)){y._emb=ck;y.b64='';ch++}else need.push([k,ck,em[k]])}}return {s:ch?JSON.stringify(v):str,need}};
+ let lr=null,lo=null;
+ const retain=async need=>{let any=false;for(const [k,ck,b] of need){const key=k+'|'+ck;if(kept.has(key))continue;const ok=await idb('readwrite',o=>o.put(b,key));if(ok===undefined)continue;const back=await idb('readonly',o=>o.get(key));if(back===b){kept.add(key);any=true}}return any};
+ const migrate=async()=>{try{const raw=gi.call(localStorage,FK);if(raw&&raw.indexOf('"_emb"')>=0)inflate(raw);if(!raw||raw.indexOf('"_emb"')>=0&&slim(raw).need.length===0)return;const full=inflate(raw);const r=slim(full);if(r.need.length){if(!await retain(r.need))return}const r2=slim(full);if(r2.s===full)return;const cur=gi.call(localStorage,FK);if(cur!==raw)return;/* changed meanwhile: leave it */
+  try{si.call(localStorage,FK,r2.s);const back=gi.call(localStorage,FK);if(JSON.stringify(JSON.parse(inflate(back)))!==JSON.stringify(JSON.parse(full)))si.call(localStorage,FK,raw)}catch(e){try{si.call(localStorage,FK,raw)}catch(x){}}lr=null}catch(e){}};
+ P.getItem=function(k){const r=gi.apply(this,arguments);if(this===localStorage&&k===FK&&r!=null){if(r===lr)return lo;lr=r;lo=inflate(r);return lo}return r};
+ P.setItem=function(k,v){if(this===localStorage&&k===FK){let full=String(v);const ub=window.__fmtUnavailable224;if(ub&&ub.length){try{const nv=JSON.parse(full),old=JSON.parse(gi.call(localStorage,FK)||'{}');for(const id of ub){if(old[id]&&old[id]._emb&&nv[id]&&!nv[id].b64&&!nv[id]._emb){nv[id]._emb=old[id]._emb;nv[id].b64=''}else if(old[id]&&old[id]._emb&&!nv[id]){nv[id]=old[id]}}full=JSON.stringify(nv);v=full}catch(e){}}const r=slim(full);if(r.need.length){retain(r.need).then(ok=>{if(ok)setTimeout(migrate,200)})}if(r.s!==full){const prev=gi.call(localStorage,FK);try{si.call(this,k,r.s);if(JSON.stringify(JSON.parse(inflate(gi.call(localStorage,FK))))===JSON.stringify(JSON.parse(full))){lr=null;return}}catch(e){}try{if(prev!=null)si.call(this,k,prev)}catch(e){}}return si.apply(this,arguments)}return si.apply(this,arguments)};
+ (async()=>{const ks=await idb('readonly',o=>o.getAllKeys());if(Array.isArray(ks))ks.forEach(k=>kept.add(k));keptReady=true;setTimeout(migrate,300)})();
+ window.__fmtSlim224={fnv,kept,migrate,idb,inflate,slim};
 })();
 </script>
