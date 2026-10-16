@@ -1023,7 +1023,7 @@ function scriptText(){return APPS_SCRIPT.replace('__KEY__',SC.key)}
 function drawSettings(){
  if(!SC.key){SC.key=genKey();scSave()}
  $('#tab-settings').innerHTML=`
- <div class="card"><h3>Logos</h3><p class="hint">These logos show in the top bar, the first screen and every printout.</p><div class="row" style="gap:24px"><div style="text-align:center"><b>PSU name</b><br><span class="hint">(Public Sector Undertaking logo)</span><br>${DB.logoL?`<img class="iocl-logo settings-logo${ioc(DB.logoL)}" src="${ioclLogo(DB.logoL)}" height="60" alt="IndianOil">`:'<span class="pill">not added yet</span>'}<br><button class="btn sm sec" id="lgL">${DB.logoL?'Change':'Upload'}</button></div><div style="text-align:center"><b>Contractor company</b><br><span class="hint">(your company logo)</span><br>${DB.logoR?`<img src="${DB.logoR}" height="60">`:'<span class="pill">not added yet</span>'}<br><button class="btn sm sec" id="lgR">${DB.logoR?'Change':'Upload'}</button></div></div></div>
+ <div class="card"><h3>Logos</h3><p class="hint">These logos show in the top bar, the first screen and every printout.</p><div class="lg107">${[['PSU name','(Public Sector Undertaking logo)',DB.logoL?`<img class="iocl-logo settings-logo${ioc(DB.logoL)}" src="${ioclLogo(DB.logoL)}" alt="IndianOil">`:'','lgL',DB.logoL],['Contractor company','(your company logo)',DB.logoR?`<img src="${DB.logoR}" alt="Contractor">`:'','lgR',DB.logoR]].map(x=>`<div class="lgb"><b>${x[0]}</b><span class="hint">${x[1]}</span><div class="lgi">${x[2]||'<span class="pill">not added yet</span>'}</div><button class="btn sm sec" id="${x[3]}">${x[4]?'Change':'Upload'}</button></div>`).join('')}</div></div>
  <div class="card"><h3>RA Bill password</h3><p class="hint">Admin opens RA Bill directly. EIC, AE/TPI and Project Manager must type this password to open RA Bill. Type a New password and press Change; it applies at once and syncs if the Sheet is connected.</p><div class="grid"><label class="f">Current password<input type="text" id="pwo" value="${esc(ptGet().rapw)}" readonly autocomplete="off"></label><label class="f">New password<input type="text" id="pwn" autocomplete="off" placeholder="New password"></label></div><div class="row" style="margin-top:10px"><button class="btn" id="pwb">Change password</button></div></div>
  <div class="card"><h3>Backup file</h3><p class="hint">Download a backup file now and then. Use Restore to move data to another phone or computer.</p><div class="row"><button class="btn" id="exp">Download backup</button><button class="btn sec" id="imp">Restore backup</button></div></div>
  <div class="card"><h3>Google Sheet backup</h3><p class="hint">RA bills sync after you open the RA Bill module while connected and online. To upload/check now, press <b>Sync now</b> below. Each bill has a tab (for example RA 30) and a backup record in the hidden _data tab. Admin &quot;Sync settings now&quot; uploads portal settings only. Downloaded PDFs are not uploaded as separate Drive files. A new HTML copy does not contain this device's saved RA bills: use the same browser or Restore backup before syncing.</p>
@@ -2807,7 +2807,7 @@ const ptOrg70=ptOrg;ptOrg=function(B){ptOrg70(B);const w=B.querySelector('.orgwr
   if(document.getElementById('v71logout')){document.getElementById('v71logout').remove();return;}
   if(window.__ovBack90&&window.__ovBack90(e))return;
   const m=document.getElementById('wfmodal');if(m){m.querySelector('#wfclose')?.click();if(m.isConnected)m.remove();return;}
-  if(document.body.classList.contains('inra')||window.__ptPage!=='home'){ptHome('home');return;}
+  if(document.body.classList.contains('inra')||window.__ptPage!=='home'){e.stopImmediatePropagation();if(!(window.__navBack&&window.__navBack()))window.__navRoot&&window.__navRoot();return;}
   ask();
  });
  window.portalLogout99=ask;window.addEventListener('pageshow',()=>{armed=false;seed();});window.addEventListener('focus',()=>{if(ptRole()&&!history.state?.portalBack99){armed=false;seed();}});setTimeout(seed,500);
@@ -3482,7 +3482,7 @@ function wfPdfTools89(r){return r.status!=='Approved'||WF89_APPROVED_PDF_TOOLS}
  function schedule(){if(pending)return;pending=true;Promise.resolve().then(reconcile)}
  function closeTop(el){const q=s=>el.querySelector(s);const b=el.id==='wfmodal'?q('#wfclose'):el.id==='v71logout'?q('#v71n'):el.id==='fmtview'?q('#fvclose'):(q('[data-n]')||Array.from(el.querySelectorAll('button')).find(x=>/^(close|cancel|no)$/i.test(x.textContent.trim())));
   if(b){try{b.click()}catch(e){}}if(el.isConnected)el.remove()}
- window.__ovBack90=function(){if(window.__exit63Leaving)return true;if(skip>0){skip--;return true}const L=list();if(pushed>0&&L.length){pushed--;closeTop(L[L.length-1]);return true}if(pushed>0&&!L.length){pushed=0}return false};
+ window.__ovBack90=function(){if(window.__exit63Leaving)return true;if(skip>0){skip--;return true}try{if(window.__navBackCgd&&window.__navBackCgd())return true;if(window.__cgdActive&&window.__cgdActive()){window.__navRoot&&window.__navRoot();return true}}catch(e){}const L=list();if(pushed>0&&L.length){pushed--;closeTop(L[L.length-1]);return true}if(pushed>0&&!L.length){pushed=0}return false};
  window.addEventListener('popstate',function(){schedule()},true);
  new MutationObserver(ms=>{if(ms.length&&ms.every(m=>m.target.closest?.('.pclk,#dr69badge')||m.target.parentElement?.closest('.pclk,#dr69badge')))return;schedule();stripPdf()}).observe(document.body,{childList:true,subtree:true});
  stripPdf();
@@ -4346,6 +4346,23 @@ const row=box.querySelector('.row');if(row&&!row.querySelector('.its105')){const
 #tab-mb .tbl.mbt tr[data-b] td.am:empty{display:none}
 #tab-mb .tbl.mbt tr[data-b] td.am:not(:empty)::before{content:'Amount: ';font-weight:500;color:var(--mut)}
 }</style>
+<style id="r107lg">.lg107{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.lg107 .lgb{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;border:1.5px solid var(--line,#cfd8e3);border-radius:12px;padding:10px 8px;background:#fff}.lg107 .hint{margin:0;font-size:12px;min-height:30px}.lg107 .lgi{width:100%;height:76px;display:flex;align-items:center;justify-content:center;background:#f6f8fb;border-radius:8px}.lg107 .lgi img{max-width:88%;max-height:64px!important;height:auto!important;width:auto!important;object-fit:contain}.lg107 .btn{margin-top:auto;min-width:90px}.lg107 .lgb b{min-height:40px;display:flex;align-items:center;justify-content:center;line-height:1.15;font-size:15px}</style>
+<style id="r107css">@media(max-width:700px){
+#tab-mb .tbl.mbt tr[data-b]{align-items:baseline!important;gap:1px 10px!important;padding:5px 8px 6px!important;margin-bottom:5px!important}
+#tab-mb .tbl.mbt tr[data-b]::after{content:'';flex:0 0 100%;order:5;height:0}
+#tab-mb .tbl.mbt tr[data-b] td:nth-child(3),#tab-mb .tbl.mbt tr[data-b] td:nth-child(4){font-size:12px;flex:0 0 auto!important;order:2}
+#tab-mb .tbl.mbt tr[data-b] td:nth-child(4){order:3}
+#tab-mb .tbl.mbt tr[data-b] td.in{display:flex!important;flex-direction:row!important;align-items:baseline!important;gap:5px!important;flex:0 0 auto!important;max-width:none!important}
+#tab-mb .tbl.mbt tr[data-b] td.in:nth-child(5){order:4}
+#tab-mb .tbl.mbt tr[data-b] td.in:nth-child(6){order:6;align-items:center!important}
+#tab-mb .tbl.mbt tr[data-b] td.in .mlab{font-size:12px!important;color:var(--mut);white-space:nowrap}
+#tab-mb .tbl.mbt tr[data-b] td.in input{width:6.2em!important;font-size:15px!important;padding:3px 6px!important}
+#tab-mb .tbl.mbt tr[data-b] td.in input.p[readonly]{width:auto!important;min-width:3.5em;max-width:7em;font-size:14px!important;font-weight:800!important;color:#0a2a52!important;padding:0!important;field-sizing:content}
+#tab-mb .tbl.mbt tr[data-b] td.in input.q{width:5.2em!important;text-align:right;padding:2px 6px!important}
+#tab-mb .tbl.mbt tr[data-b] td.am{order:7;flex:1 1 auto!important;font-size:13px}
+#tab-mb .tbl.mbt tr[data-b] td{line-height:1.15!important}#tab-mb .tbl.mbt tr[data-b] td.in input{height:28px!important;min-height:0!important;line-height:1}#tab-mb .tbl.mbt tr[data-b] td:nth-child(3),#tab-mb .tbl.mbt tr[data-b] td:nth-child(4),#tab-mb .tbl.mbt tr[data-b] td.in .mlab{font-size:11.5px!important}#tab-mb .tbl.mbt tr[data-b]{gap:0 8px!important;row-gap:3px!important}#tab-mb .tbl.mbt tr[data-b] td.in input.p[readonly]{font-size:13px!important}#tab-mb .tbl.mbt tr[data-b] td.in input.q{width:4.3em!important}#tab-mb .tbl.mbt tr[data-b] td.am{font-size:12.5px!important;white-space:nowrap}#tab-mb .tbl.mbt tr[data-b] td.in:nth-child(6) .mlab{font-size:11px!important}
+}
+</style>
 <style id="r104css">@media(max-width:700px){
 .plwrap.plcards .pltab tbody tr:not(.grp):not(.sp){display:flex!important;flex-wrap:wrap;align-items:baseline;gap:1px 9px;padding:5px 9px 6px!important;margin:0 0 5px!important;border-radius:10px;box-shadow:0 1px 5px #0b3d7820}
 .plwrap.plcards .pltab tbody tr:not(.grp) td:not(.e){display:block!important;width:auto!important;padding:0!important;font-size:12px!important;line-height:1.3;margin:0;background:transparent!important;order:5;flex:0 0 auto}
@@ -4362,7 +4379,22 @@ const row=box.querySelector('.row');if(row&&!row.querySelector('.its105')){const
 .plwrap.plcards .pltab tbody tr.grp td{font-size:13.5px!important;padding:7px 12px!important;line-height:1.3}
 .plleg{margin:0 0 6px!important}.pldept{margin:2px 0!important}
 }</style>
-<script id="r102js">(()=>{const foc=()=>{const i=document.getElementById('ppw');if(i&&document.querySelector('.pl'))try{i.focus({preventScroll:true})}catch(e){}};const l0=ptLogin;ptLogin=function(){const r=l0.apply(this,arguments);try{const pg=document.getElementById('pgo');foc();setTimeout(foc,60);const rl=document.getElementById('prl'),pt=document.getElementById('ppat');rl&&rl.addEventListener('change',()=>setTimeout(foc,30));pt&&pt.addEventListener('change',()=>setTimeout(foc,30));pg&&pg.addEventListener('click',()=>{setTimeout(foc,700);setTimeout(foc,2500)})}catch(e){}return r};})();</script></body><script>
+<script id="r102js">(()=>{const foc=()=>{const i=document.getElementById('ppw');if(i&&document.querySelector('.pl'))try{i.focus({preventScroll:true})}catch(e){}};const l0=ptLogin;ptLogin=function(){const r=l0.apply(this,arguments);try{const pg=document.getElementById('pgo');foc();setTimeout(foc,60);const rl=document.getElementById('prl'),pt=document.getElementById('ppat');rl&&rl.addEventListener('change',()=>setTimeout(foc,30));pt&&pt.addEventListener('change',()=>setTimeout(foc,30));pg&&pg.addEventListener('click',()=>{setTimeout(foc,700);setTimeout(foc,2500)})}catch(e){}return r};})();</script><script id="r107nav">(()=>{const S=[];let R=0,pg='';const cur=()=>window.__ptPage||'';
+const reset=()=>{S.length=0;pg=cur()};
+const push=e=>{if(R)return;S.push(e);if(S.length>60)S.shift()};
+const ptGo0=ptGo;ptGo=function(){if(!R)S.length=0;const r=ptGo0.apply(this,arguments);if(!R)pg=cur();return r};
+const ptHome0=ptHome;ptHome=function(){if(!R)S.length=0;const r=ptHome0.apply(this,arguments);if(!R)pg=cur();return r};
+const ps0=patSection;patSection=function(id){const prev=window.__patSec;const r=ps0.apply(this,arguments);const now=window.__patSec;if(!R&&prev&&now&&prev!==now&&cur()===pg)push({k:'sec',s:prev});return r};
+const tab0=tab;tab=function(n){const prev=typeof curTab!=='undefined'?curTab:null;const r=tab0.apply(this,arguments);if(!R&&prev&&typeof curTab!=='undefined'&&curTab!==prev&&document.body.classList.contains('inra'))push({k:'ra',t:prev});return r};
+window.__navPush=push;
+let T=0;const gate=f=>{if(Date.now()-T<120)return true;const r=f();if(r)T=Date.now();return r};
+const cgdStep=()=>{try{const cg=document.getElementById('cgdov'),fr=document.getElementById('cgdfr');return !!(cg&&cg.isConnected&&cg.style.display!=='none'&&fr&&fr.contentWindow&&fr.contentWindow.__cgdBackStep&&fr.contentWindow.__cgdBackStep())}catch(x){return false}};
+const popStep=()=>{const e=S.pop();if(!e)return false;R=1;try{if(e.k==='sec')patSection(e.s);else if(e.k==='ra')tab(e.t);else if(e.k==='fn')e.f()}catch(x){}finally{R=0}return true};
+window.__navBackCgd=()=>gate(cgdStep);window.__cgdActive=()=>{const cg=document.getElementById('cgdov');return !!(cg&&cg.isConnected&&cg.style.display!=='none')};let rt=0;window.__navRoot=()=>{if(Date.now()-rt<400)return;rt=Date.now();try{toast('Use Portal to go to the main screen')}catch(x){}};
+window.__navBack=()=>gate(()=>cgdStep()||popStep());
+window.__navDepth=()=>S.length;
+})();</script>
+</body><script>
 /* v5.99.15: compact mobile UI and PDF-only completed/received report views. */
 (()=>{
  const mobile=()=>matchMedia('(max-width:700px)').matches;
@@ -5296,7 +5328,7 @@ window.addEventListener('popstate',function(e){
  for(const o of ovs){try{if(o.id==='wfmodal')o.querySelector('#wfclose')?.click();else if(o.id==='fmtview')o.querySelector('#fvclose')?.click();else if(o.id==='fmtpdf155')fmtClose155()}catch(x){}if(o.isConnected)o.remove()}
  document.querySelectorAll('#fmtside.open,#patside.open,#pside.open').forEach(n=>n.classList.remove('open'));document.querySelectorAll('#fmtov.on,#patov.on,#pov.on').forEach(n=>n.classList.remove('on'));
  document.body.classList.remove('fvopen');
- try{ptHome('home')}catch(x){}
+ if(window.__navBack&&window.__navBack())return;window.__navRoot&&window.__navRoot();
 },true);
 
 /* Item166: missed dates list in a small message box */
@@ -5405,7 +5437,7 @@ const fix=()=>{document.querySelectorAll(SEL).forEach(i=>{if(i.dataset.ns191)ret
 const eye=i.parentElement&&i.parentElement.querySelector('#peye');if(eye){const n=eye.cloneNode(true);eye.replaceWith(n);n.onclick=()=>{const v=i.dataset.show191==='1';i.dataset.show191=v?'0':'1';n.setAttribute('aria-label',v?'Show password':'Hide password');n.setAttribute('aria-pressed',String(!v))}}})};
 new MutationObserver(fix).observe(document.documentElement,{childList:true,subtree:true});fix();
 const hide=e=>{const a=document.activeElement;if(a&&a.dataset&&a.dataset.ns191&&e.target!==a&&!(e.target.closest&&e.target.closest('#peye'))){a.blur()}};
-let wasF=null;document.addEventListener('pointerdown',e=>{wasF=(e.target&&e.target.dataset&&e.target.dataset.ns191&&document.activeElement===e.target)?e.target:null},true);document.addEventListener('click',e=>{if(wasF&&e.target===wasF){wasF.blur()}wasF=null},true);document.addEventListener('pointerdown',hide,true);document.addEventListener('touchstart',hide,true);
+let wasF=null;document.addEventListener('pointerdown',e=>{wasF=(e.target&&e.target.dataset&&e.target.dataset.ns191&&document.activeElement===e.target)?e.target:null},true);document.addEventListener('click',e=>{const f=wasF;wasF=null;if(f&&e.target===f){const touch=matchMedia('(pointer:coarse)').matches;if(touch&&f.value){f.blur()}else if(touch){f.blur();f.focus()}}},true);document.addEventListener('pointerdown',hide,true);document.addEventListener('touchstart',hide,true);
 document.addEventListener('keydown',e=>{const a=document.activeElement;if(e.key==='Enter'&&a&&a.dataset&&a.dataset.ns191)setTimeout(()=>a.blur(),0)},true)}
 
 /* Item195: every text/number/textarea box in every role - tap outside, or tap the already-focused box again, hides the keyboard; tap a box to bring it back */
@@ -5414,7 +5446,7 @@ let was=null,moved=false,sx=0,sy=0;
 document.addEventListener('pointerdown',e=>{const a=document.activeElement;was=(TXT(a)&&e.target===a)?a:null;moved=false;sx=e.clientX;sy=e.clientY},true);
 document.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8)moved=true},true);
 document.addEventListener('click',e=>{const a=document.activeElement;if(!TXT(a)||moved||e.isTrusted===false&&!e.detail&&!was)return;const t=e.target;
-if(t===a){if(was===a){let collapsed=true;try{collapsed=a.selectionStart==null||a.selectionStart===a.selectionEnd}catch(x){}if(collapsed)setTimeout(()=>a.blur(),0)}return}
+if(t===a){if(was===a){let collapsed=true;try{collapsed=a.selectionStart==null||a.selectionStart===a.selectionEnd}catch(x){}if(collapsed){const pw=a.dataset&&a.dataset.ns191,touch=matchMedia('(pointer:coarse)').matches;if(!pw)setTimeout(()=>a.blur(),0);else if(touch&&a.value)setTimeout(()=>a.blur(),0);else if(touch){a.blur();a.focus()}}}return}
 if(t.closest&&t.closest('input,textarea,select,[contenteditable="true"],label'))return;setTimeout(()=>{if(document.activeElement===a)a.blur()},0)},true)}
 
 /* Item196: browser storage full ("exceeded the quota") must not block saving. Free rebuildable caches, retry, and keep the value in memory for this session if still full. */
