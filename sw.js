@@ -1,6 +1,16 @@
 /* v5.99.15 r12: immediate cached launch, bounded installs, visible update status. */
-const CACHE='iocl-portal-shell-v5.99.15-r11109';
-const HASHES148={"apple-touch-icon.png": "57907d512a141fbf20c43a5742e2fc5f4b2821ecaa533e82b29082291aaf4698", "cgd-module.b64": "9de5957a1cda07d6867bcb3a43e0bc151e0a1ceec97e6d492283876f74afa185", "icon-192.png": "44805d488ec57e7269f182f65d8e02a5de286123b84dbdd769825a7a88228358", "icon-512.png": "838ced7a5be902adfecdc7c6cb7d6c74815ee1debaec969dd13170d536344ce0", "icon-maskable-512.png": "c2e93dc235eb284855769a0d37daba8a86d79b2dfa2b3414dea6f48699d7bb92", "index.html": "129194e557d959728d70db3df61aaca3fc8dd1f64e5777c43c9b057c1ef0a91d", "manifest.webmanifest": "283a329ad8f8683ed55c94ddd034c0a6020143a831197fd445b929355f4aed56", "pipeline-module.b64": "33424c1d4fc6335fe32f603398d232d46ff9fdf36b320da65be7678c7958adad", "schedule-module.b64": "f96345c3e33f758dca70eb821b020456cd3b8c679879817fe682cdf90a830450"};
+const CACHE='iocl-portal-shell-v5.99.15-r11120';
+const HASHES148={
+ "apple-touch-icon.png": "57907d512a141fbf20c43a5742e2fc5f4b2821ecaa533e82b29082291aaf4698",
+ "cgd-module.b64": "0b630ef6f6bfe43746f9e4bd9c44b122e2c305e73d367bc77d8070bbaa870e98",
+ "icon-192.png": "44805d488ec57e7269f182f65d8e02a5de286123b84dbdd769825a7a88228358",
+ "icon-512.png": "838ced7a5be902adfecdc7c6cb7d6c74815ee1debaec969dd13170d536344ce0",
+ "icon-maskable-512.png": "c2e93dc235eb284855769a0d37daba8a86d79b2dfa2b3414dea6f48699d7bb92",
+ "index.html": "3e8612e116c419f3cd4d9ba323ba96b897b4ebe5df9d0156efb2eb7b70b63159",
+ "manifest.webmanifest": "283a329ad8f8683ed55c94ddd034c0a6020143a831197fd445b929355f4aed56",
+ "pipeline-module.b64": "33424c1d4fc6335fe32f603398d232d46ff9fdf36b320da65be7678c7958adad",
+ "schedule-module.b64": "f96345c3e33f758dca70eb821b020456cd3b8c679879817fe682cdf90a830450"
+};
 const ROOT=new URL('./',self.location.href),APP=new URL('index.html',ROOT).href;
 const FILES=['index.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','icon-maskable-512.png','pipeline-module.b64','schedule-module.b64','cgd-module.b64'].map(p=>new URL(p,ROOT).href);
 async function note(text,done=false,error=false,percent=null){const all=await self.clients.matchAll({includeUncontrolled:true,type:'window'});all.forEach(c=>c.postMessage({update54:true,text,done,error,percent}));}
