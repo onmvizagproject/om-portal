@@ -2323,7 +2323,7 @@ function wfIssueSend(x){if(ptRole()==='pat'&&x.person!==drMe())return toast('Onl
 function wfRaSend(){if(!ptCanRA()||!DB)return;const key=curDoc,n=DB.cur;const id=wfMake('ra','RA '+n+' - '+(DOCS.find(x=>x[0]===key)?.[1]||key),{html:docHTML(R(),key,calc(R())),raNumber:n},'ra:'+n+':'+key,'ra:'+key);wfDialog(id)}
 function wfMonthlyCopy(month,person){const rows=drAllReports().filter(r=>r.date.startsWith(month)&&(!person||r.person===person));if(!rows.length)throw Error('No daily reports for this month.');return {month,person,html:'<h3>Patroller Monthly Report - '+esc(month)+'</h3><p>Approval copy based on '+rows.length+' saved daily reports.</p><table><thead><tr><th>Date</th><th>Patroller</th><th>Shift</th><th>Opening km</th><th>Closing km</th><th>Travel</th><th>Comments</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(drDate(r.date))+'</td><td>'+esc(drName(r))+'</td><td>'+esc(r.shift)+'</td><td>'+esc(r.opening)+'</td><td>'+esc(r.closing)+'</td><td>'+esc(rptKm(r))+'</td><td>'+esc(r.comment)+'</td></tr>').join('')+'</tbody></table>'+rows.map(r=>wfDailyHtml(r)).join('<hr>')}}
 function wfMonthlySend(){wfOverlay('Send Monthly Report',`<label>Month<input id="wfmonth" type="month" value="${drToday().slice(0,7)}"></label><p class="hint">The approval copy includes the saved daily reports and monthly travel summary. The existing monthly view is unchanged.</p><button id="wfmonthgo" class="btn">Create report copy</button><p id="wferr" class="pe"></p>`);$('#wfmonthgo').onclick=()=>{try{const month=$('#wfmonth').value,person=ptRole()==='pat'?drMe():'';const snap=wfMonthlyCopy(month,person);wfDialog(wfMake('monthly','Patroller Monthly Report - '+month,snap,'monthly:'+month+':'+wfActor(),'monthly'))}catch(e){$('#wferr').textContent=e.message}}}
-function wfEntryPoints(){const docs=$('#tab-docs');if(docs&&ptCanRA()&&!docs.querySelector('#wfrasend')){const b=document.createElement('button');b.id='wfrasend';b.className='btn';b.textContent='Send current printout';b.onclick=wfRaSend;docs.appendChild(b)}const fbar=$('#fmtview .fvbtn');if(fbar&&!$('#wfformsend')){const b=document.createElement('button');b.id='wfformsend';b.className='btn sm';b.textContent='Send report';b.onclick=async()=>{await fmtVSave();const id=fmtV?.id;await fmtClose();if(id)wfAompCreate(id)};fbar.appendChild(b)}const isB=$('#patmain');if(isB&&window.__patSec==='issues')$$('[data-go]',isB).forEach(b=>{const card=b.closest('.isc')||b.parentElement;if(card.querySelector('[data-wfi]'))return;const x=(window.__isRows||[])[+b.dataset.go];if(!x)return;const n=document.createElement('button');n.className='rpb e';n.dataset.wfi=x.id;n.textContent='Send';n.onclick=()=>wfIssueSend(x);b.parentElement.appendChild(n)});if(isB&&window.__patSec==='monthly'&&!isB.querySelector('#wfmonthly')){const b=document.createElement('button');b.id='wfmonthly';b.className='btn';b.textContent='Send Monthly Report';b.onclick=wfMonthlySend;isB.appendChild(b)}if(false){const b=document.createElement('button');b.id='wfmyapprovals';b.className='btn';b.textContent='My Report Approvals / Returned Reports';b.onclick=()=>ptHome('_reports');isB.prepend(b)}}
+function wfEntryPoints(){const docs=$('#tab-docs');if(docs&&ptCanRA()&&!docs.querySelector('#wfrasend')){const b=document.createElement('button');b.id='wfrasend';b.className='btn';b.textContent='Send current printout';b.onclick=wfRaSend;docs.appendChild(b)}const fbar=$('#fmtview .fvbtn');if(fbar&&!$('#wfformsend')){const b=document.createElement('button');b.id='wfformsend';b.className='btn sm';b.textContent='Send report';b.onclick=async()=>{await fmtVSave();const id=fmtV?.id;await fmtClose();if(id)wfAompCreate(id)};fbar.appendChild(b)}const isB=$('#patmain');if(isB&&window.__patSec==='issues')$$('[data-go]',isB).forEach(b=>{const card=b.closest('.isc')||b.parentElement;if(card.querySelector('[data-wfi]'))return;const x=(window.__isRows||[])[+b.dataset.go];if(!x)return;const n=document.createElement('button');n.className='rpb e';n.dataset.wfi=x.id;n.textContent='Send';n.onclick=()=>wfIssueSend(x);b.parentElement.appendChild(n)});if(false&&isB&&window.__patSec==='monthly'&&!isB.querySelector('#wfmonthly')){const b=document.createElement('button');b.id='wfmonthly';b.className='btn';b.textContent='Send Monthly Report';b.onclick=wfMonthlySend;isB.appendChild(b)}if(false){const b=document.createElement('button');b.id='wfmyapprovals';b.className='btn';b.textContent='My Report Approvals / Returned Reports';b.onclick=()=>ptHome('_reports');isB.prepend(b)}}
 const wfReportCSS=[...document.querySelectorAll('style')].map(x=>x.textContent).filter(x=>!x.includes('#wfmodal')).join('\n');
 const wfStyle=document.createElement('style');wfStyle.textContent='#wfmodal{position:fixed;inset:0;background:#13253d88;z-index:2147483000;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}.wfmodal{background:var(--card,#fff);color:var(--ink,#15253b);border-radius:14px;padding:22px;width:min(1050px,100%);box-sizing:border-box}.wfbar,.wfactions,.wfrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}.wfbar h2{font-size:21px;margin:0 0 8px}.wfactions{justify-content:flex-start;margin:12px 0}.wfactions button,.wfactions select{min-height:44px}.wfmodal label{display:block;margin:12px 0}.wfmodal input,.wfmodal textarea,.wfmodal select,#wfsettings select{width:100%;padding:10px;border:1px solid #ccd5e1;border-radius:8px;font:inherit;box-sizing:border-box}.wfgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.wfgrid small,.wfgrid b{display:block}.wfsigns{display:flex;gap:24px;flex-wrap:wrap}.wfsigns>div{border:1px solid #d5dee9;padding:12px;border-radius:9px;max-width:220px}.wfsigns img{display:block;width:170px;height:65px;object-fit:contain;background:#fff}.wfsigns b,.wfsigns small{display:block}.wfpreview{background:#fff;color:#182433;padding:14px;border:1px solid #d5dee9;border-radius:8px;max-height:60vh;overflow:auto;margin:15px 0}.wfpreview .docx-wrapper{padding:8px!important}.wfpreview section.docx{max-width:100%;box-sizing:border-box}.wfhistory{max-height:230px;overflow:auto}.wfnotice{font-size:12px;white-space:nowrap;background:#eaf2fc;color:#163f75;border:1px solid #b9cee7;border-radius:9px;padding:9px;cursor:pointer;flex-shrink:0}.wfrow .hint{margin:7px 0}#wfsettings{margin-top:24px}#wfsettings label{display:block}#wfsettings select{margin-top:6px}@media(max-width:600px){#wfmodal{padding:8px}.wfmodal{padding:15px}.wfpreview{padding:7px}.wfbar h2{font-size:18px}.wfnotice{max-width:125px;white-space:normal}}';document.head.appendChild(wfStyle);
 let wfFrame=0;new MutationObserver(ms=>{if(ms.length&&ms.every(m=>m.target.closest?.('.pclk,#dr69badge')||m.target.parentElement?.closest('.pclk,#dr69badge')))return;cancelAnimationFrame(wfFrame);wfFrame=requestAnimationFrame(()=>{wfHeaders();wfEntryPoints()})}).observe(document.body,{childList:true,subtree:true});/* Approval polling is provided by the existing 20-second v5.93 timer. */addEventListener('online',()=>{if(ptRole())wfSync()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ptRole())wfSync()});wfHeaders();wfEntryPoints();
@@ -4656,7 +4656,9 @@ function hsRepStatus(B){const all=Object.values(wfState().reports).filter(r=>r.o
  B.querySelectorAll('[data-wfsv]').forEach(b=>b.onclick=()=>wfDialog(b.dataset.wfsv));
  const f=B.querySelector('#hsRepFrom'),t=B.querySelector('#hsRepTo');if(f)f.onchange=()=>{RF=f.value;draw()};if(t)t.onchange=()=>{RTO=t.value;draw()}}
 function rep(){const ms=[...new Set(D.checks.filter(c=>!c.imp).map(c=>mon(c.date)))].sort().reverse();
- const tabs='<div class="hs-types" style="margin-bottom:10px"><button class="hs-chip'+(RT==='rep'?' on':'')+'" data-rt="rep">Reports</button><button class="hs-chip'+(RT==='status'?' on':'')+'" data-rt="status">Report Status</button></div>';
+ const tabs='<div class="hs-types" style="margin-bottom:10px"><button class="hs-chip'+(RT==='rep'?' on':'')+'" data-rt="rep">Reports</button><button class="hs-chip'+(RT==='fmt'?' on':'')+'" data-rt="fmt">HSE formats</button><button class="hs-chip'+(RT==='status'?' on':'')+'" data-rt="status">Report Status</button></div>';
+ if(RT==='fmt'){let fl=[],mine=[];try{fl=fmtLoad().filter(x=>fmtInGroup(x,'HSE'));const ids=new Set(fl.map(x=>x.id));mine=Object.values(wfState().reports).filter(r=>r.type==='aomp'&&wfMine(r)&&String(r.sourceKey||'').split(':')[0]==='aomp'&&(ids.has(String(r.sourceKey).split(':')[1])||ids.has(r.snapshot&&r.snapshot.id))).sort((a,b)=>b.updated-a.updated)}catch(e){}
+  return ban()+'<h3>Reports</h3>'+tabs+'<p class="hint">Same steps as the Patroller Daily Report: pick the format, fill it, Save or Send. The report is made through the format, appears in Report Status and goes along the approval chain Admin set. Edit it there until it is sent.</p>'+'<h4>HSE formats</h4>'+(fl.length?fl.map(x=>'<div class="hs-row"><b>'+E(x.code+' - '+x.name)+'</b><span><button class="hs-btn sm pri" data-wfa="'+E(x.id)+'">Fill / Send report</button></span></div>').join(''):'<div class="hs-msg">No formats in the HSE section yet. Add them in AOMP Formats.</div>')+'<h4 style="margin-top:12px">My HSE reports</h4>'+(mine.length?mine.map(r=>'<div class="hs-row"><span><b>'+E(r.title)+'</b><br><span class="hs-msg">'+E(r.status)+' | '+E(wfProgress(r))+'</span></span><span><button class="hs-btn sm" data-wfsv="'+r.id+'">View</button>'+(wfCanEdit(r)?' <button class="hs-btn sm" data-wfed="'+r.id+'">Edit</button>':'')+'</span></div>').join(''):'<div class="hs-msg">No HSE format reports yet.</div>')+msg()}
  if(RT==='status')return ban()+'<h3>Reports</h3>'+tabs+'<div id="hsRepStatus"></div>'+msg();
  let body='';
  if(!RC){const cnt=t=>D.sites.filter(s2=>s2.t===t).length;
@@ -4737,6 +4739,8 @@ function bind(B){
  if($('rT'))$('rT').onchange=()=>{FT=$('rT').value;draw()};if($('rV'))$('rV').onchange=()=>{FT=$('rV').value;draw()};
  B.querySelectorAll('[data-fm]').forEach(b=>b.onclick=async()=>{const[k,l,m]=b.dataset.fm.split('|');try{b.disabled=true;await makeForm(k,l,m);MSG=''}catch(e){MSG='Could not make the report: '+E(e.message);draw()}finally{b.disabled=false}});
  B.querySelectorAll('[data-rt]').forEach(b=>b.onclick=()=>{RT=b.dataset.rt;draw()});
+ B.querySelectorAll('[data-wfa]').forEach(b=>b.onclick=()=>wfAompCreate(b.dataset.wfa));
+ B.querySelectorAll('[data-wfed]').forEach(b=>b.onclick=()=>wfEditReport(b.dataset.wfed));
  B.querySelectorAll('[data-rcat]').forEach(b=>b.onclick=()=>{RC=b.dataset.rcat;RL='';draw()});
  B.querySelectorAll('[data-rloc]').forEach(b=>b.onclick=()=>{RL=b.dataset.rloc;draw()});
  B.querySelectorAll('[data-fmp]').forEach(b=>b.onclick=async()=>{const[k,l]=b.dataset.fmp.split('|');const sl=document.getElementById('m_'+k),m=sl?sl.value:'';try{b.disabled=true;await makeForm(k,l,m);MSG=''}catch(e){MSG='Could not make the report: '+E(e.message);draw()}finally{b.disabled=false}});
@@ -4938,48 +4942,76 @@ const o=new MutationObserver(()=>fix());const t=()=>{const n=document.getElement
 })();
 </script>
 <script>
-/* r11175: moves and new sections now sync both ways through the Sheet (record tomb_aomp_fmtsec_v1, merged per format by newest change, sections merged as a union), automatically. r11174: AOMP Formats - "Move to" section dropdown on every format row (current section shown), "+ Add section", and a default "Local Formats" section. Stored on this device (om_fmt_sections_v1); moved custom formats also carry the new section in their own synced record. */
+/* r11178 (no per-row Section line; current section marked inside the dropdown): AOMP Formats - compact "Move to" dropdown on each format row; Add / Rename / Delete section live inside that dropdown (and in a small "Section" dropdown on custom section headings, so an empty section can still be renamed or deleted). Top "+ Add new section" button removed. Sections, renames, deletions and moves sync both ways through the Sheet record tomb_aomp_fmtsec_v1 (r11175 record, extended with section add/delete times; older records still read fine). */
 (()=>{
  if(window.__fmtsec174||typeof fmtSection!=='function'||typeof fmtLoad!=='function')return;window.__fmtsec174=1;
- const KEY='om_fmt_sections_v1';
- const rd=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||'{}');return {secs:Array.isArray(v.secs)?v.secs.filter(x=>typeof x==='string'):[],mv:(v.mv&&typeof v.mv==='object')?v.mv:{}}}catch(e){return {secs:[],mv:{}}}};
+ const KEY='om_fmt_sections_v1',LOCAL='Local Formats';
+ const lc=s=>String(s).toLowerCase();
+ const norm=v=>{const o={secs:[],sa:{},dl:{},mv:{}};for(const s of (v&&v.secs)||[])if(typeof s==='string'&&s.trim()&&s.length<=40&&!o.secs.some(q=>lc(q)===lc(s)))o.secs.push(s);
+  for(const k of ['sa','dl']){const m=(v&&v[k])||{};for(const n in m)if(+m[n]>0)o[k][lc(n)]=+m[n]}
+  const m=(v&&v.mv)||{};for(const id in m){const e=m[id],g=Array.isArray(e)?e:(e&&e.g),t=Array.isArray(e)?0:(+e.t||0);if(Array.isArray(g)&&g.length&&g.every(x=>typeof x==='string'&&x))o.mv[id]={g,t}}return o};
+ const rd=()=>{try{return norm(JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return norm({})}};
  const wr=v=>localStorage.setItem(KEY,JSON.stringify(v));
- const addSec=n=>{if(!FMT_GROUPS.some(g=>g.toLowerCase()===n.toLowerCase()))FMT_GROUPS.push(n)};
- addSec('Local Formats');rd().secs.forEach(addSec);
+ const refd=(v,n)=>Object.values(v.mv).some(e=>e.g.some(x=>lc(x)===lc(n)));
+ const alive=(v,n)=>lc(n)===lc(LOCAL)||refd(v,n)||!v.dl[lc(n)]||(v.sa[lc(n)]||0)>v.dl[lc(n)];
+ const addSec=n=>{if(!FMT_GROUPS.some(g=>lc(g)===lc(n)))FMT_GROUPS.push(n)};
+ const dropSec=n=>{const i=FMT_GROUPS.findIndex(g=>lc(g)===lc(n));if(i>=0)FMT_GROUPS.splice(i,1)};
+ const BASE=FMT_GROUPS.slice();const isBase=n=>BASE.some(g=>lc(g)===lc(n))||lc(n)===lc(LOCAL);
+ const apply=v=>{addSec(LOCAL);v.secs.forEach(n=>{if(alive(v,n))addSec(n);else if(!isBase(n))dropSec(n)})};
+ apply(rd());
  const load0=fmtLoad;
  fmtLoad=function(){const d=load0.apply(this,arguments);let mv;try{mv=rd().mv}catch(e){return d}for(const x of d){const m=mv[x.id],a=Array.isArray(m)?m:(m&&m.g);if(Array.isArray(a)&&a.length){x.groups=[...a];x.group=a[0]}}return d};
  const esc2=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const custom=n=>!isBase(n)&&rd().secs.some(s=>lc(s)===lc(n));
+ const done=msg=>{fmtStatus=msg;fmtSection('formats');setTimeout(()=>sync(true),300)};
+ function ask(msg,yes){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';o.innerHTML='<div role="alertdialog" style="background:#fff;border-radius:12px;padding:16px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.3)"><p style="margin:0 0 14px;font-weight:600">'+esc2(msg)+'</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sm sec" type="button" data-n>No</button><button class="btn sm" type="button" data-y>Yes, delete</button></div></div>';document.body.appendChild(o);o.querySelector('[data-n]').onclick=()=>o.remove();o.querySelector('[data-y]').onclick=()=>{o.remove();yes()}}
+ function nameForm(title,hint,val,btn,go){const ed=document.getElementById('fmteditor');if(!ed)return;ed.innerHTML='<div class="fmtedit"><h3>'+esc2(title)+'</h3><p class="hint">'+esc2(hint)+'</p><div class="fmtfld"><label for="fmtsecname178"><b>Section name</b></label><input id="fmtsecname178" type="text" maxlength="40" value="'+esc2(val)+'"></div><p id="fmtsecerr178" class="pe" role="alert"></p><div class="fmtbar"><button class="btn sm" id="fmtsecsave178" type="button">'+esc2(btn)+'</button><button class="btn sm sec" id="fmtsecno178" type="button">Cancel</button></div></div>';
+  document.getElementById('fmtsecno178').onclick=()=>{ed.innerHTML=''};
+  document.getElementById('fmtsecsave178').onclick=()=>{const n=document.getElementById('fmtsecname178').value.trim().replace(/\s+/g,' '),er=document.getElementById('fmtsecerr178');if(!n){er.textContent='Type a section name.';return}try{const m=go(n);if(m)er.textContent=m}catch(e){er.textContent='Could not save: '+e.message}};
+  const i=document.getElementById('fmtsecname178');i.focus();i.select();ed.scrollIntoView({behavior:'smooth',block:'center'})}
+ function actAdd(){nameForm('Add new section','The section appears in the list below and in every Move to dropdown.','','Add section',n=>{if(FMT_GROUPS.some(g=>lc(g)===lc(n)))return 'A section with this name already exists.';const v=rd();v.secs.push(n);v.sa[lc(n)]=Date.now();delete v.dl[lc(n)]&&0;wr(v);addSec(n);done('Section "'+n+'" added.')})}
+ function actRename(g){if(!custom(g)){fmtMessage('Built-in sections cannot be renamed. You can rename sections you added.');return}
+  nameForm('Rename section','Formats in "'+g+'" stay in it under the new name.',g,'Rename',n=>{if(lc(n)!==lc(g)&&FMT_GROUPS.some(h=>lc(h)===lc(n)))return 'A section with this name already exists.';if(n===g)return 'Type a different name.';
+   const v=rd(),t=Date.now();v.secs=v.secs.filter(s=>lc(s)!==lc(g));if(!v.secs.some(s=>lc(s)===lc(n)))v.secs.push(n);v.dl[lc(g)]=t;v.sa[lc(n)]=t+1;if(lc(n)!==lc(g))delete v.dl[lc(n)];
+   const mvd=[];fmtLoad().forEach(x=>{const gs=x.groups||[x.group];if(gs.some(h=>lc(h)===lc(g))){const ng=[...new Set(gs.map(h=>lc(h)===lc(g)?n:h))];v.mv[x.id]={g:ng,t:t+1};mvd.push([x,ng])}});
+   wr(v);dropSec(g);addSec(n);mvd.forEach(([x,ng])=>{if(x.custom)fmtStore({...x,group:ng[0],groups:ng,dirty:true,updated:Date.now()})});done('Section renamed to "'+n+'".')})}
+ function actDelete(g){if(!custom(g)){fmtMessage('Built-in sections cannot be deleted. You can delete sections you added.');return}
+  const cnt=fmtLoad().filter(x=>(x.groups||[x.group]).some(h=>lc(h)===lc(g))).length;
+  if(cnt){fmtMessage('Section "'+g+'" still has '+cnt+' format'+(cnt>1?'s':'')+'. Move them to another section first, then delete it.');return}
+  ask('Delete the empty section "'+g+'"?',()=>{const v=rd();v.secs=v.secs.filter(s=>lc(s)!==lc(g));v.dl[lc(g)]=Date.now();wr(v);dropSec(g);done('Section "'+g+'" deleted.')})}
+ function mkSel(vb,label,items,onpick){const s=document.createElement('select');s.className='fmtmv174';s.setAttribute('aria-label',label);
+  s.innerHTML='<option value="">'+esc2(label)+'</option>'+items.map(i=>i.sep?'<option disabled>----------</option>':'<option value="'+esc2(i.v)+'">'+esc2(i.t)+'</option>').join('');
+  if(vb){const c=getComputedStyle(vb);Object.assign(s.style,{font:c.font,fontWeight:c.fontWeight,padding:c.padding,border:c.border,borderRadius:c.borderRadius,background:c.backgroundColor,color:c.color,height:c.height==='auto'?'':c.height,minHeight:c.minHeight,width:'auto',maxWidth:'150px',flex:'0 0 auto',margin:c.margin,cursor:'pointer'})}else{s.style.cssText='font:inherit;font-size:13px;font-weight:700;padding:4px 8px;border:1.5px solid #0b4f9c;border-radius:8px;background:#fff;color:#0b4f9c;width:auto;max-width:150px;margin-left:8px'}
+  s.onchange=()=>{const v=s.value;s.value='';if(v)onpick(v)};return s}
  function build(){
   const B=document.getElementById('fmtmain');if(!B||B.querySelector('.fmtmv174'))return;
-  const head=B.querySelector('h2');
-  if(head&&!B.querySelector('#fmtaddsec174')){const bar=document.createElement('div');bar.style.cssText='margin:6px 0 10px';bar.innerHTML='<button class="btn sm" id="fmtaddsec174" type="button">+ Add new section</button>';head.after(bar);
-   bar.querySelector('button').onclick=()=>{const ed=document.getElementById('fmteditor');if(!ed)return;ed.innerHTML='<div class="fmtedit"><h3>Add new section</h3><p class="hint">The section appears in the list below and in every Move to dropdown. "Local Formats" is already there for your own formats.</p><div class="fmtfld"><label for="fmtsecname174"><b>Section name</b></label><input id="fmtsecname174" type="text" maxlength="40" placeholder="e.g. Contractor Formats"></div><p id="fmtsecerr174" class="pe" role="alert"></p><div class="fmtbar"><button class="btn sm" id="fmtsecsave174" type="button">Add section</button><button class="btn sm sec" id="fmtsecno174" type="button">Cancel</button></div></div>';
-    document.getElementById('fmtsecno174').onclick=()=>{ed.innerHTML=''};
-    document.getElementById('fmtsecsave174').onclick=()=>{const n=document.getElementById('fmtsecname174').value.trim().replace(/\s+/g,' '),er=document.getElementById('fmtsecerr174');if(!n){er.textContent='Type a section name.';return}if(FMT_GROUPS.some(g=>g.toLowerCase()===n.toLowerCase())){er.textContent='A section with this name already exists.';return}try{const v=rd();v.secs.push(n);wr(v);addSec(n);fmtStatus='Section "'+n+'" added.';fmtSection('formats');setTimeout(()=>sync(true),300)}catch(e){er.textContent='Could not save: '+e.message}};
-    document.getElementById('fmtsecname174').focus();ed.scrollIntoView({behavior:'smooth',block:'center'})}}
-  B.querySelectorAll('.fmtgroup').forEach(sec=>{const g=(sec.querySelector('h3')||{}).textContent;if(!g)return;
+  
+  const names=FMT_GROUPS.slice();
+  B.querySelectorAll('.fmtgroup').forEach(sec=>{const h=sec.querySelector('h3'),g=h&&h.textContent.trim();if(!g)return;
+   const actions=(cur)=>[{sep:1},{v:'@add',t:'+ Add new section'}].concat(custom(cur)?[{v:'@ren',t:'Rename section'},{v:'@del',t:'Delete section'}]:[]);
+   const act=(v,cur)=>v==='@add'?actAdd():v==='@ren'?actRename(cur):actDelete(cur);
+   if(custom(g)&&!h.querySelector('.fmtmv174')){h.appendChild(mkSel(null,'Section',actions(g).filter(i=>!i.sep),v=>act(v,g)))}
    sec.querySelectorAll('.fmtrow').forEach(row=>{const vb=row.querySelector('[data-fview]'),bt=row.querySelector('.fmtbuttons');if(!vb||!bt||row.querySelector('.fmtmv174'))return;const id=vb.dataset.fview;
-    const nm=row.querySelector('.fmtname');if(nm){const s=document.createElement('small');s.style.cssText='display:block;font-weight:600;color:#0b4f9c;margin-top:2px';s.textContent='Section: '+g;nm.appendChild(s)}
-    const w=document.createElement('label');w.className='fmtmv174';w.style.cssText='flex:1 1 100%;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-top:4px';w.innerHTML='<span style="white-space:nowrap">Move to</span><select aria-label="Move to section" style="flex:1;min-width:0;height:36px;border:1.5px solid #0b4f9c;border-radius:10px;background:#fff;color:#0b4f9c;font:inherit;font-weight:700;padding:0 8px">'+FMT_GROUPS.map(o=>'<option value="'+esc2(o)+'"'+(o===g?' selected':'')+'>'+esc2(o)+(o===g?' (current)':'')+'</option>').join('')+'</select>';
-    bt.style.flexWrap='wrap';bt.appendChild(w);
-    w.querySelector('select').onchange=e=>{const to=e.target.value;if(!to||to===g||!FMT_GROUPS.includes(to))return;try{const x=fmtLoad().find(y=>y.id===id);if(!x)return;const gs=[...new Set((x.groups||[x.group]).map(h=>h===g?to:h))];const v=rd();v.mv[id]={g:gs,t:Date.now()};wr(v);if(x.custom){const c={...x,group:gs[0],groups:gs,dirty:true,updated:Date.now()};fmtStore(c)}fmtStatus='Moved '+(x.code?x.code+' ':'')+x.name+' from '+g+' to '+to+'.';fmtSection('formats');setTimeout(()=>sync(true),300)}catch(er){e.target.value=g;fmtMessage('Not moved: '+er.message)}};
+    const items=names.map(o=>({v:'>'+o,t:o+(lc(o)===lc(g)?' (current)':'')})).concat(actions(g));
+    const sel=mkSel(vb,'Move to',items,v=>{if(v[0]!=='>')return act(v,g);const to=v.slice(1);if(!to||lc(to)===lc(g)||!FMT_GROUPS.includes(to))return;
+     try{const x=fmtLoad().find(y=>y.id===id);if(!x)return;const gs=[...new Set((x.groups||[x.group]).map(h=>lc(h)===lc(g)?to:h))];const r=rd();r.mv[id]={g:gs,t:Date.now()};wr(r);if(x.custom){fmtStore({...x,group:gs[0],groups:gs,dirty:true,updated:Date.now()})}done('Moved '+(x.code?x.code+' ':'')+x.name+' from '+g+' to '+to+'.')}catch(er){fmtMessage('Not moved: '+er.message)}});
+    bt.style.flexWrap='wrap';bt.style.alignItems='center';bt.appendChild(sel);
    })});
-  const first=B.querySelector('.fmtrow');if(first)first.classList.add('fmtmv174x');
   const mk=document.createElement('i');mk.className='fmtmv174';mk.hidden=true;B.appendChild(mk);
  }
  const RID='tomb_aomp_fmtsec_v1';let busy=false,lastRun=0;
- const norm=v=>{const o={secs:[],mv:{}};for(const s of (v&&v.secs)||[])if(typeof s==='string'&&s.trim()&&s.length<=40&&!o.secs.some(q=>q.toLowerCase()===s.toLowerCase()))o.secs.push(s);const m=(v&&v.mv)||{};for(const id in m){const e=m[id],g=Array.isArray(e)?e:(e&&e.g),t=Array.isArray(e)?0:(+e.t||0);if(Array.isArray(g)&&g.length&&g.every(x=>typeof x==='string'&&x))o.mv[id]={g,t}}return o};
- const merge=(a,b)=>{const o=norm(a),q=norm(b);for(const s of q.secs)if(!o.secs.some(x=>x.toLowerCase()===s.toLowerCase()))o.secs.push(s);for(const id in q.mv){if(!o.mv[id]||q.mv[id].t>o.mv[id].t)o.mv[id]=q.mv[id]}return o};
- const same=(a,b)=>JSON.stringify([norm(a).secs.slice().sort(),Object.keys(norm(a).mv).sort().map(k=>[k,norm(a).mv[k]]) ])===JSON.stringify([norm(b).secs.slice().sort(),Object.keys(norm(b).mv).sort().map(k=>[k,norm(b).mv[k]]) ]);
- const idle=()=>{const ed=document.getElementById('fmteditor');return !(ed&&ed.innerHTML.trim())&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.fmtmv174'))};
+ const merge=(a,b)=>{const o=norm(a),q=norm(b);for(const s of q.secs)if(!o.secs.some(x=>lc(x)===lc(s)))o.secs.push(s);for(const k of ['sa','dl'])for(const n in q[k])if(!(o[k][n]>=q[k][n]))o[k][n]=q[k][n];for(const id in q.mv){if(!o.mv[id]||q.mv[id].t>o.mv[id].t)o.mv[id]=q.mv[id]}o.secs=o.secs.filter(s=>alive(o,s)||isBase(s));return o};
+ const key=v=>{const o=norm(v);return JSON.stringify([o.secs.slice().sort(),Object.keys(o.sa).sort().map(k=>[k,o.sa[k]]),Object.keys(o.dl).sort().map(k=>[k,o.dl[k]]),Object.keys(o.mv).sort().map(k=>[k,o.mv[k]])])};
+ const same=(a,b)=>key(a)===key(b);
+ const idle=()=>{const ed=document.getElementById('fmteditor');return !(ed&&ed.innerHTML.trim())&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.fmtgroups'))};
  async function sync(force){
   if(busy||document.hidden||!navigator.onLine)return;if(typeof SC==='undefined'||!SC.url||!SC.key)return;if(!window.ptRole||!ptRole())return;
   const n=Date.now();if(!force&&n-lastRun<15000)return;lastRun=n;busy=true;
   try{
    const g=(await sApi({action:'get',ids:[RID]})).items?.[RID];let remote=null;if(g&&typeof g.text==='string'){try{remote=JSON.parse(g.text)}catch(e){throw Error('Section record in the Sheet is damaged; nothing was sent.')}}
    const local=rd(),merged=merge(local,remote||{});
-   if(!same(merged,local)){wr(merged);merged.secs.forEach(addSec);const B=document.getElementById('fmtmain');if(B&&B.querySelector('.fmtgroups')&&idle())fmtSection('formats')}
-   if(!remote||!same(merged,remote)){const ua=Math.max(Date.now(),(+(g&&g.ua)||0)+1);await fmtPut594({action:'put',id:RID,ua,text:JSON.stringify({v:1,secs:merged.secs,mv:merged.mv}),sheet:'',view:null})}
+   if(!same(merged,local)){wr(merged);apply(merged);const B=document.getElementById('fmtmain');if(B&&B.querySelector('.fmtgroups')&&idle())fmtSection('formats')}
+   if(!remote||!same(merged,remote)){const ua=Math.max(Date.now(),(+(g&&g.ua)||0)+1);await fmtPut594({action:'put',id:RID,ua,text:JSON.stringify({v:2,secs:merged.secs,sa:merged.sa,dl:merged.dl,mv:merged.mv}),sheet:'',view:null})}
   }catch(e){try{window.__fmtsec174err=e.message}catch(x){}}finally{busy=false}
  }
  window.__fmtSecSync174=sync;
@@ -4988,6 +5020,7 @@ const o=new MutationObserver(()=>fix());const t=()=>{const n=document.getElement
  window.addEventListener('online',()=>sync(true));
  const f0=fmtSection;fmtSection=function(sec){const r=f0.apply(this,arguments);if(sec==='formats'||(sec!=='schedule'&&sec!=='planner'&&document.getElementById('fmtmain')?.querySelector('.fmtgroups')))try{build();sync(false)}catch(e){}return r};
 })();
+
 </script>
 <script>
 /* v5.99.15: compact mobile UI and PDF-only completed/received report views. */
@@ -5623,7 +5656,7 @@ function loginLabels147(){const select=document.getElementById('prl');if(!select
 
 <script>
 /* Item148: one visible-screen update owner, bounded checks and safe automatic refresh. */
-window.__APP_REV148='iocl-portal-shell-v5.99.15-r11175';
+window.__APP_REV148='iocl-portal-shell-v5.99.15-r11178';
 const UPDATE148=(()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return null;let reg=null,job=null,reloading=false,ready=false,changed=false,newer148=false;
  function paint(text,percent){document.getElementById('updateGate94')?.remove();let box=document.getElementById('update54');if(!box){box=document.createElement('div');box.id='update54';box.setAttribute('role','status');document.body.appendChild(box);}box.hidden=false;progressBar74(box,text,percent);}
  function safe(){if(document.hidden||p96Connecting||window.__wfWorking140||window.__wfWorking104||window.__wfWorking135||drSaveSend122Busy||b99Busy||b99Running)return false;if(document.querySelector('[role=dialog],[role=alertdialog],dialog[open],#fmtview,#drlocmodal82'))return false;const pcn148=document.querySelector('#pcn');if(pcn148&&!pcn148.hidden&&[...pcn148.querySelectorAll('input,textarea')].some(x=>x.dataset.u148&&(x.value||'').trim()))return false;if(document.querySelector('#ppw')?.value||document.querySelector('#pgo')?.disabled)return false;if(document.body.classList.contains('inra'))return false;if(window.__ptPage==='_admin'||window.__ptPage==='_orgedit')return false;if(document.querySelector('#drshift')){try{drCapture();if(drDirty())return false;}catch(e){return false;}}if(document.querySelector('iframe[title="Pipeline Locator"]'))return false;if(document.querySelector('#fmtmain textarea,#fmtmain input:not([type=checkbox]),#patmain input[type=file]'))return false;return true;}
@@ -6667,5 +6700,77 @@ document.addEventListener('click',e=>{
  const b=e.target&&e.target.closest&&e.target.closest('#pgo');if(!b)return;
  if(Date.now()-(window.__pgoPd117||0)<800){e.preventDefault();e.stopImmediatePropagation()}
 },true);
+})();
+</script>
+<script>/* r11177: Patroller Quarterly Report = in-app fill forms for AOMP SF-29 (Encroachment Status) and SF-30 (Washout Status). Saves through the existing approval records (wfMake, route aomp:<id>), so Reports, Send/Approve and Sheet sync are the same as every other report. */
+(()=>{
+const QF={
+ sf29:{id:'sf29',label:'SF-29 Encroachment',title:'Encroachment Status Report',sumLabels:['No. of encroachments reported','No. of reported encroachments verified for details','Whether vacated (Yes, no.)','Previous outstanding encroachment not vacated','Cumulative encroachments not vacated'],cols:['Date of encroachment','Name of Agency','Km Position','Type of encroachment','Notices served on date / Further action being planned'],colTypes:['date','','','',''],tables:6},
+ sf30:{id:'sf30',label:'SF-30 Washout',title:'Washout Status Report',cols:['Location (Chainage)','Date of report','Date of inspection - Present','Date of inspection - Previous','Date of inspection by surveyor','Action taken'],colTypes:['','date','date','date','date',''],tables:5}
+};
+const W=()=>FMT_W;
+const dmy=v=>/^\d{4}-\d\d-\d\d$/.test(v||'')?v.slice(8)+'-'+v.slice(5,7)+'-'+v.slice(0,4):(v||'');
+const kids=(el,n)=>[...el.childNodes].filter(c=>c.nodeType===1&&c.localName===n&&c.namespaceURI===W());
+function ptxt(p){return [...p.getElementsByTagNameNS(W(),'t')].map(t=>t.textContent).join('')}
+function mkRun(dom,text){const r=dom.createElementNS(W(),'w:r'),pr=dom.createElementNS(W(),'w:rPr'),f=dom.createElementNS(W(),'w:rFonts');['ascii','hAnsi','cs'].forEach(a=>f.setAttributeNS(W(),'w:'+a,'Arial'));pr.appendChild(f);r.appendChild(pr);String(text).split('\n').forEach((ln,i)=>{if(i)r.appendChild(dom.createElementNS(W(),'w:br'));const t=dom.createElementNS(W(),'w:t');t.setAttributeNS('http://www.w3.org/XML/1998/namespace','xml:space','preserve');t.textContent=ln;r.appendChild(t)});return r}
+function setCell(dom,tc,text,append){const ps=kids(tc,'p');if(!ps.length)return;const p=ps[0];if(!append){kids(p,'r').forEach(r=>p.removeChild(r));ps.slice(1).forEach(x=>tc.removeChild(x))}if(text!==''&&text!=null)p.appendChild(mkRun(dom,(append?' ':'')+text))}
+async function qrBuild(fid,v){
+ fmtLibs();const x=fmtLoad().find(y=>y.id===fid);if(!x||x.kind==='xlsx')throw Error('Format '+fid+' is not available as Word in AOMP Formats.');
+ const z=await JSZip.loadAsync(fmtBytes(x)),dom=new DOMParser().parseFromString(await z.file('word/document.xml').async('string'),'application/xml');
+ if(dom.getElementsByTagName('parsererror').length)throw Error('Word format could not be read.');
+ const body=dom.getElementsByTagNameNS(W(),'body')[0],tb=kids(body,'tbl'),q=QF[fid];
+ if(tb.length!==q.tables)throw Error('The '+fid.toUpperCase()+' file in AOMP Formats has a different layout than expected. Use Send / Create report there.');
+ const rowsOf=t=>kids(t,'tr'),cells=r=>kids(r,'tc');
+ const info=rowsOf(tb[1]);if(!/Cluster/.test(ptxt(info[0])))throw Error('Layout check failed (header block).');
+ [[0,0,v.cluster],[0,1,v.ga],[0,2,v.location],[1,1,dmy(v.last)],[1,2,dmy(v.due)],[2,0,v.wpno],[2,1,v.wptype],[2,2,dmy(v.wpdate)]].forEach(([r,c,t])=>{if(t)setCell(dom,cells(info[r])[c],t,true)});
+ const fillRows=(t,first,n,list)=>{const rs=rowsOf(t),tpl=rs[rs.length-1];let cur=tpl;const data=list.length?list:[[]];for(let i=1;i<data.length;i++){const c=tpl.cloneNode(true);cur.parentNode.insertBefore(c,cur.nextSibling);cur=c}const all=rowsOf(t).slice(first);data.forEach((row,i)=>{const cs=cells(all[i]);for(let j=0;j<n;j++)setCell(dom,cs[j],row[j]||'',false)})};
+ let remT,signT;
+ if(fid==='sf29'){
+  const sr=rowsOf(tb[2]);if(!/encroachments reported/.test(ptxt(sr[0])))throw Error('Layout check failed (summary).');
+  cells(sr[1]).forEach((c,i)=>setCell(dom,c,(v.sum||[])[i]||'',false));
+  if(!/Date of encroachment/.test(ptxt(rowsOf(tb[3])[0])))throw Error('Layout check failed (details).');
+  fillRows(tb[3],1,5,(v.rows||[]).map(r=>[dmy(r[0]),r[1],r[2],r[3],r[4]]));
+  remT=tb[4];signT=tb[5];
+ }else{
+  if(!/Sl\. No\./.test(ptxt(rowsOf(tb[2])[0])))throw Error('Layout check failed (washout table).');
+  const list=(v.rows||[]).map((r,i)=>[String(i+1),r[0],dmy(r[1]),dmy(r[2]),dmy(r[3]),dmy(r[4]),r[5]]);
+  fillRows(tb[2],2,7,list);remT=tb[3];signT=tb[4];
+ }
+ const rr=rowsOf(remT);if(!/Remarks/.test(ptxt(rr[0])))throw Error('Layout check failed (remarks).');
+ setCell(dom,cells(rr[0])[1],v.remarks||'',false);setCell(dom,cells(rr[1])[1],v.comp||'',false);
+ const sg=rowsOf(signT);if(!/Performed by/.test(ptxt(sg[1])))throw Error('Layout check failed (signature block).');
+ setCell(dom,cells(sg[1])[2],v.pname||'',false);setCell(dom,cells(sg[1])[3],v.pcomm||'',false);
+ let out=new XMLSerializer().serializeToString(dom);if(!/^<\?xml/.test(out))out='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'+out;
+ z.file('word/document.xml',out,{createFolders:false});
+ const bytes=await z.generateAsync({type:'uint8array',compression:'DEFLATE',mimeType:FMT_MIME});
+ if(bytes.length>2*1024*1024)throw Error('Report is larger than 2 MB.');
+ return {id:fid,code:x.code,name:x.name,kind:'docx',b64:fmtB64(bytes),size:bytes.length,filename:x.filename,qform:{fmt:fid,vals:v,uid:v.uid}};
+}
+const S=window.__qr=window.__qr||{tab:'sf29',edit:null,vals:{}};
+const uid=()=>'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function blank(fid){const nm=ptRole()==='pat'?(drPerson(drMe())?.name||''):'';return {uid:uid(),cluster:'',ga:'',location:'',last:'',due:'',wpno:'',wptype:'',wpdate:'',sum:['','','','',''],rows:[],action:'',remarks:'',comp:'',pname:nm,pcomm:''}}
+function myReports(){try{return Object.values(wfState().reports).filter(r=>r.type==='aomp'&&r.snapshot&&r.snapshot.qform&&wfMine(r)).sort((a,b)=>b.updated-a.updated)}catch(e){return[]}}
+function tabs(){const t=(id,l)=>'<button type="button" class="drtab '+(S.tab===id?'on':'')+'" data-qt="'+id+'">'+l+'</button>';return '<div class="drtabs" style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">'+t('sf29','Format 29: Encroachment')+t('sf30','Format 30: Washout')+t('reports','Reports')+'</div>'}
+function fld(l,k,v,type){return '<label>'+esc(l)+'<input data-q="'+k+'" type="'+(type||'text')+'" value="'+esc(v||'')+'"></label>'}
+function rowHtml(q,row,i){return '<div class="drcard" style="padding:12px"><b>Row '+(i+1)+'</b> <button type="button" class="btn sec" data-qdel="'+i+'" style="float:right">Remove</button>'+q.cols.map((c,j)=>'<label>'+esc(c)+'<input data-r="'+i+'.'+j+'" type="'+(q.colTypes[j]||'text')+'" value="'+esc(row[j]||'')+'"></label>').join('')+'</div>'}
+function collect(B){const v=S.vals;B.querySelectorAll('[data-q]').forEach(e=>{v[e.dataset.q]=e.value});v.sum=v.sum||['','','','',''];B.querySelectorAll('[data-s]').forEach(e=>{v.sum[+e.dataset.s]=e.value});const rows=[];B.querySelectorAll('[data-r]').forEach(e=>{const[i,j]=e.dataset.r.split('.').map(Number);(rows[i]=rows[i]||[])[j]=e.value});v.rows=rows.filter(Boolean);return v}
+function form(B){const q=QF[S.tab],v=S.vals;if(!v.rows||!v.rows.length)v.rows=[q.cols.map(()=>'')];
+ B.innerHTML='<section class="drapp"><h2>Quarterly Report</h2>'+tabs()+'<p class="hint">'+(S.edit?'Editing a saved report. ':'')+'Fill the fields of CGD/MM/SF/'+S.tab.slice(2)+' - '+esc(q.title)+'. Save puts the filled report in Reports. Send / sign is done from the report there or with the second button.</p><div class="drcard"><div class="drgrid">'+fld('Cluster','cluster',v.cluster)+fld('GA','ga',v.ga)+fld('Location','location',v.location)+fld('Last maintenance date','last',v.last,'date')+fld('Due date','due',v.due,'date')+fld('Work permit no.','wpno',v.wpno)+fld('Work permit type','wptype',v.wptype)+fld('Work permit date','wpdate',v.wpdate,'date')+'</div></div>'
+ +(S.tab==='sf29'?'<div class="drcard"><h3>Summary</h3><div class="drgrid">'+q.sumLabels.map((l,i)=>'<label>'+esc(l)+'<input data-s="'+i+'" value="'+esc((v.sum||[])[i]||'')+'"></label>').join('')+'</div></div>':'')
+ +'<div class="drcard"><h3>'+(S.tab==='sf29'?'Encroachment details':'Washouts')+'</h3>'+(v.rows||[]).map((r,i)=>rowHtml(q,r,i)).join('')+'<button type="button" class="btn sec" id="qradd">+ Add row</button></div>'
+  +'<div class="drcard"><label>Remarks<textarea data-q="remarks" rows="3" style="width:100%">'+esc(v.remarks||'')+'</textarea></label><label>Compliance of observations of last PM (if any)<textarea data-q="comp" rows="2" style="width:100%">'+esc(v.comp||'')+'</textarea></label></div>'
+ +'<div class="drcard"><h3>Performed by</h3><div class="drgrid">'+fld('Name & designation','pname',v.pname)+fld('Comments','pcomm',v.pcomm)+'</div><p class="hint">Reviewer and GA In-charge signatures are added in the approval chain.</p></div>'
+ +'<div class="wfactions" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="qrsave">Save report</button><button type="button" class="btn sec" id="qrsend">Save and open to sign / Send</button></div><p class="pe" id="qrerr"></p></section>';
+ B.querySelector('#qradd').onclick=()=>{collect(B);S.vals.rows.push(q.cols.map(()=>''));form(B)};
+ B.querySelectorAll('[data-qdel]').forEach(b=>b.onclick=()=>{collect(B);S.vals.rows.splice(+b.dataset.qdel,1);form(B)});
+ const go=async open=>{const err=B.querySelector('#qrerr');err.textContent='';try{const vals=collect(B);if(!vals.location.trim())throw Error('Enter the location.');const snap=await qrBuild(S.tab,vals);const title='CGD/MM/SF/'+S.tab.slice(2)+' - '+q.title+' - '+vals.location.trim()+(vals.last?' - '+dmy(vals.last):'');const id=wfMake('aomp',title,snap,'aomp:'+S.tab+':q:'+vals.uid,'aomp:'+S.tab);S.edit=null;S.vals=blank();if(open){wfDialog(id)}else{S.tab='reports';patSection('monthly')}}catch(e){err.textContent=e.message}};
+ B.querySelector('#qrsave').onclick=()=>go(false);B.querySelector('#qrsend').onclick=()=>go(true);
+}
+function list(B){const rs=myReports();B.innerHTML='<section class="drapp"><h2>Quarterly Report</h2>'+tabs()+'<div class="drcard"><h3>Reports</h3>'+(rs.length?rs.map(r=>'<div class="pcard wfrow" style="margin:8px 0"><div><b>'+esc(r.title)+'</b><p class="hint">'+esc(r.status)+' | '+esc(wfProgress(r))+' | '+esc(drWhen(r.updated))+'</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-qv="'+r.id+'">View</button>'+(wfCanEdit(r)?'<button class="btn sec" data-qe="'+r.id+'">Edit</button>':'')+'</div></div>').join(''):'<p class="hint">No quarterly reports yet. Fill Format 29 or Format 30 and Save.</p>')+'</div></section>';
+ B.querySelectorAll('[data-qv]').forEach(b=>b.onclick=()=>wfDialog(b.dataset.qv));B.querySelectorAll('[data-qe]').forEach(b=>b.onclick=()=>qrEdit(b.dataset.qe))}
+function qrEdit(id){const r=wfState().reports[id];if(!wfCanEdit(r))return toast('Editing is locked: the report is sent or approved, or a conflict needs review.');const f=r.snapshot.qform;document.getElementById('wfmodal')?.remove();S.tab=f.fmt;S.vals=JSON.parse(JSON.stringify(f.vals));S.edit=id;try{patOpen()}catch(e){}patSection('monthly')}
+function draw(B){B=B||document.getElementById('patmain');if(!B)return;(S.tab==='reports'?list:form)(B);B.querySelectorAll('[data-qt]').forEach(b=>b.onclick=()=>{if(S.tab!=='reports')collect(B);const t=b.dataset.qt;if(t!=='reports'&&t!==S.tab&&!S.edit){S.vals=blank()}S.tab=t;draw(B)})}
+const p0=patSection;patSection=function(id){const r=p0.apply(this,arguments);if(id==='monthly'||window.__patSec==='monthly'){const B=document.getElementById('patmain');if(B&&window.__patSec==='monthly'){if(!S.vals||!S.vals.uid)S.vals=blank();draw(B)}}return r};
+const e0=wfEditReport;wfEditReport=function(id){const r=wfState().reports[id];if(r&&r.snapshot&&r.snapshot.qform)return qrEdit(id);return e0.apply(this,arguments)};
 })();
 </script>
