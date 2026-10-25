@@ -1,5 +1,5 @@
 <!doctype html><!-- Built by Sudheer --><html lang="en"><head><script>
-/* r11195: Back-guard fix for phones. Chrome (Android) marks a history entry "skip on Back" when the page adds the next entry without a tap. The old guards re-added their entry from inside the Back handler (no tap), so after one or two Backs the guard entries were skipped and Back left the app. Now: guard entries are built only during taps (up to 15, on finger-up/click/key), and the guard push made inside a Back (popstate) handler is dropped while at least 4 entries remain behind. */
+/* r11197: Back-guard fix for phones. Chrome (Android) marks a history entry "skip on Back" when the page adds the next entry without a tap. The old guards re-added their entry from inside the Back handler (no tap), so after one or two Backs the guard entries were skipped and Back left the app. Now: guard entries are built only during taps (up to 15, on finger-up/click/key), and the guard push made inside a Back (popstate) handler is dropped while at least 4 entries remain behind. */
 (()=>{
  if(window.__g183)return;window.__g183=1;
  const push=History.prototype.pushState;let inPop=false;
@@ -4929,9 +4929,11 @@ const o=new MutationObserver(()=>fix());const t=()=>{const n=document.getElement
  document.addEventListener('click',e=>{try{document.querySelectorAll('details.orgsum[open],details.hseqsum156[open]').forEach(d=>{const sm=d.querySelector('summary');if(e.target!==sm&&!(sm&&sm.contains(e.target)))d.open=false})}catch(x){}},true);
 })();
 </script>
-<style id="r11195css">#lv151 details.lvsum151,#lv151 details.lvsum151[open],#lv151 details.lvsum151:focus,#lv151 details.lvsum151:focus-within,#lv151 details.lvsum151>summary,#lv151 details.lvsum151>summary:hover,#lv151 details.lvsum151>summary:focus,#lv151 details.lvsum151>summary:focus-visible,#lv151 details.lvsum151>summary:active{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent}#lv151 details.lvsum151,#lv151 details.lvsum151[open],#lv151 details.lvsum151:hover,#lv151 details.lvsum151:focus-within{border-color:var(--line,#d9dee7)!important}#lv151 details.lvsum151>summary:hover,#lv151 details.lvsum151>summary:focus-visible{background:none!important;color:inherit!important;border-color:transparent!important}</style>
-<style id="r11195css">.hs-wmv{display:grid!important;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto!important;gap:8px!important;align-items:stretch!important}.hs-wmv select{height:44px!important;min-height:44px!important;width:100%!important;flex:none!important;box-sizing:border-box!important;margin:0!important;padding:0 28px 0 10px!important;font:inherit!important;font-size:14px!important;font-weight:600!important;color:#0b3d78!important;background-color:#fff!important;border:1.5px solid #b9c4d6!important;border-radius:10px!important;line-height:1.2!important;text-overflow:ellipsis}.hs-wmv select:focus{outline:none!important;border-color:#0b4f9c!important;box-shadow:0 0 0 2px #cfe0f5!important}.hs-wmv .hs-btn{height:44px!important;min-height:44px!important;margin:0!important;padding:0 18px!important;border-radius:10px!important;font-size:14px!important;box-sizing:border-box!important;white-space:nowrap}@media(max-width:480px){.hs-wmv{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto!important;gap:6px!important}.hs-wmv select{font-size:13px!important;padding:0 22px 0 8px!important}.hs-wmv .hs-btn{padding:0 12px!important}}</style>
-<style id="r11195css">.qrpp{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px;margin:0 0 4px}.qrpp .rpper{flex:0 0 auto;width:auto!important;min-height:46px;margin:0!important;padding:6px 14px;white-space:nowrap;text-align:center}.qrpp .rpper b{display:block;font-size:14px}.qrpp .rpper span{display:block;font-size:12px;color:#5b6b7e}.qrpp .rpper.on span{color:#0b3d78}</style>
+<style id="r11197css">#lv151 details.lvsum151,#lv151 details.lvsum151[open],#lv151 details.lvsum151:focus,#lv151 details.lvsum151:focus-within,#lv151 details.lvsum151>summary,#lv151 details.lvsum151>summary:hover,#lv151 details.lvsum151>summary:focus,#lv151 details.lvsum151>summary:focus-visible,#lv151 details.lvsum151>summary:active{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent}#lv151 details.lvsum151,#lv151 details.lvsum151[open],#lv151 details.lvsum151:hover,#lv151 details.lvsum151:focus-within{border-color:var(--line,#d9dee7)!important}#lv151 details.lvsum151>summary:hover,#lv151 details.lvsum151>summary:focus-visible{background:none!important;color:inherit!important;border-color:transparent!important}</style>
+<style id="r11197css">.hs-wmv{display:grid!important;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto!important;gap:8px!important;align-items:stretch!important}.hs-wmv select{height:44px!important;min-height:44px!important;width:100%!important;flex:none!important;box-sizing:border-box!important;margin:0!important;padding:0 28px 0 10px!important;font:inherit!important;font-size:14px!important;font-weight:600!important;color:#0b3d78!important;background-color:#fff!important;border:1.5px solid #b9c4d6!important;border-radius:10px!important;line-height:1.2!important;text-overflow:ellipsis}.hs-wmv select:focus{outline:none!important;border-color:#0b4f9c!important;box-shadow:0 0 0 2px #cfe0f5!important}.hs-wmv .hs-btn{height:44px!important;min-height:44px!important;margin:0!important;padding:0 18px!important;border-radius:10px!important;font-size:14px!important;box-sizing:border-box!important;white-space:nowrap}@media(max-width:480px){.hs-wmv{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto!important;gap:6px!important}.hs-wmv select{font-size:13px!important;padding:0 22px 0 8px!important}.hs-wmv .hs-btn{padding:0 12px!important}}</style>
+<style id="r11197css">.qrpp{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px;margin:0 0 4px}.qrpp .rpper{flex:0 0 auto;width:auto!important;min-height:46px;margin:0!important;padding:6px 14px;white-space:nowrap;text-align:center}.qrpp .rpper b{display:block;font-size:14px}.qrpp .rpper span{display:block;font-size:12px;color:#5b6b7e}.qrpp .rpper.on span{color:#0b3d78}</style>
+<style id="r11197css">.reportline71{align-items:center!important}.wfholder71{align-self:center!important}.rprow{padding-top:8px!important;padding-bottom:8px!important}.rprow .rpbtns .rpb,.rpbtns .rpb{min-height:34px!important;height:34px;font-size:13px}.rprow .reportline71{margin-bottom:0!important}.rprow .report53{line-height:1.25}.rprow .report53 b{margin-top:0!important}.rprow .rpbtns{align-self:center}@media(max-width:700px){.rprow .rpbtns{margin-top:6px!important}}.drmid>.rprow:first-of-type,.drmid .rprow:first-child{margin-top:0!important}.drmid>.hint+.rprow{margin-top:0!important}</style>
+<style id="r11197css">@media(min-width:701px){.hs-addf{position:relative}.hs-addf .hs-g{display:grid!important;grid-template-columns:1fr 1fr;gap:8px 12px;align-items:end}.hs-addf .hs-g>label{min-width:0}.hs-addf #iSave{position:absolute;top:-38px;right:0;margin:0!important;width:auto!important;min-width:110px;height:34px;min-height:34px;padding:0 20px}}</style>
 </body><script>
 /* r11171: Back never closes the app for a signed-in person. Keeps a buffer of guard history entries below the current screen, topped up on every tap/key/visibility change, so several quick Back presses (or Chrome skipping entries added without a tap) cannot run out of entries. Back at Portal Home is a no-op (no prompt). Existing in-module Back stepping and the edge swipe are unchanged. */
 (()=>{
@@ -5671,7 +5673,7 @@ function loginLabels147(){const select=document.getElementById('prl');if(!select
 
 <script>
 /* Item148: one visible-screen update owner, bounded checks and safe automatic refresh. */
-window.__APP_REV148='iocl-portal-shell-v5.99.15-r11195';
+window.__APP_REV148='iocl-portal-shell-v5.99.15-r11197';
 const UPDATE148=(()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return null;let reg=null,job=null,reloading=false,ready=false,changed=false,newer148=false;
  function paint(text,percent){document.getElementById('updateGate94')?.remove();let box=document.getElementById('update54');if(!box){box=document.createElement('div');box.id='update54';box.setAttribute('role','status');document.body.appendChild(box);}box.hidden=false;progressBar74(box,text,percent);}
  function safe(){if(document.hidden||p96Connecting||window.__wfWorking140||window.__wfWorking104||window.__wfWorking135||drSaveSend122Busy||b99Busy||b99Running)return false;if(document.querySelector('[role=dialog],[role=alertdialog],dialog[open],#fmtview,#drlocmodal82'))return false;const pcn148=document.querySelector('#pcn');if(pcn148&&!pcn148.hidden&&[...pcn148.querySelectorAll('input,textarea')].some(x=>x.dataset.u148&&(x.value||'').trim()))return false;if(document.querySelector('#ppw')?.value||document.querySelector('#pgo')?.disabled)return false;if(document.body.classList.contains('inra'))return false;if(window.__ptPage==='_admin'||window.__ptPage==='_orgedit')return false;if(document.querySelector('#drshift')){try{drCapture();if(drDirty())return false;}catch(e){return false;}}if(document.querySelector('iframe[title="Pipeline Locator"]'))return false;if(document.querySelector('#fmtmain textarea,#fmtmain input:not([type=checkbox]),#patmain input[type=file]'))return false;return true;}
@@ -6805,7 +6807,7 @@ const e0=wfEditReport;wfEditReport=function(id){const r=wfState().reports[id];if
 })();
 </script>
 <script>
-/* r11195: HSE monthly check - leaving with unsaved marks asks first. Nothing is stored, so nothing needs syncing; Yes throws the marks away. */
+/* r11197: HSE monthly check - leaving with unsaved marks asks first. Nothing is stored, so nothing needs syncing; Yes throws the marks away. */
 (()=>{
  if(window.__hse184)return;window.__hse184=1;
  const dirty=()=>window.__ptPage==='hse'&&window.__hseDirty&&window.__hseDirty();
@@ -6832,7 +6834,7 @@ const e0=wfEditReport;wfEditReport=function(id){const r=wfState().reports[id];if
 })();
 </script>
 
-<style id="r11195css">
+<style id="r11197css">
 .wfstt .wfsel188{display:block;margin-top:4px}
 .wfstt .wfsl188{display:inline-flex!important;align-items:center;gap:6px;min-height:26px!important;margin:0 8px 0 0!important;font-size:12px!important;font-weight:600;white-space:nowrap}
 .wfstt .wfsl188 input{width:16px;height:16px;margin:0}
@@ -6854,9 +6856,9 @@ html body .wfstt tr[data-report71] td:last-child .btn{min-height:36px!important}
 }
 </style>
 <script>
-/* r11195: SF-29 / SF-30 titles shown as "SF-29 Encroachment Status Report - 01 AUG 2026"; select boxes moved beside Prepared by. Display only: stored titles are not changed. */
+/* r11197: SF-29 / SF-30 titles shown as "SF-29 Encroachment Status Report - 01 AUG 2026"; select boxes moved beside Prepared by. Display only: stored titles are not changed. */
 (()=>{
- if(window.__r11195)return;window.__r11195=1;
+ if(window.__r11197)return;window.__r11197=1;
  const RX=/CGD\/MM\/SF\/(29|30)\s*-\s*([^\n]+)/;
  const nice=t=>{const m=RX.exec(t);if(!m)return t;const parts=m[2].split(' - ').map(x=>x.trim());const last=parts[parts.length-1];const dated=parts.length>=2&&/\d{4}\s*$/.test(last);const out='SF-'+m[1]+' '+parts[0]+(dated?' - '+last:'');return t.slice(0,m.index)+out};
  window.__nice11188=nice;
@@ -6866,6 +6868,6 @@ html body .wfstt tr[data-report71] td:last-child .btn{min-height:36px!important}
  let busy=0;const mo=new MutationObserver(ms=>{if(busy)return;busy=1;try{ms.forEach(m=>{m.addedNodes.forEach(fix);if(m.type==='characterData')fix(m.target)})}finally{busy=0}});
  mo.observe(document.body,{childList:true,subtree:true,characterData:true});fix(document.body);
  const tidy=B=>{try{for(const tr of (B||document).querySelectorAll('tr[data-report71]')){const td1=tr.children[0],td2=tr.children[1];if(!td1||!td2)continue;const labs=[...td1.querySelectorAll(':scope>label')];if(!labs.length)continue;let box=td2.querySelector('.wfsel188');if(!box){box=document.createElement('span');box.className='wfsel188';td2.appendChild(box)}labs.forEach(l=>{l.removeAttribute('style');l.classList.add('wfsl188');box.appendChild(l)})}}catch(e){}};
- if(typeof wfStatusPage==='function'&&!wfStatusPage.__r11195){const base=wfStatusPage;const w=function(B){const out=base.apply(this,arguments);tidy(B);return out};w.__r11195=1;wfStatusPage=w}
+ if(typeof wfStatusPage==='function'&&!wfStatusPage.__r11197){const base=wfStatusPage;const w=function(B){const out=base.apply(this,arguments);tidy(B);return out};w.__r11197=1;wfStatusPage=w}
 })();
 </script>
