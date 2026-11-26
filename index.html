@@ -5751,7 +5751,7 @@ function loginLabels147(){const select=document.getElementById('prl');if(!select
 
 <script>
 /* Item148: one visible-screen update owner, bounded checks and safe automatic refresh. */
-window.__APP_REV148='iocl-portal-shell-v5.99.15-r11225';
+window.__APP_REV148='iocl-portal-shell-v5.99.15-r11226';
 const UPDATE148=(()=>{if(!('serviceWorker' in navigator)||location.protocol==='file:')return null;let reg=null,job=null,reloading=false,ready=false,changed=false,newer148=false;
  function paint(text,percent){document.getElementById('updateGate94')?.remove();let box=document.getElementById('update54');if(!box){box=document.createElement('div');box.id='update54';box.setAttribute('role','status');document.body.appendChild(box);}box.hidden=false;progressBar74(box,text,percent);}
  function safe(){if(document.hidden||p96Connecting||window.__wfWorking140||window.__wfWorking104||window.__wfWorking135||drSaveSend122Busy||b99Busy||b99Running)return false;if(document.querySelector('[role=dialog],[role=alertdialog],dialog[open],#fmtview,#drlocmodal82'))return false;const pcn148=document.querySelector('#pcn');if(pcn148&&!pcn148.hidden&&[...pcn148.querySelectorAll('input,textarea')].some(x=>x.dataset.u148&&(x.value||'').trim()))return false;if(document.querySelector('#ppw')?.value||document.querySelector('#pgo')?.disabled)return false;if(document.body.classList.contains('inra'))return false;if(window.__ptPage==='_admin'||window.__ptPage==='_orgedit')return false;if(document.querySelector('#drshift')){try{drCapture();if(drDirty())return false;}catch(e){return false;}}if(document.querySelector('iframe[title="Pipeline Locator"]'))return false;if(document.querySelector('#fmtmain textarea,#fmtmain input:not([type=checkbox]),#patmain input[type=file]'))return false;return true;}
@@ -6583,6 +6583,27 @@ function place(){try{if(!cgdSee())return;
  const nav=document.getElementById('pside');if(nav){const b=nav.querySelector('button[data-p="cgd"]');if(b){const pb=nav.querySelector('#pal73 [data-s73="pipe"]');const anchor=nav.querySelector('#pal73')||pb||nav.querySelector('button[data-p="roadmap"]');if(anchor&&anchor.nextElementSibling!==b)anchor.after(b)}}
  const B2=document.getElementById('pbody');if(B2&&window.__ptPage!=='cgd'&&B2.style.padding==='0px')B2.style.padding=''}catch(x){}}
 const h0=ptHome;ptHome=function(){if(arguments[0]!=='cgd'){if(!cgdGuard())return;cgdHide()}const r=h0.apply(this,arguments);place();return r};const l0=typeof ptLogin==='function'?ptLogin:null;if(l0)ptLogin=function(){if(!cgdGuard())return;cgdClose();return l0.apply(this,arguments)};
+})();
+</script>
+<script>
+/* r11226: globe-only "CGD Network" menu entry for logins without the CGD Network page (TPI, Patroller, Mechanical, HSE, Electrical, ERV). Opens the same CGD module frame locked to the KMZ globe view only - no tabs, no customer data, no Sheet traffic. */
+(()=>{
+const KMZROLES=['tpi','pat','mech','hse','elec','erv'];
+const MOD2={id:'kmzv',label:'CGD Network',icon:'&#127760;',roles:KMZROLES,pin:true,render:kmzvRender};
+MODULES.push(MOD2);
+const kmzvSee=()=>{try{return KMZROLES.includes(ptRole())}catch(x){return false}};
+let fr2=null;
+function kmzvClose(){const o=document.getElementById('kmzov');if(o)o.remove();fr2=null}
+function kmzvHtml(){const b=atob(document.getElementById('cgdsrc').textContent.trim());const u=Uint8Array.from(b,c=>c.charCodeAt(0));return new TextDecoder().decode(u).replace('<head>','<head><script>window.__CGD_PORTAL=1;window.__CGD_ROLE=\'view\';window.__KMZ_ONLY=1;<\/script>')}
+function kmzvRender(B){if(!kmzvSee()){B.innerHTML='';return}
+ const e0=document.getElementById('cgdsrc');
+ if(e0&&e0.dataset.asset45&&!e0.textContent.trim()){B.innerHTML='<div class="pcard" role="status">Opening CGD Network...</div>';asset45('cgdsrc').then(()=>{if(B.isConnected)kmzvRender(B)}).catch(x=>{if(B.isConnected)B.textContent=x.message});return}
+ B.innerHTML='';kmzvClose();
+ const o=document.createElement('div');o.id='kmzov';o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:9000;background:#050d1f;display:flex;flex-direction:column';
+ o.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:#0b3d78;color:#fff;flex:0 0 auto"><button type="button" id="kmzhome" style="border:1px solid #9db6d0;background:#fff;color:#0b3d78;border-radius:16px;padding:6px 12px;font-weight:700;font-size:14px;cursor:pointer">&#8962; Portal</button><b style="font-size:15px">CGD Network</b><span style="color:#9db6d0;font-weight:600;font-size:13px">(view only)</span></div><iframe id="kmzfr" title="CGD Network" style="display:block;flex:1 1 auto;width:100%;border:0;background:#050d1f"></iframe>';
+ document.body.appendChild(o);o.querySelector('#kmzhome').onclick=()=>{kmzvClose();ptHome()};fr2=document.getElementById('kmzfr');fr2.srcdoc=kmzvHtml()}
+const h1=ptHome;ptHome=function(){if(arguments[0]!=='kmzv')kmzvClose();return h1.apply(this,arguments)};
+const l1=typeof ptLogin==='function'?ptLogin:null;if(l1)ptLogin=function(){kmzvClose();return l1.apply(this,arguments)};
 })();
 </script>
 <script>
