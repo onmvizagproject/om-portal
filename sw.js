@@ -1,12 +1,12 @@
 /* v5.99.15 r13 (r11128, Home screens, v1.0 label, HSE history and reports changes): immediate cached launch, bounded installs, visible update status. */
-const CACHE='iocl-portal-shell-v5.99.15-r11227';
+const CACHE='iocl-portal-shell-v5.99.15-r11228';
 const HASHES148={
  "apple-touch-icon.png": "57907d512a141fbf20c43a5742e2fc5f4b2821ecaa533e82b29082291aaf4698",
- "cgd-module.b64": "6953da5cbb198b0395b60139e00743ddbe7d8a2a60b261768b80fd8f288d1006",
+ "cgd-module.b64": "a47d5a0070c2f596dd6850889610b52e03fb2a153c63ea7d5a51611102d70fec",
  "icon-192.png": "44805d488ec57e7269f182f65d8e02a5de286123b84dbdd769825a7a88228358",
  "icon-512.png": "838ced7a5be902adfecdc7c6cb7d6c74815ee1debaec969dd13170d536344ce0",
  "icon-maskable-512.png": "c2e93dc235eb284855769a0d37daba8a86d79b2dfa2b3414dea6f48699d7bb92",
- "index.html": "1951cc45e0b7bba6f0b9d9da2dfa1e616a25285ba5626f656b959e5d33add742",
+ "index.html": "037d24be2d4c372756545f46daf8a1f2e4d3e51943f86d5cd15686063331cc04",
  "manifest.webmanifest": "283a329ad8f8683ed55c94ddd034c0a6020143a831197fd445b929355f4aed56",
  "pipeline-module.b64": "712619486986ea326b09379712723f74b54cd19092b00968627ce52d3137cd26",
  "schedule-module.b64": "f96345c3e33f758dca70eb821b020456cd3b8c679879817fe682cdf90a830450"
